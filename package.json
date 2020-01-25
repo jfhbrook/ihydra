@@ -25,16 +25,10 @@
         "type": "git",
         "url": "https://github.com/jfhbrook/ihydra.git"
     },
-    "main": "main.js",
-    "bin": {
-        "ihydra": "bin/ihydra.js",
-        "ihydraconsole": "bin/ihydraconsole.js",
-        "ihydrainstall": "bin/ihydrainstall.js",
-        "ihydrakernel": "lib/kernel.js",
-        "ihydranotebook": "bin/ihydranotebook.js"
-    },
+    "main": "src/main/index.js",
     "dependencies": {
         "app-root-path": "^3.0.0",
+        "commander": "^4.1.0",
         "jp-kernel": "git+https://github.com/jfhbrook/jp-kernel.git#develop",
         "nel": "git+https://github.com/jfhbrook/nel.git#develop"
     },
