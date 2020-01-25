@@ -55,6 +55,15 @@
         "lint": "eslint bin lib test",
         "test:ihydrakernel": "electron-mocha test/ihydrakernel.js",
         "test": "npm run lint && npm run test:ihydrakernel",
-        "rebuild": "electron-rebuild"
+        "rebuild": "electron-rebuild",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder"
+    },
+    "build": {
+        "appId": "com.electron.jfhbrook.ihydra",
+        "productName": "IHydra",
+        "mac": {
+            "category": "public.app-category.graphics-design"
+        }
     }
 }
