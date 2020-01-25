@@ -52,7 +52,7 @@ var zmq = jmp.zmq;
 var log;
 var dontLog = function dontLog() {};
 var doLog = function doLog() {
-    process.stderr.write("IJS: TEST: MTE:");
+    process.stderr.write("IHYDRA: TEST: MTE:");
     console.error.apply(this, arguments);
 };
 
@@ -60,7 +60,7 @@ if (process.env.DEBUG) {
     global.DEBUG = true;
 
     try {
-        doLog = require("debug")("IJS: TEST: MTE:");
+        doLog = require("debug")("IHYDRA: TEST: MTE:");
     } catch (err) {}
 }
 
@@ -348,7 +348,7 @@ MessagingTestEngine.prototype._initSockets = function() {
 
 /**
  * @method      _initKernel
- * @description Setup IJavascript kernel
+ * @description Setup IHyra kernel
  * @private
  */
 MessagingTestEngine.prototype._initKernel = function() {
@@ -370,11 +370,11 @@ MessagingTestEngine.prototype._initKernel = function() {
 
 /**
  * @method      _disposeKernel
- * @description Dispose IJavascript kernel
+ * @description Dispose IHydra kernel
  * @private
  */
 MessagingTestEngine.prototype._disposeKernel = function() {
-    log("Disposing IJavascript kernel");
+    log("Disposing IHydra kernel");
 
     if (this.kernel) {
         this.kernel.kill("SIGTERM");

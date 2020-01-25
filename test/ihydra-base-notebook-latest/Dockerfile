@@ -18,8 +18,8 @@ ENV PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/cond
 
 
 USER jovyan
-RUN npm install -g ijavascript
-RUN ijsinstall
+RUN npm install -g git+https://github.com/jfhbrook/ihydra.git
+RUN ihydrainstall
 
 
 # clean up, no need to clobber the image with python2

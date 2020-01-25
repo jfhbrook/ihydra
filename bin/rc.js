@@ -48,7 +48,7 @@ var DEBUG;
 var log;
 var dontLog = function dontLog() {};
 var doLog = function doLog() {
-    process.stderr.write("IJS: ");
+    process.stderr.write("IHYDRA: ");
     console.error.apply(this, arguments);
 };
 
@@ -56,7 +56,7 @@ if (process.env.DEBUG) {
     DEBUG = true;
 
     try {
-        doLog = require("debug")("IJS:");
+        doLog = require("debug")("IHYDRA:");
     } catch (err) {}
 }
 
@@ -69,9 +69,9 @@ log = DEBUG ? doLog : dontLog;
  * @property            context
  * @property            context.path
  * @property {String}   context.path.node     Path to Node.js shell
- * @property {String}   context.path.root     Path to IJavascript root folder
- * @property {String}   context.path.kernel   Path to IJavascript kernel
- * @property {String}   context.path.images   Path to IJavascript images folder
+ * @property {String}   context.path.root     Path to IHydra root folder
+ * @property {String}   context.path.kernel   Path to IHydra kernel
+ * @property {String}   context.path.images   Path to IHydra images folder
  * @property {Object}   context.packageJSON   Contents of npm package.json
  * @property            context.flag
  * @property {Boolean}  context.flag.debug          --debug
@@ -131,23 +131,23 @@ function getPackageVersion(packageName) {
 var FLAGS = [{
     excludeIfInstaller: true,
     flag: "help",
-    description: "show IJavascript and Jupyter/IPython help",
+    description: "show IHydra and Jupyter/IPython help",
     parse: function(context, arg) {
         context.args.frontend.push(arg);
     },
     showUsage: true,
 }, {
     flag: "version",
-    description: "show IJavascript version",
+    description: "show IHydra version",
     parse: function(context, arg) {
         console.log(context.packageJSON.version);
     },
     exit: true,
 }, {
     flag: "versions",
-    description: "show IJavascript and library versions",
+    description: "show IHydra and library versions",
     parse: function(context, arg) {
-        console.log("ijavascript", context.packageJSON.version);
+        console.log("ihydra", context.packageJSON.version);
         console.log("jmp", getPackageVersion("jmp"));
         console.log("jp-kernel", getPackageVersion("jp-kernel"));
         console.log("nel", getPackageVersion("nel"));
@@ -167,7 +167,7 @@ var FLAGS = [{
     },
 }, {
     prefixedFlag: "help",
-    description: "show IJavascript help",
+    description: "show IHydra help",
     parse: function(context, arg) {
     },
     showUsage: true,
@@ -188,7 +188,7 @@ var FLAGS = [{
     },
 }, {
     prefixedFlag: "install=[local|global]",
-    description: "install IJavascript kernel",
+    description: "install IHydra kernel",
     parse: function(context, arg) {
         context.flag.install = getValue(arg);
         if (context.flag.install !== "local" &&
@@ -322,7 +322,10 @@ function parseCommandArgs(context, options) {
         ].concat(context.args.kernel);
     } else {
         context.args.kernel = [
-            (process.platform === "win32") ? "ijskernel.cmd" : "ijskernel",
+            ((process.platform === "win32")
+              ? "ihydrakernel.cmd"
+              : "ihydrakernel"
+            ),
         ].concat(context.args.kernel);
     }
 

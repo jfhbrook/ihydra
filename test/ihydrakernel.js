@@ -138,7 +138,7 @@ function testKernelInfoRequest(mte) {
         var kernelInfoReply;
         var nodeVersion;
         var protocolVersion;
-        var ijsVersion;
+        var ihydraVersion;
         var majorVersion = parseInt(mte.version.protocol.split(".")[0]);
         if (majorVersion <= 4) {
             nodeVersion = process.versions.node.split(".")
@@ -157,13 +157,13 @@ function testKernelInfoRequest(mte) {
         } else {
             nodeVersion = process.versions.node;
             protocolVersion = mte.version.protocol;
-            ijsVersion = JSON.parse(
+            ihydraVersion = JSON.parse(
                 fs.readFileSync(path.join(mte.path.root, "package.json"))
             ).version;
             kernelInfoReply = {
                 "protocol_version": protocolVersion,
-                "implementation": "ijavascript",
-                "implementation_version": ijsVersion,
+                "implementation": "ihydra",
+                "implementation_version": ihydraVersion,
                 "language_info": {
                     "name": "javascript",
                     "version": nodeVersion,
@@ -171,12 +171,12 @@ function testKernelInfoRequest(mte) {
                     "file_extension": ".js",
                 },
                 "banner": (
-                    "IJavascript v" + ijsVersion + "\n" +
-                    "https://github.com/n-riesco/ijavascript\n"
+                    "IHydra v" + ihydraVersion + "\n" +
+                    "https://github.com/jfhbrook/ihydra\n"
                 ),
                 "help_links": [{
-                    "text": "IJavascript Homepage",
-                    "url": "https://github.com/n-riesco/ijavascript",
+                    "text": "IHydra Homepage",
+                    "url": "https://github.com/jfhbrook/ihydra",
                 }],
             };
         }

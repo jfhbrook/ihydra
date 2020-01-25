@@ -34,6 +34,8 @@
  *
  */
 
+var console = require("console");
+
 var rc = require("./rc.js");
 var context = rc.context;
 var installKernelAsync = rc.installKernelAsync;
@@ -43,20 +45,29 @@ var parseCommandArgs = rc.parseCommandArgs;
 var setJupyterInfoAsync = rc.setJupyterInfoAsync;
 var setPaths = rc.setPaths;
 var setProtocol = rc.setProtocol;
+var spawnFrontend = rc.spawnFrontend;
 
 setPaths(context);
 
 readPackageJson(context);
 
 parseCommandArgs(context, {
-    installer: true,
+    flagPrefix: "ihydra",
 
     usageHeader: [
-        "IJavascript Kernel Installer",
+        "IHydra Console",
         "",
         "Usage:",
         "",
-        "    ijsinstall <options>",
+        "    ihydraconsole <options>",
+    ].join("\n"),
+
+    usageFooter: [
+        "and any other options recognised by the Jupyter notebook; run:",
+        "",
+        "    jupyter console --help",
+        "",
+        "for a full list.",
     ].join("\n"),
 });
 
@@ -65,5 +76,10 @@ setJupyterInfoAsync(context, function() {
 
     installKernelAsync(context, function() {
         log("CONTEXT:", context);
+
+        if (!context.flag.install) {
+            console.error("To quit press ctrl-d and confirm.\n");
+            spawnFrontend(context);
+        }
     });
 });
