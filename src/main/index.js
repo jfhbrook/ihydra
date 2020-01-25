@@ -39,6 +39,7 @@ var app = electron.app;
 
 var packageJson = require("../../package.json");
 
+var admin = require("./admin");
 var runKernel = require("../lib/kernel");
 
 var rc = require("../lib/rc.js");
@@ -164,6 +165,11 @@ switch (argv.action) {
   break;
   case 'admin':
     console.log('running the admin');
+    admin(argv.config, function(err) {
+      if (err) console.error(err);
+      console.log('done running the admin');
+      app.exit();
+    });
   break;
   default:
     console.log('unknown command');
