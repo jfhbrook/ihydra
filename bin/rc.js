@@ -544,7 +544,7 @@ function installKernelAsync(context, callback) {
     var specFile = path.join(specDir, "kernel.json");
     var spec = {
         argv: context.args.kernel,
-        display_name: "Javascript (Node.js)",
+        display_name: "IHydra (Electron)",
         language: "javascript",
     };
     fs.writeFileSync(specFile, JSON.stringify(spec));
