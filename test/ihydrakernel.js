@@ -165,7 +165,7 @@ function testKernelInfoRequest(mte) {
                 "implementation": "ihydra",
                 "implementation_version": ihydraVersion,
                 "language_info": {
-                    "name": "javascript",
+                    "name": "ihydra",
                     "version": nodeVersion,
                     "mimetype": "application/javascript",
                     "file_extension": ".js",
