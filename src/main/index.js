@@ -31,6 +31,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
+var fs = require("fs");
+
+var commander = require("commander");
+var electron = require("electron");
+var app = electron.app;
+
+var packageJson = require("../../package.json");
+
+var runKernel = require("../lib/kernel");
 
 var rc = require("../lib/rc.js");
 var context = rc.context;
@@ -47,37 +56,116 @@ setPaths(context);
 
 readPackageJson(context);
 
-parseCommandArgs(context, {
-    showUndefined: true,
-    includeDeprecated: true,
+var parser = new commander.Command();
 
-    flagPrefix: "ihydra",
+var argv = {
+    action: 'admin',
+    config: {}
+};
 
-    usageHeader: [
-        "IHydra Notebook",
-        "",
-        "Usage:",
-        "",
-        "    ihydra <options>",
-    ].join("\n"),
+parser.version(packageJson.version);
 
-    usageFooter: [
-        "and any other options recognised by the Jupyter notebook; run:",
-        "",
-        "    jupyter notebook --help",
-        "",
-        "for a full list.",
-    ].join("\n"),
-});
+parser
+    .command("kernel <connection_file>")
+    .option(
+        "--debug",
+        "Debug flag for jp-kernel"
+    )
+    .option(
+        "--protocol <version>",
+        "Set the Jupyter protocol version (format: Major[.minor[.patch]]])",
+        "5.1"
+    )
+    .option(
+        "--session-working-dir <dir>",
+        "The working directory for this kernel session",
+        process.cwd()
+    )
+    .action(function(connectionFile, opts) {
+        // Adopted from kernel.js
+        var action = 'kernel';
+        var config = {
+            debug: opts.debug || false,
+            hideExecutionResult: false,
+            hideUndefined: false,
+            protocolVersion: opts.protocol,
+            connection: JSON.parse(fs.readFileSync(connectionFile)),
+            cwd: opts.sessionWorkingDir,
+            startupCallback: function() {
+                console.error("startupCallback:", this.startupCallback);
+            }
+        };
 
-setJupyterInfoAsync(context, function() {
-    setProtocol(context);
+        var nodeVersion;
+        var protocolVersion;
+        var ihydraVersion;
+        var majorVersion = parseInt(config.protocolVersion.split(".")[0]);
 
-    installKernelAsync(context, function() {
-        log("CONTEXT:", context);
-
-        if (!context.flag.install) {
-            spawnFrontend(context);
+        if (majorVersion <= 4) {
+            nodeVersion = process.versions.node.split(".")
+                .map(function(v) {
+                    return parseInt(v, 10);
+                });
+            protocolVersion = config.protocolVersion.split(".")
+                .map(function(v) {
+                    return parseInt(v, 10);
+                });
+            config.kernelInfoReply = {
+                "language": "javascript",
+                "language_version": nodeVersion,
+                "protocol_version": protocolVersion,
+            };
+        } else {
+            nodeVersion = process.versions.node;
+            protocolVersion = config.protocolVersion;
+            ihydraVersion = JSON.parse(
+                fs.readFileSync(path.join(__dirname, "..", "..", "package.json"))
+            ).version;
+            config.kernelInfoReply = {
+                "protocol_version": protocolVersion,
+                "implementation": "ihydra",
+                "implementation_version": ihydraVersion,
+                "language_info": {
+                    "name": "javascript",
+                    "version": nodeVersion,
+                    "mimetype": "application/javascript",
+                    "file_extension": ".js",
+                },
+                "banner": (
+                    "IHydra v" + ihydraVersion + "\n" +
+                    "https://github.com/jfhbrook/ihydra\n"
+                ),
+                "help_links": [{
+                    "text": "IHydra Homepage",
+                    "url": "https://github.com/jfhbrook/ihydra",
+                }],
+            };
         }
+
+        argv.action = action;
+        argv.config = config;
     });
+
+parser.command("*").action(function(self, args) {
+    argv.action = args[0];
 });
+
+try {
+    parser.parse(process.argv);
+} catch (err) {
+    console.log(err);
+    app.exit();
+}
+
+switch (argv.action) {
+  case 'kernel':
+    console.log('running the kernel');
+    runKernel(argv.config);
+  break;
+  case 'admin':
+    console.log('running the admin');
+  break;
+  default:
+    console.log('unknown command');
+    app.exit();
+}
