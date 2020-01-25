@@ -33,7 +33,8 @@
         "ihydranotebook": "bin/ihydranotebook.js"
     },
     "dependencies": {
-        "jp-kernel": "git+https://github.com/jfhbrook/jp-kernel.git#develop"
+        "jp-kernel": "git+https://github.com/jfhbrook/jp-kernel.git#develop",
+        "nel": "git+https://github.com/jfhbrook/nel.git#develop"
     },
     "devDependencies": {
         "debug": "2",
