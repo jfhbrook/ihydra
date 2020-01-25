@@ -25,6 +25,7 @@
         "type": "git",
         "url": "https://github.com/jfhbrook/ihydra.git"
     },
+    "main": "main.js",
     "bin": {
         "ihydra": "bin/ihydra.js",
         "ihydraconsole": "bin/ihydraconsole.js",
