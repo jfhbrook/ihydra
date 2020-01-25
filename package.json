@@ -43,11 +43,13 @@
         "electron": "^7.1.10",
         "electron-mocha": "^8.2.0",
         "electron-rebuild": "^1.9.0",
+        "electron-webpack": "^2.7.4",
         "eslint": "2",
         "jmp": "1 || 2",
         "jsdoc": "3",
         "mocha": "3",
-        "uuid": "3"
+        "uuid": "3",
+        "webpack": "^4.41.5"
     },
     "engineStrict": true,
     "scripts": {
@@ -55,9 +57,8 @@
         "lint": "eslint bin lib test",
         "test:ihydrakernel": "electron-mocha test/ihydrakernel.js",
         "test": "npm run lint && npm run test:ihydrakernel",
-        "rebuild": "electron-rebuild",
-        "pack": "electron-builder --dir",
-        "dist": "electron-builder"
+        "compile": "electron-rebuild && electron-webpack",
+        "dist": "npm run compile && electron-builder"
     },
     "build": {
         "appId": "com.electron.jfhbrook.ihydra",

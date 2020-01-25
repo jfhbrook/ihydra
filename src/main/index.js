@@ -32,7 +32,7 @@
  *
  */
 
-var rc = require("./lib/rc.js");
+var rc = require("../lib/rc.js");
 var context = rc.context;
 var installKernelAsync = rc.installKernelAsync;
 var log = rc.log;
