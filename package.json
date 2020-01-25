@@ -37,6 +37,9 @@
     },
     "devDependencies": {
         "debug": "2",
+        "electron": "^7.1.10",
+        "electron-mocha": "^8.2.0",
+        "electron-rebuild": "^1.9.0",
         "eslint": "2",
         "jmp": "1 || 2",
         "jsdoc": "3",
@@ -46,7 +49,8 @@
     "engineStrict": true,
     "scripts": {
         "lint": "eslint bin lib test",
-        "test:ihydrakernel": "mocha test/ihydrakernel.js",
-        "test": "npm run lint && npm run test:ihydrakernel"
+        "test:ihydrakernel": "electron-mocha test/ihydrakernel.js",
+        "test": "npm run lint && npm run test:ihydrakernel",
+        "rebuild": "electron-rebuild"
     }
 }
