@@ -1,36 +1,39 @@
 {
-    "name": "ijavascript",
+    "name": "ihydra",
     "version": "5.2.0",
-    "description": "IJavascript is a Javascript kernel for the Jupyter notebook",
+    "description": "IHydra is a Jupyter kernel for the Hydra video synth livecoding environment",
     "keywords": [
-        "javascript",
         "kernel",
         "ipython",
-        "jupyter"
+        "jupyter",
+        "hydra",
+        "video",
+        "electron",
+        "livecoding"
     ],
-    "homepage": "https://n-riesco.github.io/ijavascript",
+    "homepage": "https://github.com/jfhbrook/ihydra",
     "bugs": {
-        "url": "https://github.com/n-riesco/ijavascript/issues"
+        "url": "https://github.com/jfhbrook/ihydra/issues"
     },
     "license": "BSD-3-Clause",
     "author": {
-        "name": "Nicolas Riesco",
-        "email": "enquiries@nicolasriesco.net",
-        "url": "http://www.nicolasriesco.net/"
+        "name": "Josh Holbrook",
+        "email": "josh.holbrook@gmail.com",
+        "url": "https://josh.agency"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/n-riesco/ijavascript.git"
+        "url": "https://github.com/jfhbrook/ihydra.git"
     },
     "bin": {
-        "ijs": "bin/ijavascript.js",
-        "ijsconsole": "bin/ijsconsole.js",
-        "ijsinstall": "bin/ijsinstall.js",
-        "ijskernel": "lib/kernel.js",
-        "ijsnotebook": "bin/ijsnotebook.js"
+        "ihydra": "bin/ihydra.js",
+        "ihydraconsole": "bin/ihydraconsole.js",
+        "ihydrainstall": "bin/ihydrainstall.js",
+        "ihydrakernel": "lib/kernel.js",
+        "ihydranotebook": "bin/ihydranotebook.js"
     },
     "dependencies": {
-        "jp-kernel": "1 || 2"
+        "jp-kernel": "git+https://github.com/jfhbrook/jp-kernel.git#develop"
     },
     "devDependencies": {
         "debug": "2",
@@ -42,16 +45,8 @@
     },
     "engineStrict": true,
     "scripts": {
-        "doc": "python scripts/doc-build.py",
-        "doc:publish": "node scripts/doc-publish.js gh-pages https://github.com/n-riesco/ijavascript",
-        "docker:build:node:0.10": "docker build -f test/ijavascript-node-0.10/Dockerfile -t ijs-node-0.10 --no-cache .",
-        "docker:shell:node:0.10": "docker run --rm -ti ijs-node-0.10 /bin/bash",
-        "docker:test:node:0.10": "docker run --rm -ti ijs-node-0.10",
-        "docker:build:node:latest": "docker build -f test/ijavascript-node-latest/Dockerfile -t ijs-node-latest --no-cache .",
-        "docker:shell:node:latest": "docker run --rm -ti ijs-node-latest /bin/bash",
-        "docker:test:node:latest": "docker run --rm -ti ijs-node-latest",
         "lint": "eslint bin lib test",
-        "test:ijskernel": "mocha test/ijskernel.js",
-        "test": "npm run lint && npm run test:ijskernel"
+        "test:ihydrakernel": "mocha test/ihydrakernel.js",
+        "test": "npm run lint && npm run test:ihydrakernel"
     }
 }

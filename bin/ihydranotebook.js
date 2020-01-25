@@ -50,17 +50,14 @@ setPaths(context);
 readPackageJson(context);
 
 parseCommandArgs(context, {
-    showUndefined: true,
-    includeDeprecated: true,
-
-    flagPrefix: "ijs",
+    flagPrefix: "ihydra",
 
     usageHeader: [
-        "IJavascript Notebook",
+        "IHydra Notebook",
         "",
         "Usage:",
         "",
-        "    ijs <options>",
+        "    ihydranotebook <options>",
     ].join("\n"),
 
     usageFooter: [

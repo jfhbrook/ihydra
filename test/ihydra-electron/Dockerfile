@@ -4,12 +4,12 @@ RUN apt-get update && \
     apt-get install -yq --no-install-recommends libzmq3-dev jupyter-notebook && \
     apt-get clean
 
-RUN mkdir -p ijavascript
+RUN mkdir -p ihydra
 
-COPY . ijavascript
+COPY . ihydra
 
-RUN cd ijavascript && rm -rf node_modules && npm i --production
+RUN cd ihydra && rm -rf node_modules && npm i --production
 
-WORKDIR ijavascript
+WORKDIR ihydra
 
 CMD npm install && npm run test
