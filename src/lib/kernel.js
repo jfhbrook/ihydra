@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /*
  * BSD 3-Clause License
  *
@@ -41,6 +39,7 @@ var spawn = require("child_process").spawn;
 var vm = require("vm");
 
 var app = require("electron").app;
+var dbug = require("debug");
 var JpKernel = require("jp-kernel");
 var Session = require("nel").Session;
 
@@ -68,7 +67,7 @@ module.exports = function run(config, callback) {
       global.DEBUG = true;
 
       try {
-          doLog = require("debug")("KERNEL:");
+          doLog = debug("KERNEL:");
       } catch (err) {}
   }
 

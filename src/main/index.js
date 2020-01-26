@@ -32,6 +32,7 @@
  *
  */
 var fs = require("fs");
+var path = require("path");
 
 var commander = require("commander");
 var electron = require("electron");
@@ -151,8 +152,45 @@ parser.command("*").action(function(self, args) {
     argv.action = args[0];
 });
 
+// if argv is of form ...electron[possible extension], ...args.., foo.js
+// then we can drop the first 3 and replace w/ our own
+// in production this will be different
+
+function normalizeArgv(argv) {
+    var raw = argv.slice();
+    var normalized = [];
+
+    var cmd = raw.shift();
+    if (path.basename(cmd).split('.')[0] === 'electron') {
+        // Appears to be running with "electron.exe"...
+        normalized.push(cmd);
+
+        // Many arguments can be passed to electron before the
+        // script by electron-webpack, so we throw them out until
+        // we get one that looks like a script. That way, they don't
+        // confuse commander.
+        //
+        // This may or may not end up being super brittle.
+        var script = null;
+        while (true) {
+            if (!raw.length) {
+                break;
+            }
+            script = raw.shift();
+            if (path.extname(path.basename(script)) === '.js') {
+                normalized.push(script);
+                break;
+            }
+        }
+    } else {
+        normalized.push(cmd);
+    }
+
+    return normalized.concat(raw);
+}
+
 try {
-    parser.parse(process.argv);
+    parser.parse(normalizeArgv(process.argv));
 } catch (err) {
     console.log(err);
     app.exit();

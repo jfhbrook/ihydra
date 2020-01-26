@@ -42,6 +42,7 @@ var spawn = require("child_process").spawn;
 var util = require("util");
 
 var appRoot = require('app-root-path').path;
+var debug = require('debug');
 
 // Setup logging helpers
 var DEBUG;
@@ -57,7 +58,7 @@ if (process.env.DEBUG) {
     DEBUG = true;
 
     try {
-        doLog = require("debug")("IHYDRA:");
+        doLog = debug("IHYDRA:");
     } catch (err) {}
 }
 
