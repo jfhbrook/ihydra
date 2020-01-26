@@ -1,9 +1,7 @@
-#!/usr/bin/env node
-
 /*
  * BSD 3-Clause License
  *
- * Copyright (c) 2015, Nicolas Riesco and others as credited in the AUTHORS file
+ * Copyright (c) 2017, Nicolas Riesco and others as credited in the AUTHORS file
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,36 +32,34 @@
  *
  */
 
-var rc = require("./rc.js");
-var context = rc.context;
-var installKernelAsync = rc.installKernelAsync;
-var log = rc.log;
-var readPackageJson = rc.readPackageJson;
-var parseCommandArgs = rc.parseCommandArgs;
-var setJupyterInfoAsync = rc.setJupyterInfoAsync;
-var setPaths = rc.setPaths;
-var setProtocol = rc.setProtocol;
+/** @module server
+ *
+ * @description
+ *
+ * The NEL module spawns a Node.js session and runs an IPC server to process
+ * execution, inspection and completion request.
+ *
+ * This module builds and exports the source code of the NEL server.
+ *
+ */
 
-setPaths(context);
+var fs = require("fs");
+var path = require("path");
 
-readPackageJson(context);
 
-parseCommandArgs(context, {
-    installer: true,
-
-    usageHeader: [
-        "IJavascript Kernel Installer",
-        "",
-        "Usage:",
-        "",
-        "    ijsinstall <options>",
-    ].join("\n"),
+var sourceFiles = [
+    "modules.js",
+    "context.js",
+    "display.js",
+    "requester.js",
+    "main.js",
+].map(function(filename) {
+    return fs.readFileSync(path.join(__dirname, filename));
 });
 
-setJupyterInfoAsync(context, function() {
-    setProtocol(context);
+// iife
+sourceFiles.unshift("(function() {");
+sourceFiles.push("})();");
 
-    installKernelAsync(context, function() {
-        log("CONTEXT:", context);
-    });
-});
+
+module.exports = sourceFiles.join("\n");

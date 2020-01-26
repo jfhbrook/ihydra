@@ -41,6 +41,8 @@ var path = require("path");
 var spawn = require("child_process").spawn;
 var util = require("util");
 
+var appRoot = require('app-root-path').path;
+var debug = require('debug');
 
 // Setup logging helpers
 var DEBUG;
@@ -48,7 +50,7 @@ var DEBUG;
 var log;
 var dontLog = function dontLog() {};
 var doLog = function doLog() {
-    process.stderr.write("IJS: ");
+    process.stderr.write("IHYDRA: ");
     console.error.apply(this, arguments);
 };
 
@@ -56,7 +58,7 @@ if (process.env.DEBUG) {
     DEBUG = true;
 
     try {
-        doLog = require("debug")("IJS:");
+        doLog = debug("IHYDRA:");
     } catch (err) {}
 }
 
@@ -69,9 +71,9 @@ log = DEBUG ? doLog : dontLog;
  * @property            context
  * @property            context.path
  * @property {String}   context.path.node     Path to Node.js shell
- * @property {String}   context.path.root     Path to IJavascript root folder
- * @property {String}   context.path.kernel   Path to IJavascript kernel
- * @property {String}   context.path.images   Path to IJavascript images folder
+ * @property {String}   context.path.root     Path to IHydra root folder
+ * @property {String}   context.path.kernel   Path to IHydra kernel
+ * @property {String}   context.path.images   Path to IHydra images folder
  * @property {Object}   context.packageJSON   Contents of npm package.json
  * @property            context.flag
  * @property {Boolean}  context.flag.debug          --debug
@@ -106,10 +108,9 @@ var context = {
 };
 
 function setPaths(context) {
+    // TODO - This will be the path to electron, which shouldn't be getting used in prod
     context.path.node = process.argv[0];
-    context.path.root = path.dirname(path.dirname(
-        fs.realpathSync(process.argv[1])
-    ));
+    context.path.root = appRoot;
     context.path.kernel = path.join(context.path.root, "lib", "kernel.js");
     context.path.images = path.join(context.path.root, "images");
 }
@@ -131,23 +132,23 @@ function getPackageVersion(packageName) {
 var FLAGS = [{
     excludeIfInstaller: true,
     flag: "help",
-    description: "show IJavascript and Jupyter/IPython help",
+    description: "show IHydra and Jupyter/IPython help",
     parse: function(context, arg) {
         context.args.frontend.push(arg);
     },
     showUsage: true,
 }, {
     flag: "version",
-    description: "show IJavascript version",
+    description: "show IHydra version",
     parse: function(context, arg) {
         console.log(context.packageJSON.version);
     },
     exit: true,
 }, {
     flag: "versions",
-    description: "show IJavascript and library versions",
+    description: "show IHydra and library versions",
     parse: function(context, arg) {
-        console.log("ijavascript", context.packageJSON.version);
+        console.log("ihydra", context.packageJSON.version);
         console.log("jmp", getPackageVersion("jmp"));
         console.log("jp-kernel", getPackageVersion("jp-kernel"));
         console.log("nel", getPackageVersion("nel"));
@@ -167,7 +168,7 @@ var FLAGS = [{
     },
 }, {
     prefixedFlag: "help",
-    description: "show IJavascript help",
+    description: "show IHydra help",
     parse: function(context, arg) {
     },
     showUsage: true,
@@ -188,7 +189,7 @@ var FLAGS = [{
     },
 }, {
     prefixedFlag: "install=[local|global]",
-    description: "install IJavascript kernel",
+    description: "install IHydra kernel",
     parse: function(context, arg) {
         context.flag.install = getValue(arg);
         if (context.flag.install !== "local" &&
@@ -322,7 +323,10 @@ function parseCommandArgs(context, options) {
         ].concat(context.args.kernel);
     } else {
         context.args.kernel = [
-            (process.platform === "win32") ? "ijskernel.cmd" : "ijskernel",
+            ((process.platform === "win32")
+              ? "ihydrakernel.cmd"
+              : "ihydrakernel"
+            ),
         ].concat(context.args.kernel);
     }
 
@@ -508,7 +512,7 @@ function setProtocol(context) {
             context.args.kernel.join("', '")
         ));
     } else if (context.args.frontend[1] === "console") {
-        context.args.frontend.push("--kernel=javascript");
+        context.args.frontend.push("--kernel=hydra");
     }
 
     if (context.frontend.majorVersion < 3 &&
@@ -534,14 +538,14 @@ function installKernelAsync(context, callback) {
 
     // Create temporary spec folder
     var tmpdir = makeTmpdir();
-    var specDir = path.join(tmpdir, "javascript");
+    var specDir = path.join(tmpdir, "hydra");
     fs.mkdirSync(specDir);
 
     // Create spec file
     var specFile = path.join(specDir, "kernel.json");
     var spec = {
         argv: context.args.kernel,
-        display_name: "Javascript (Node.js)",
+        display_name: "IHydra (Electron)",
         language: "javascript",
     };
     fs.writeFileSync(specFile, JSON.stringify(spec));
