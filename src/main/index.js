@@ -40,8 +40,8 @@ var app = electron.app;
 
 var packageJson = require("../../package.json");
 
-var admin = require("./admin");
-var runKernel = require("../lib/kernel");
+var admin = require("./apps/admin");
+var kernel = require("../lib/kernel");
 
 var rc = require("../lib/rc.js");
 var context = rc.context;
@@ -196,10 +196,11 @@ try {
     app.exit();
 }
 
+// TODO: object access?
 switch (argv.action) {
   case 'kernel':
     console.log('running the kernel');
-    runKernel(argv.config);
+    kernel(argv.config);
   break;
   case 'admin':
     console.log('running the admin');

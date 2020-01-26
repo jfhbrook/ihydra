@@ -1,5 +1,11 @@
-console.log('loading index.js');
+var Loader = require('./loader').Loader;
 
-var body = document.getElementById('app');
+var Admin = require('./containers/admin');
+var Hydra = require('./containers/hydra');
 
-body.innerHTML = '<h1>brohonestly</h1>';
+var loader = new Loader();
+
+loader.register('admin', Admin);
+loader.register('hydra', Hydra);
+
+loader.load(__args__);

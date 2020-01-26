@@ -1,40 +1,16 @@
-var path = require('path');
-var formatUrl = require('url').format;
-
-
 var electron = require("electron");
 var app = electron.app;
-var BrowserWindow = electron.BrowserWindow;
-var isDev = require('electron-is-dev');
+
+var createWindow = require('../window');
 
 module.exports = function(config, callback) {
     var adminPanel = null;
 
     function createAdminPanel() {
-        var panel = new BrowserWindow({
-            webPreferences: {nodeIntegration: true}
-        });
-
-        if (isDev) {
-            panel.webContents.openDevTools();
-            panel.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`);
-        } else {
-            panel.loadURL(formatUrl({
-                pathname: path.join(__dirname, "index.html").replace(/\\/g, '/', 'g'),
-                protocol: "file",
-                slashes: true
-            }));
-        }
+        var panel = createWindow('admin', {});
 
         panel.on('closed', function() {
             adminPanel = null;
-        });
-
-        panel.webContents.on('devtools-opened', function() {
-            panel.focus();
-            setImmediate(function() {
-                panel.focus();
-            });
         });
 
         return panel;
