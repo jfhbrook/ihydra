@@ -29,6 +29,7 @@
     "dependencies": {
         "app-root-path": "^3.0.0",
         "commander": "^4.1.0",
+        "electron-is-dev": "^1.1.0",
         "jp-kernel": "git+https://github.com/jfhbrook/jp-kernel.git#develop",
         "nel": "git+https://github.com/jfhbrook/nel.git#develop"
     },
@@ -47,7 +48,7 @@
     },
     "engineStrict": true,
     "scripts": {
-        "start": "electron .",
+        "dev": "electron-webpack dev",
         "lint": "eslint bin lib test",
         "test:ihydrakernel": "electron-mocha test/ihydrakernel.js",
         "test": "npm run lint && npm run test:ihydrakernel",
