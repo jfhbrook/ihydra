@@ -6,6 +6,8 @@ const { app } = electron;
 const isDev = require("electron-is-dev");
 const window = require("electron-window");
 
+const { dehydrateContext } = require("../lib/context");
+
 function createWindow(context, callback) {
   const win = window.createWindow({
     webPreferences: { nodeIntegration: true }
@@ -15,11 +17,15 @@ function createWindow(context, callback) {
     win.webContents.openDevTools();
     win.showURL(
       `http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`,
-      context,
+      dehydrateContext(context),
       callback
     );
   } else {
-    win.showURL(path.join(__dirname, "index.html"), context, callback);
+    win.showURL(
+      path.join(__dirname, "index.html"),
+      dehydrateContext(context),
+      callback
+    );
   }
 
   win.webContents.on("devtools-opened", () => {
@@ -58,9 +64,13 @@ function adminWindowManager(context) {
       }
     });
 
-    app.on("ready", () => {
+    if (app.isReady()) {
       adminPanel = createAdminPanel();
-    });
+    } else {
+      app.on("ready", () => {
+        adminPanel = createAdminPanel();
+      });
+    }
   });
 }
 

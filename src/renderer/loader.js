@@ -1,6 +1,8 @@
 const React = require("react");
 const { render } = require("react-dom");
 
+const { hydrateContext } = require("../lib/context");
+
 class Loader {
   constructor() {
     this.containers = new Map();
@@ -20,7 +22,10 @@ class Loader {
       Component = this.containers.get("default");
     }
 
-    render(<Component context={context} />, document.getElementById("app"));
+    render(
+      <Component context={hydrateContext(context)} />,
+      document.getElementById("app")
+    );
   }
 }
 

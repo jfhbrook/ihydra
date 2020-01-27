@@ -1,30 +1,18 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-const execCb = require("child_process").exec;
 const fs = require("fs");
 const path = require("path");
-const { promisify } = require("util");
 
 const commander = require("commander");
-const electron = require("electron");
 
-const { app } = electron;
 const isDev = require("electron-is-dev");
 const { quote } = require("shell-quote");
 const which = require("which");
 
+const exec = require("./process").exec;
 const packageJson = require("../../package.json");
-const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
-const exec = promisify((cmd, callback) => {
-  execCb(cmd, (err, stdout, stderr) => {
-    if (err) {
-      callback(err);
-    } else {
-      callback(null, { stdout, stderr });
-    }
-  });
-});
+const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
 function electronArgv(argv) {
   const raw = argv.slice();
@@ -69,6 +57,12 @@ function commanderArgv({ kernel, args }) {
     return kernel.concat(args);
   }
   return [kernel[0], "dummy.js"].concat(args);
+}
+
+function cloneContext(old) {
+  return {
+    ...old
+  };
 }
 
 function kernelAction(context) {
@@ -131,7 +125,9 @@ function kernelAction(context) {
   };
 }
 
-function kernelCommand(context, parser) {
+function kernelCommand(old, parser) {
+  const context = cloneContext(old);
+
   parser
     .command("kernel <connection_file>")
     .option("--debug", "Debug flag for jp-kernel")
@@ -146,9 +142,13 @@ function kernelCommand(context, parser) {
       process.cwd()
     )
     .action(kernelAction(context));
+
+  return [context];
 }
 
-function adminCommand(context, parser) {
+function adminCommand(old, parser) {
+  let context = cloneContext(old);
+
   // Admin is the default action
   context.action = "admin";
 
@@ -158,67 +158,90 @@ function adminCommand(context, parser) {
     [context.action] = args;
   });
 
-  return () => {
+  return [context, (ctx) => {
     // If we're the admin then we can safely do admin-specific data loading
-    if (context.action === "admin") {
-      context.name = "hydra";
-      context.displayName = "IHydra";
-      context.localInstall = true;
+    if (ctx.action === "admin") {
+      return {
+        ...ctx,
+        action: "admin",
+        name: "hydra",
+        displayName: "IHydra",
+        localInstall: true
+      };
+    } else {
+      return cloneContext(ctx);
     }
-  };
+  }];
 }
 
-function createContext() {
-  const context = {
-    action: "default",
-    commanderAfterHooks: [],
-
-    paths: {
-      root,
-      images: path.join(root, "images")
-    },
-
-    attachCommand(parser, command) {
-      const afterHook = command(this, parser);
-      if (afterHook) {
-        this.commanderAfterHooks.push(afterHook);
-      }
-    },
-
+function hydrateContext(old) {
+  return {
+     ...old,
     parseArgs(argv) {
+      let context = cloneContext(this);
+
+      const afterHooks = [];
       const eArgv = electronArgv(argv);
 
-      this.kernel = eArgv.kernel;
-      this.args = eArgv.args;
+      context.kernel = eArgv.kernel;
+      context.args = eArgv.args;
 
       const parser = new commander.Command();
+
+      const attachCommand = (command) => {
+        let afterHook;
+        [context, afterHook] = command(context, parser);
+
+        if (afterHook) {
+          afterHooks.push(afterHook);
+        }
+      };
 
       parser.version(packageJson.version);
 
       parser.option("--debug", "Log debug messages");
 
-      this.attachCommand(parser, kernelCommand);
-      this.attachCommand(parser, adminCommand);
+      attachCommand(kernelCommand);
+      attachCommand(adminCommand);
 
       parser.parse(commanderArgv(eArgv));
 
-      this.commanderAfterHooks.forEach(hook => hook(this));
+      afterHooks.forEach(hook => context = hook(context));
 
-      this.debug = parser.debug;
+      context.debug = parser.debug;
+
+      return context;
+    },
+
+    async searchForJupyter() {
+      const context = cloneContext(this);
+
+      let command = context.jupyter && context.jupyter.command;
+
+      if (!command) {
+        command = [await which("jupyter")];
+      }
+
+      if (command) {
+        context.jupyter.command = command;
+        return context;
+      }
+      else {
+        throw new Error("could not find Jupyter");
+      }
     },
 
     async loadJupyterInfo() {
-      let cmd = this.jupyter;
-      if (!cmd) {
-        cmd = [await which("jupyter")];
+      const context = cloneContext(this);
+
+      let command = context.jupyter && context.jupyter.command;
+      if (!command) {
+        throw new Error("don't know how to run Jupyter");
       }
 
-      cmd = quote(cmd.concat(["--version"]));
+      const { stdout } = await exec(quote(command.concat(["--version"])));
 
-      // TODO: IJavascript attempts to fall back to IPython
-      const { stdout } = exec(cmd);
-
-      this.jupyter = { cmd };
+      context.jupyter = { command };
 
       let version;
       let majorVersion;
@@ -242,12 +265,47 @@ function createContext() {
         }
       }
 
-      this.jupyter.version = version;
-      this.jupyter.majorVersion = majorVersion;
+      context.jupyter.version = version;
+      context.jupyter.majorVersion = majorVersion;
+
+      return context;
+    },
+
+    ensureSupportedJupyterVersion() {
+      if (this.jupyter.majorVersion < 3) {
+        throw new Error("frontend major version must be >= 3");
+      }
     }
   };
-
-  return context;
 }
 
-module.exports = createContext;
+function dehydrateContext(old) {
+  // TODO: This should create a new object that
+  // whitelists expected properties instead of
+  // cheesing it like we are now
+
+  return JSON.parse(JSON.stringify(old));
+};
+
+function createDehydratedContext() {
+  return {
+    action: "default",
+    paths: {
+      root,
+      images: path.join(root, "images")
+    },
+    jupyter: {}
+  };
+}
+
+function createContext() {
+  return hydrateContext(createDehydratedContext());
+};
+
+module.exports = {
+  createContext,
+  createDehydratedContext,
+  hydrateContext,
+  dehydrateContext,
+  cloneContext
+};
