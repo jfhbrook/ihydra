@@ -49,7 +49,6 @@ async function main() {
       kernel(context);
       break;
     case "admin":
-      await context.loadJupyterInfo();
       await adminWindowManager(context);
       break;
     default:

@@ -224,12 +224,30 @@ function hydrateContext(old) {
       return context;
     },
 
+    async searchForJupyter() {
+      const context = cloneContext(this);
+
+      let command = context.jupyter && context.jupyter.command;
+
+      if (!command) {
+        command = [await which("jupyter")];
+      }
+
+      if (command) {
+        context.jupyter.command = command;
+        return context;
+      }
+      else {
+        throw new Error("could not find Jupyter");
+      }
+    },
+
     async loadJupyterInfo() {
       const context = cloneContext(this);
 
       let command = context.jupyter && context.jupyter.command;
       if (!command) {
-        command = [await which("jupyter")];
+        throw new Error("don't know how to run Jupyter");
       }
 
       const { stdout } = await exec(quote(command.concat(["--version"])));
