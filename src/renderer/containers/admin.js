@@ -1,6 +1,9 @@
+const electron = require("electron");
+const { app } = electron;
 const React = require("react");
 const { useState } = React;
-const Button = require("@material-ui/core/Button").default;
+const Button = require("../components/WizardButton");
+const InstallerConfig = require("../components/InstallerConfig");
 
 const contextProp = require("../context").prop;
 const cloneContext = require("../../lib/context").cloneContext;
@@ -32,7 +35,7 @@ function useAdminState(context) {
     } else {
       return setStatus("searching");
     }
-  }
+  } 
 
   // TODO: dry these out
   async function searchForJupyter() {
@@ -61,31 +64,51 @@ function useAdminState(context) {
     setState({ status: "ready", context: c });
   }
 
-  function tick() {
-    switch (state.status) {
-      case "loading":
-        return checkInitialState();
-      case "searching":
-        return searchForJupyter();
-      case "registering":
-        return loadJupyterInfo();
-      case "which":
-        return;
-      case "ready":
-        return;
-      case "confused":
-        break;
-    }
+  function install() {
+    setTimeout(() => setStatus("install_failed"), 1000);
   }
 
-  return [state, tick];
+  switch (status) {
+    case "loading":
+      checkInitialState();
+      break;
+    case "searching":
+      searchForJupyter();
+      break;
+    case "registering":
+      loadJupyterInfo();
+      break;
+    case "installing":
+      install();
+      break;
+    default:
+      break;
+  }
+
+  return {
+    state,
+    trySearching() { setStatus("search"); },
+    tryRegistering() { setStatus("registering"); },
+    goBackToWhich() { setStatus("which"); },
+    goBackToMain() { setStatus("ready"); },
+    tryInstall() { setStatus("installing"); },
+    launchJupyter() { /* TODO */ },
+    exit() { /* TODO */ app.exit(); }
+  };
 }
 
 function Admin({ context }) {
 
-  const [state, tick] = useAdminState(context);
-
-  tick();
+  const {
+    state,
+    trySearching,
+    tryRegistering,
+    goBackToWhich,
+    goBackToMain,
+    tryInstall,
+    launchJupyter,
+    exit
+  } = useAdminState(context);
 
   switch (state.status) {
     case "loading":
@@ -100,14 +123,14 @@ function Admin({ context }) {
         <div>
           <h1>which jupyter?</h1>
           <h2>TODO: file picker widget here</h2>
-          <Button variant="contained" color="primary">
+          <Button onClick={trySearching}>
             detect jupyter automatically
           </Button>
-          <Button variant="contained" color="primary">
+          <Button onClick={tryRegistering}>
             use this command
           </Button>          
-          <Button variant="contained" color="primary">
-            f this!
+          <Button onClick={exit}>
+            exit
           </Button>
         </div>
       );
@@ -122,18 +145,18 @@ function Admin({ context }) {
       return (
         <div>
           <h1>ready</h1>
-          <h2>{JSON.stringify(state.context)}</h2>
-          <Button variant="contained" color="primary">
+          <InstallerConfig context={state.context}/>
+          <Button onClick={tryInstall}>
             install
           </Button>
-          <Button variant="contained" color="primary">
+          <Button onClick={goBackToWhich}>
             set command for starting jupyter
           </Button>
-          <Button variant="contained" color="primary">
+          <Button onClick={launchJupyter}>
             LAUNCH JUPYTER
           </Button>
-          <Button variant="contained" color="primary">
-            bail!
+          <Button onClick={exit}>
+            exit
           </Button>
         </div>
       );
@@ -143,7 +166,7 @@ function Admin({ context }) {
       return (
         <div>
           <h1>install failed!</h1>
-          <Button variant="contained" color="primary">
+          <Button onClick={goBackToMain}>
             ugh crap
           </Button>
         </div>
@@ -151,8 +174,8 @@ function Admin({ context }) {
     case "install_succeeded":
       return (
         <div>
-          <h1>install failed!</h1>
-          <Button variant="contained" color="primary">
+          <h1>install succeeded!</h1>
+          <Button onClick={backToMain}>
             cool beans!
           </Button>
         </div>
