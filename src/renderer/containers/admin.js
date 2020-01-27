@@ -1,6 +1,7 @@
 var React = require('react');
 
-module.exports = function(options) {
+module.exports = function({ context }) {
+    return (<h1>{JSON.stringify(context)}</h1>);
     return (<div>
         <h1>This is the admin part</h1>
         <form>

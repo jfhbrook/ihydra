@@ -265,6 +265,8 @@ function parseCommandArgs(context, options) {
         "notebook",
     ];
 
+    console.log(process.argv);
+
     /* eslint-disable complexity */
     process.argv.slice(2).forEach(function(arg) {
         var matched = false;

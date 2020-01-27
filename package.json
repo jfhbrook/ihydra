@@ -34,7 +34,9 @@
         "jp-kernel": "git+https://github.com/jfhbrook/jp-kernel.git#develop",
         "nel": "git+https://github.com/jfhbrook/nel.git#develop",
         "react": "^16.12.0",
-        "react-dom": "^16.12.0"
+        "react-dom": "^16.12.0",
+        "shell-quote": "^1.7.2",
+        "which": "^2.0.2"
     },
     "devDependencies": {
         "@babel/preset-react": "^7.8.3",

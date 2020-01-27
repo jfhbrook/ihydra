@@ -9,7 +9,8 @@ class Loader {
         this.containers.set(type, component);
     }
 
-    load({type, options}) {
+    load(context) {
+        var type = context.action;
         var Component;
 
         if (this.containers.has(type)) {
@@ -19,7 +20,7 @@ class Loader {
         }
 
         render(
-            <Component options={options} />,
+            <Component context={context} />,
             document.getElementById('app')
         );
     }
