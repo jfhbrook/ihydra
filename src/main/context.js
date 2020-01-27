@@ -6,14 +6,13 @@ const path = require("path");
 const { promisify } = require("util");
 
 const commander = require("commander");
-const electron = require("electron");
 
-const { app } = electron;
 const isDev = require("electron-is-dev");
 const { quote } = require("shell-quote");
 const which = require("which");
 
 const packageJson = require("../../package.json");
+
 const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
 const exec = promisify((cmd, callback) => {

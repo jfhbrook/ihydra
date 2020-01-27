@@ -1,6 +1,8 @@
 const React = require("react");
 
-module.exports = ({ context }) => {
+const contextProp = require("../context").prop;
+
+function Admin({ context }) {
   return <h1>{JSON.stringify(context)}</h1>;
   /*
   return (
@@ -32,4 +34,10 @@ module.exports = ({ context }) => {
     </div>
   );
   */
+}
+
+Admin.propTypes = {
+  context: contextProp.isRequired
 };
+
+module.exports = Admin;
