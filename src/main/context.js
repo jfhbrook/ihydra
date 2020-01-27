@@ -215,7 +215,12 @@ function createContext() {
       cmd = quote(cmd.concat(["--version"]));
 
       // TODO: IJavascript attempts to fall back to IPython
-      const { stdout } = exec(cmd);
+
+      console.log("about to await");
+
+      const { stdout } = await exec(cmd);
+
+      console.log("await is awaited");
 
       this.jupyter = { cmd };
 

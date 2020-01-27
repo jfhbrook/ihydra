@@ -8,6 +8,10 @@ const prop = PropTypes.shape({
     images: PropTypes.string.isRequired
   }).required,
   kernel: PropTypes.arrayOf(PropTypes.string),
+  jupyter: PropTypes.shape({
+    version: PropTypes.string.isRequired,
+    majorVersion: PropTypes.number.isRequired
+  }).isRequired,
   args: PropTypes.arrayOf(PropTypes.string),
   name: PropTypes.string,
   displayName: PropTypes.string,

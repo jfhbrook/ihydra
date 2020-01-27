@@ -58,9 +58,13 @@ function adminWindowManager(context) {
       }
     });
 
-    app.on("ready", () => {
+    if (app.isReady()) {
       adminPanel = createAdminPanel();
-    });
+    } else {
+      app.on("ready", () => {
+        adminPanel = createAdminPanel();
+      });
+    }
   });
 }
 
