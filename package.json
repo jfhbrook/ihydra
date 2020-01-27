@@ -27,6 +27,7 @@
     },
     "main": "src/main/index.js",
     "dependencies": {
+        "@material-ui/core": "^4.9.0",
         "app-root-path": "^3.0.0",
         "commander": "^4.1.0",
         "electron-is-dev": "^1.1.0",

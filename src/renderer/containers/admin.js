@@ -1,5 +1,6 @@
 const React = require("react");
 const { useState } = React;
+const Button = require("@material-ui/core/Button").default;
 
 const contextProp = require("../context").prop;
 const cloneContext = require("../../lib/context").cloneContext;
@@ -95,7 +96,21 @@ function Admin({ context }) {
       // TODO: Need to be able to select a jupyter "manually"
       // TODO: Need to be able to try searching again
       // TODO: Need exit button
-      return <h1>which jupyter?</h1>;
+      return (
+        <div>
+          <h1>which jupyter?</h1>
+          <h2>TODO: file picker widget here</h2>
+          <Button variant="contained" color="primary">
+            detect jupyter automatically
+          </Button>
+          <Button variant="contained" color="primary">
+            use this command
+          </Button>          
+          <Button variant="contained" color="primary">
+            f this!
+          </Button>
+        </div>
+      );
     case "registering":
       return <h1>registering...</h1>;
     case "ready":
@@ -104,15 +119,44 @@ function Admin({ context }) {
       // TODO: Need to show installer configs
       // TODO: Need install button
       // TODO: Need exit button
-      return <h1>ready</h1>;
+      return (
+        <div>
+          <h1>ready</h1>
+          <h2>{JSON.stringify(state.context)}</h2>
+          <Button variant="contained" color="primary">
+            install
+          </Button>
+          <Button variant="contained" color="primary">
+            set command for starting jupyter
+          </Button>
+          <Button variant="contained" color="primary">
+            LAUNCH JUPYTER
+          </Button>
+          <Button variant="contained" color="primary">
+            bail!
+          </Button>
+        </div>
+      );
     case "installing":
       return <h1>installing...</h1>;
     case "install_failed":
-      // TODO: button to "ready"
-      return <h1>install failed!</h1>;
+      return (
+        <div>
+          <h1>install failed!</h1>
+          <Button variant="contained" color="primary">
+            ugh crap
+          </Button>
+        </div>
+      );
     case "install_succeeded":
-      // TODO: button to "ready"
-      return <h1>install succeeded!</h1>;
+      return (
+        <div>
+          <h1>install failed!</h1>
+          <Button variant="contained" color="primary">
+            cool beans!
+          </Button>
+        </div>
+      );
     default:
       return <h1>confused!</h1>;
   }
