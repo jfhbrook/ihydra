@@ -1,29 +1,27 @@
-var React = require('react');
-var render = require('react-dom').render;
+const React = require("react");
+const { render } = require("react-dom");
 
 class Loader {
-    constructor() {
-        this.containers = new Map();
-    }
-    register(type, component) {
-        this.containers.set(type, component);
+  constructor() {
+    this.containers = new Map();
+  }
+
+  register(type, component) {
+    this.containers.set(type, component);
+  }
+
+  load(context) {
+    const type = context.action;
+    let Component;
+
+    if (this.containers.has(type)) {
+      Component = this.containers.get(type);
+    } else {
+      Component = this.containers.get("default");
     }
 
-    load(context) {
-        var type = context.action;
-        var Component;
-
-        if (this.containers.has(type)) {
-            Component = this.containers.get(type);
-        } else {
-            Component = this.containers.get('default');
-        }
-
-        render(
-            <Component context={context} />,
-            document.getElementById('app')
-        );
-    }
+    render(<Component context={context} />, document.getElementById("app"));
+  }
 }
 
-module.exports = {Loader};
+module.exports = { Loader };
