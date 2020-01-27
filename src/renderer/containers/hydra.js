@@ -1,5 +1,5 @@
-var React = require('react');
+const React = require("react");
 
-module.exports = function(options) {
-    return (<h1>this is the hydra part</h1>);
+module.exports = _ => {
+  return <h1>this is the hydra part</h1>;
 };

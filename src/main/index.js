@@ -31,15 +31,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-var fs = require("fs");
-var path = require("path");
+const electron = require("electron");
 
-var electron = require("electron");
-var app = electron.app;
+const { app } = electron;
 
-var adminWindowManager = require("./window").adminWindowManager;
-var kernel = require("../lib/kernel");
-var createContext = require("./context");
+const { adminWindowManager } = require("./window");
+const kernel = require("../lib/kernel");
+const createContext = require("./context");
 
 const context = createContext();
 
@@ -47,20 +45,15 @@ context.parseArgs(process.argv);
 
 // TODO: object access?
 switch (context.action) {
-  case 'kernel':
-    console.log('running the kernel');
+  case "kernel":
     kernel(context);
-  break;
-  case 'admin':
-    console.log('running the admin');
-
-    adminWindowManager(context, function(err) {
+    break;
+  case "admin":
+    adminWindowManager(context, err => {
       if (err) console.error(err);
-      console.log('done running the admin');
       app.exit();
     });
-  break;
+    break;
   default:
-    console.log(`unknown command ${context.action}`);
     app.exit();
 }
