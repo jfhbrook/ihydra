@@ -1,9 +1,7 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-const execCb = require("child_process").exec;
 const fs = require("fs");
 const path = require("path");
-const { promisify } = require("util");
 
 const commander = require("commander");
 
@@ -11,19 +9,10 @@ const isDev = require("electron-is-dev");
 const { quote } = require("shell-quote");
 const which = require("which");
 
+const exec = require("./process").exec;
 const packageJson = require("../../package.json");
 
 const root = path.resolve(path.dirname(require.resolve("../../package.json")));
-
-const exec = promisify((cmd, callback) => {
-  execCb(cmd, (err, stdout, stderr) => {
-    if (err) {
-      callback(err);
-    } else {
-      callback(null, { stdout, stderr });
-    }
-  });
-});
 
 function electronArgv(argv) {
   const raw = argv.slice();
@@ -169,18 +158,18 @@ function adminCommand(old, parser) {
     [context.action] = args;
   });
 
-  return [context, () => {
+  return [context, (ctx) => {
     // If we're the admin then we can safely do admin-specific data loading
-    if (context.action === "admin") {
+    if (ctx.action === "admin") {
       return {
-        ...context,
+        ...ctx,
         action: "admin",
         name: "hydra",
         displayName: "IHydra",
         localInstall: true
       };
     } else {
-      return cloneContext(context);
+      return cloneContext(ctx);
     }
   }];
 }
@@ -217,7 +206,7 @@ function hydrateContext(old) {
 
       parser.parse(commanderArgv(eArgv));
 
-      afterHooks.forEach(hook => hook(context));
+      afterHooks.forEach(hook => context = hook(context));
 
       context.debug = parser.debug;
 

@@ -1,19 +1,21 @@
 const electron = require("electron");
+
 const { app } = electron;
 const React = require("react");
+
 const { useState } = React;
 const Button = require("../components/WizardButton");
 const InstallerConfig = require("../components/InstallerConfig");
 
 const contextProp = require("../context").prop;
-const cloneContext = require("../../lib/context").cloneContext;
+const { cloneContext } = require("../../lib/context");
 
 function useAdminState(context) {
   const [state, rawSetState] = useState({
     status: "loading",
     context
   });
-  const status = state.status;
+  const { status } = state;
   const ctx = state.context;
 
   function setState(newState) {
@@ -26,16 +28,15 @@ function useAdminState(context) {
   }
 
   function setStatus(status) {
-    setState({...state, status});
+    setState({ ...state, status });
   }
 
   function checkInitialState() {
     if (ctx.jupyter.command) {
       return setStatus("registering");
-    } else {
-      return setStatus("searching");
     }
-  } 
+    return setStatus("searching");
+  }
 
   // TODO: dry these out
   async function searchForJupyter() {
@@ -87,18 +88,31 @@ function useAdminState(context) {
 
   return {
     state,
-    trySearching() { setStatus("search"); },
-    tryRegistering() { setStatus("registering"); },
-    goBackToWhich() { setStatus("which"); },
-    goBackToMain() { setStatus("ready"); },
-    tryInstall() { setStatus("installing"); },
-    launchJupyter() { /* TODO */ },
-    exit() { /* TODO */ app.exit(); }
+    trySearching() {
+      setStatus("search");
+    },
+    tryRegistering() {
+      setStatus("registering");
+    },
+    goBackToWhich() {
+      setStatus("which");
+    },
+    goBackToMain() {
+      setStatus("ready");
+    },
+    tryInstall() {
+      setStatus("installing");
+    },
+    launchJupyter() {
+      /* TODO */
+    },
+    exit() {
+      /* TODO */ app.exit();
+    }
   };
 }
 
 function Admin({ context }) {
-
   const {
     state,
     trySearching,
@@ -123,15 +137,9 @@ function Admin({ context }) {
         <div>
           <h1>which jupyter?</h1>
           <h2>TODO: file picker widget here</h2>
-          <Button onClick={trySearching}>
-            detect jupyter automatically
-          </Button>
-          <Button onClick={tryRegistering}>
-            use this command
-          </Button>          
-          <Button onClick={exit}>
-            exit
-          </Button>
+          <Button onClick={trySearching}>detect jupyter automatically</Button>
+          <Button onClick={tryRegistering}>use this command</Button>
+          <Button onClick={exit}>exit</Button>
         </div>
       );
     case "registering":
@@ -145,19 +153,13 @@ function Admin({ context }) {
       return (
         <div>
           <h1>ready</h1>
-          <InstallerConfig context={state.context}/>
-          <Button onClick={tryInstall}>
-            install
-          </Button>
+          <InstallerConfig context={state.context} />
+          <Button onClick={tryInstall}>install</Button>
           <Button onClick={goBackToWhich}>
             set command for starting jupyter
           </Button>
-          <Button onClick={launchJupyter}>
-            LAUNCH JUPYTER
-          </Button>
-          <Button onClick={exit}>
-            exit
-          </Button>
+          <Button onClick={launchJupyter}>LAUNCH JUPYTER</Button>
+          <Button onClick={exit}>exit</Button>
         </div>
       );
     case "installing":
@@ -166,18 +168,14 @@ function Admin({ context }) {
       return (
         <div>
           <h1>install failed!</h1>
-          <Button onClick={goBackToMain}>
-            ugh crap
-          </Button>
+          <Button onClick={goBackToMain}>ugh crap</Button>
         </div>
       );
     case "install_succeeded":
       return (
         <div>
           <h1>install succeeded!</h1>
-          <Button onClick={backToMain}>
-            cool beans!
-          </Button>
+          <Button onClick={backToMain}>cool beans!</Button>
         </div>
       );
     default:
