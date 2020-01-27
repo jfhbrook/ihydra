@@ -10,8 +10,6 @@ function useInstaller(context) {
     localInstall: context.localInstall,
     jupyter: context.jupyter
   });
-
-
 }
 
 exports.userInstaller = useInstaller;

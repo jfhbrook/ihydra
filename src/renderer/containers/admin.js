@@ -3,7 +3,7 @@ const React = require("react");
 const contextProp = require("../context").prop;
 
 function Admin({ context }) {
-  return <h1>{JSON.stringify(context)}</h1>;
+  return <h1>{JSON.stringify(Object.keys(context))}</h1>;
   /*
   return (
     <div>

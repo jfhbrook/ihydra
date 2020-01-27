@@ -70,6 +70,12 @@ function commanderArgv({ kernel, args }) {
   return [kernel[0], "dummy.js"].concat(args);
 }
 
+function cloneContext(old) {
+  return {
+    ...old
+  };
+}
+
 function kernelAction(context) {
   return (connectionFile, opts) => {
     // Adopted from kernel.js
@@ -130,7 +136,9 @@ function kernelAction(context) {
   };
 }
 
-function kernelCommand(context, parser) {
+function kernelCommand(old, parser) {
+  const context = cloneContext(old);
+
   parser
     .command("kernel <connection_file>")
     .option("--debug", "Debug flag for jp-kernel")
@@ -145,9 +153,13 @@ function kernelCommand(context, parser) {
       process.cwd()
     )
     .action(kernelAction(context));
+
+  return [context];
 }
 
-function adminCommand(context, parser) {
+function adminCommand(old, parser) {
+  let context = cloneContext(old);
+
   // Admin is the default action
   context.action = "admin";
 
@@ -157,72 +169,72 @@ function adminCommand(context, parser) {
     [context.action] = args;
   });
 
-  return () => {
+  return [context, () => {
     // If we're the admin then we can safely do admin-specific data loading
     if (context.action === "admin") {
-      context.name = "hydra";
-      context.displayName = "IHydra";
-      context.localInstall = true;
+      return {
+        ...context,
+        action: "admin",
+        name: "hydra",
+        displayName: "IHydra",
+        localInstall: true
+      };
+    } else {
+      return cloneContext(context);
     }
-  };
+  }];
 }
 
-function createContext() {
-  const context = {
-    action: "default",
-    commanderAfterHooks: [],
-
-    paths: {
-      root,
-      images: path.join(root, "images")
-    },
-
-    attachCommand(parser, command) {
-      const afterHook = command(this, parser);
-      if (afterHook) {
-        this.commanderAfterHooks.push(afterHook);
-      }
-    },
-
+function hydrateContext(old) {
+  return {
+     ...old,
     parseArgs(argv) {
+      let context = cloneContext(this);
+
+      const afterHooks = [];
       const eArgv = electronArgv(argv);
 
-      this.kernel = eArgv.kernel;
-      this.args = eArgv.args;
+      context.kernel = eArgv.kernel;
+      context.args = eArgv.args;
 
       const parser = new commander.Command();
+
+      const attachCommand = (command) => {
+        let afterHook;
+        [context, afterHook] = command(context, parser);
+
+        if (afterHook) {
+          afterHooks.push(afterHook);
+        }
+      };
 
       parser.version(packageJson.version);
 
       parser.option("--debug", "Log debug messages");
 
-      this.attachCommand(parser, kernelCommand);
-      this.attachCommand(parser, adminCommand);
+      attachCommand(kernelCommand);
+      attachCommand(adminCommand);
 
       parser.parse(commanderArgv(eArgv));
 
-      this.commanderAfterHooks.forEach(hook => hook(this));
+      afterHooks.forEach(hook => hook(context));
 
-      this.debug = parser.debug;
+      context.debug = parser.debug;
+
+      return context;
     },
 
     async loadJupyterInfo() {
-      let cmd = this.jupyter;
-      if (!cmd) {
-        cmd = [await which("jupyter")];
+      const context = cloneContext(this);
+
+      let command = context.jupyter && context.jupyter.command;
+      if (!command) {
+        command = [await which("jupyter")];
       }
 
-      cmd = quote(cmd.concat(["--version"]));
+      const { stdout } = await exec(quote(command.concat(["--version"])));
 
-      // TODO: IJavascript attempts to fall back to IPython
-
-      console.log("about to await");
-
-      const { stdout } = await exec(cmd);
-
-      console.log("await is awaited");
-
-      this.jupyter = { cmd };
+      context.jupyter = { command };
 
       let version;
       let majorVersion;
@@ -246,12 +258,41 @@ function createContext() {
         }
       }
 
-      this.jupyter.version = version;
-      this.jupyter.majorVersion = majorVersion;
+      context.jupyter.version = version;
+      context.jupyter.majorVersion = majorVersion;
+
+      return context;
     }
   };
-
-  return context;
 }
 
-module.exports = createContext;
+function dehydrateContext(old) {
+  // TODO: This should create a new object that
+  // whitelists expected properties instead of
+  // cheesing it like we are now
+
+  return JSON.parse(JSON.stringify(old));
+};
+
+function createDehydratedContext() {
+  return {
+    action: "default",
+    paths: {
+      root,
+      images: path.join(root, "images")
+    },
+    jupyter: {}
+  };
+}
+
+function createContext() {
+  return hydrateContext(createDehydratedContext());
+};
+
+module.exports = {
+  createContext,
+  createDehydratedContext,
+  hydrateContext,
+  dehydrateContext,
+  cloneContext
+};

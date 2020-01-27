@@ -37,12 +37,12 @@ const { app } = electron;
 
 const { adminWindowManager } = require("./window");
 const kernel = require("../lib/kernel");
-const createContext = require("./context");
+const { createContext } = require("../lib/context");
 
 async function main() {
-  const context = createContext();
+  let context = createContext();
 
-  context.parseArgs(process.argv);
+  context = context.parseArgs(process.argv);
 
   switch (context.action) {
     case "kernel":
@@ -50,12 +50,10 @@ async function main() {
       break;
     case "admin":
       await context.loadJupyterInfo();
-      console.log(context);
-      console.log("that window manager tho");
       await adminWindowManager(context);
       break;
     default:
-    // welp
+      console.log("derp");
   }
   app.exit();
 }
