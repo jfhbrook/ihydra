@@ -25,33 +25,47 @@
         "type": "git",
         "url": "https://github.com/jfhbrook/ihydra.git"
     },
-    "bin": {
-        "ihydra": "bin/ihydra.js",
-        "ihydraconsole": "bin/ihydraconsole.js",
-        "ihydrainstall": "bin/ihydrainstall.js",
-        "ihydrakernel": "lib/kernel.js",
-        "ihydranotebook": "bin/ihydranotebook.js"
-    },
+    "main": "src/main/index.js",
     "dependencies": {
+        "app-root-path": "^3.0.0",
+        "commander": "^4.1.0",
+        "electron-is-dev": "^1.1.0",
+        "electron-window": "^0.8.1",
         "jp-kernel": "git+https://github.com/jfhbrook/jp-kernel.git#develop",
-        "nel": "git+https://github.com/jfhbrook/nel.git#develop"
+        "nel": "git+https://github.com/jfhbrook/nel.git#develop",
+        "react": "^16.12.0",
+        "react-dom": "^16.12.0",
+        "shell-quote": "^1.7.2",
+        "which": "^2.0.2"
     },
     "devDependencies": {
+        "@babel/preset-react": "^7.8.3",
         "debug": "2",
         "electron": "^7.1.10",
         "electron-mocha": "^8.2.0",
         "electron-rebuild": "^1.9.0",
+        "electron-webpack": "^2.7.4",
         "eslint": "2",
         "jmp": "1 || 2",
         "jsdoc": "3",
         "mocha": "3",
-        "uuid": "3"
+        "uuid": "3",
+        "webpack": "^4.41.5"
     },
     "engineStrict": true,
     "scripts": {
+        "dev": "electron-webpack dev",
         "lint": "eslint bin lib test",
         "test:ihydrakernel": "electron-mocha test/ihydrakernel.js",
         "test": "npm run lint && npm run test:ihydrakernel",
-        "rebuild": "electron-rebuild"
+        "compile": "electron-rebuild && electron-webpack",
+        "dist": "npm run compile && electron-builder"
+    },
+    "build": {
+        "appId": "com.electron.jfhbrook.ihydra",
+        "productName": "IHydra",
+        "mac": {
+            "category": "public.app-category.graphics-design"
+        }
     }
 }

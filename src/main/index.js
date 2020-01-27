@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /*
  * BSD 3-Clause License
  *
@@ -33,53 +31,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
+var fs = require("fs");
+var path = require("path");
 
-var console = require("console");
+var electron = require("electron");
+var app = electron.app;
 
-var rc = require("./rc.js");
-var context = rc.context;
-var installKernelAsync = rc.installKernelAsync;
-var log = rc.log;
-var readPackageJson = rc.readPackageJson;
-var parseCommandArgs = rc.parseCommandArgs;
-var setJupyterInfoAsync = rc.setJupyterInfoAsync;
-var setPaths = rc.setPaths;
-var setProtocol = rc.setProtocol;
-var spawnFrontend = rc.spawnFrontend;
+var adminWindowManager = require("./window").adminWindowManager;
+var kernel = require("../lib/kernel");
+var createContext = require("./context");
 
-setPaths(context);
+const context = createContext();
 
-readPackageJson(context);
+context.parseArgs(process.argv);
 
-parseCommandArgs(context, {
-    flagPrefix: "ihydra",
+// TODO: object access?
+switch (context.action) {
+  case 'kernel':
+    console.log('running the kernel');
+    kernel(context);
+  break;
+  case 'admin':
+    console.log('running the admin');
 
-    usageHeader: [
-        "IHydra Console",
-        "",
-        "Usage:",
-        "",
-        "    ihydraconsole <options>",
-    ].join("\n"),
-
-    usageFooter: [
-        "and any other options recognised by the Jupyter notebook; run:",
-        "",
-        "    jupyter console --help",
-        "",
-        "for a full list.",
-    ].join("\n"),
-});
-
-setJupyterInfoAsync(context, function() {
-    setProtocol(context);
-
-    installKernelAsync(context, function() {
-        log("CONTEXT:", context);
-
-        if (!context.flag.install) {
-            console.error("To quit press ctrl-d and confirm.\n");
-            spawnFrontend(context);
-        }
+    adminWindowManager(context, function(err) {
+      if (err) console.error(err);
+      console.log('done running the admin');
+      app.exit();
     });
-});
+  break;
+  default:
+    console.log(`unknown command ${context.action}`);
+    app.exit();
+}

@@ -41,6 +41,8 @@ var path = require("path");
 var spawn = require("child_process").spawn;
 var util = require("util");
 
+var appRoot = require('app-root-path').path;
+var debug = require('debug');
 
 // Setup logging helpers
 var DEBUG;
@@ -56,7 +58,7 @@ if (process.env.DEBUG) {
     DEBUG = true;
 
     try {
-        doLog = require("debug")("IHYDRA:");
+        doLog = debug("IHYDRA:");
     } catch (err) {}
 }
 
@@ -106,10 +108,9 @@ var context = {
 };
 
 function setPaths(context) {
+    // TODO - This will be the path to electron, which shouldn't be getting used in prod
     context.path.node = process.argv[0];
-    context.path.root = path.dirname(path.dirname(
-        fs.realpathSync(process.argv[1])
-    ));
+    context.path.root = appRoot;
     context.path.kernel = path.join(context.path.root, "lib", "kernel.js");
     context.path.images = path.join(context.path.root, "images");
 }
@@ -263,6 +264,8 @@ function parseCommandArgs(context, options) {
         "jupyter",
         "notebook",
     ];
+
+    console.log(process.argv);
 
     /* eslint-disable complexity */
     process.argv.slice(2).forEach(function(arg) {
@@ -511,7 +514,7 @@ function setProtocol(context) {
             context.args.kernel.join("', '")
         ));
     } else if (context.args.frontend[1] === "console") {
-        context.args.frontend.push("--kernel=javascript");
+        context.args.frontend.push("--kernel=hydra");
     }
 
     if (context.frontend.majorVersion < 3 &&
@@ -537,7 +540,7 @@ function installKernelAsync(context, callback) {
 
     // Create temporary spec folder
     var tmpdir = makeTmpdir();
-    var specDir = path.join(tmpdir, "javascript");
+    var specDir = path.join(tmpdir, "hydra");
     fs.mkdirSync(specDir);
 
     // Create spec file
