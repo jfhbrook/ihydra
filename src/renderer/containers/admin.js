@@ -6,6 +6,7 @@ const React = require("react");
 const { useState } = React;
 const Button = require("../components/WizardButton");
 const InstallerConfig = require("../components/InstallerConfig");
+const installKernel = require("../../services/installer").installKernel;
 
 const contextProp = require("../context").prop;
 const { cloneContext } = require("../../lib/context");
@@ -48,7 +49,16 @@ function useAdminState(context) {
       c.error = err;
       setState({ status: "confused", context: c });
       return;
+      return;
     }
+
+    try {
+      c.ensureSupportedJupyterVersion();
+    } catch (err) {
+      c.error = err;
+      setState({ status: "confused", context: c });
+    }
+
     setState({ status: "registering", context: c });
   }
 
@@ -65,8 +75,19 @@ function useAdminState(context) {
     setState({ status: "ready", context: c });
   }
 
-  function install() {
-    setTimeout(() => setStatus("install_failed"), 1000);
+  async function install() {
+    let c = ctx;
+    try {
+      await installKernel(ctx);
+    } catch (err) {
+      console.log(err);
+      c = cloneContext(ctx);
+      c.error = err;
+      setState({ status: "install_failed", context: c });
+      return;
+    }
+
+    setStatus("install_succeeded");
   }
 
   switch (status) {
@@ -175,7 +196,7 @@ function Admin({ context }) {
       return (
         <div>
           <h1>install succeeded!</h1>
-          <Button onClick={backToMain}>cool beans!</Button>
+          <Button onClick={goBackToMain}>cool beans!</Button>
         </div>
       );
     default:

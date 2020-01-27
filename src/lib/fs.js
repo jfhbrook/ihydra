@@ -5,10 +5,12 @@ const path = require("path");
 const os = require("os");
 const crypto = require("crypto");
 
+const rimraf = require("rimraf");
+
 const mkdir = promisify(fs.mkdir);
 const writeFile =  promisify(fs.writeFile);
-const unlink = promisify(fs.unlink);
-const rmdir = promisify(fs.rmdir);
+
+const rmrf = promisify(rimraf);
 
 async function makeTmpdir(maxAttempts) {
   const max = maxAttempts || 10;
@@ -41,6 +43,8 @@ async function copy(src, dst) {
   const readStream = fs.createReadStream(src);
   const writeStream = fs.createWriteStream(dst);
 
+  readStream.pipe(writeStream);
+
   await finished(readStream);
 }
 
@@ -49,6 +53,5 @@ module.exports = {
   copy,
   mkdir,
   writeFile,
-  unlink,
-  rmdir
+  rmrf
 };

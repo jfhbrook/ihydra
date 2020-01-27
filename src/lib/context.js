@@ -269,6 +269,12 @@ function hydrateContext(old) {
       context.jupyter.majorVersion = majorVersion;
 
       return context;
+    },
+
+    ensureSupportedJupyterVersion() {
+      if (this.jupyter.majorVersion < 3) {
+        throw new Error("frontend major version must be >= 3");
+      }
     }
   };
 }
