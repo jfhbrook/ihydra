@@ -14,6 +14,7 @@ const { quote } = require("shell-quote");
 const which = require("which");
 
 const packageJson = require("../../package.json");
+const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
 const exec = promisify((cmd, callback) => {
   execCb(cmd, (err, stdout, stderr) => {
@@ -168,9 +169,6 @@ function adminCommand(context, parser) {
 }
 
 function createContext() {
-  // TODO: See if this is right
-  const root = app.getPath("exe");
-
   const context = {
     action: "default",
     commanderAfterHooks: [],
