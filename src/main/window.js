@@ -32,11 +32,11 @@ function createWindow(context, callback) {
   return win;
 }
 
-function adminWindowManager(context, callback) {
+function adminWindowManager(context) {
   let adminPanel = null;
 
-  function createAdminPanel() {
-    const panel = createWindow(context);
+  function createAdminPanel(callback) {
+    const panel = createWindow(context, callback);
 
     panel.on("closed", () => {
       adminPanel = null;
@@ -45,20 +45,22 @@ function adminWindowManager(context, callback) {
     return panel;
   }
 
-  app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-      callback(null);
-    }
-  });
+  return new Promise((resolve, _) => {
+    app.on("window-all-closed", () => {
+      if (process.platform !== "darwin") {
+        resolve();
+      }
+    });
 
-  app.on("activate", () => {
-    if (adminPanel === null) {
+    app.on("activate", () => {
+      if (adminPanel === null) {
+        adminPanel = createAdminPanel();
+      }
+    });
+
+    app.on("ready", () => {
       adminPanel = createAdminPanel();
-    }
-  });
-
-  app.on("ready", () => {
-    adminPanel = createAdminPanel();
+    });
   });
 }
 

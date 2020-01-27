@@ -39,21 +39,22 @@ const { adminWindowManager } = require("./window");
 const kernel = require("../lib/kernel");
 const createContext = require("./context");
 
-const context = createContext();
+async function main() {
+  const context = createContext();
 
-context.parseArgs(process.argv);
+  context.parseArgs(process.argv);
 
-// TODO: object access?
-switch (context.action) {
-  case "kernel":
-    kernel(context);
-    break;
-  case "admin":
-    adminWindowManager(context, err => {
-      if (err) console.error(err);
-      app.exit();
-    });
-    break;
-  default:
-    app.exit();
+  switch (context.action) {
+    case "kernel":
+      kernel(context);
+      break;
+    case "admin":
+      await adminWindowManager(context);
+      break;
+    default:
+    // welp
+  }
+  app.exit();
 }
+
+main().then(console.log, console.log);
