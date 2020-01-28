@@ -40,15 +40,19 @@ const kernel = require("../lib/kernel");
 const { createContext } = require("../lib/context");
 
 async function main() {
+  console.log('yes this is dog');
+
   let context = createContext();
 
   context = context.parseArgs(process.argv);
 
   switch (context.action) {
     case "kernel":
+      console.log('starting kernel');
       kernel(context);
       break;
     case "admin":
+      console.log('running admin');
       await adminWindowManager(context);
       break;
     default:

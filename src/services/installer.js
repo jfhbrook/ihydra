@@ -23,14 +23,14 @@ async function installKernel(context) {
   // Create spec file
   const specFile = path.join(specDir, "kernel.json");
   const spec = {
-    argv: context.args.kernel,
+    argv: context.kernel,
     display_name: "IHydra (Electron)",
     language: "javascript"
   };
 
   console.log('writing spec file');
 
-  await writeFile(specFile, JSON.stringify(spec));
+  await writeFile(specFile, JSON.stringify(spec, null, 2));
 
   console.log('spec file written');
 

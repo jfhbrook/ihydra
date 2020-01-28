@@ -16,13 +16,19 @@ const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
 function electronArgv(argv) {
   const raw = argv.slice();
-  const kernel = [];
+  const prefix = [];
 
   const cmd = argv.shift();
 
   if (isDev) {
-    // This script *should* be running using the electron bin
-    kernel.push(cmd);
+    // Unfortunate to make this blocking but it's also
+    // happening as a cheesed fallback during cli options
+    // parsing in dev mode.
+
+    // I'm guessing that *probably* this will *almost*
+    // work. XD
+    prefix.push(which.sync('electron-webpack'));
+    prefix.push('dev');
 
     // Many arguments can be passed to electron before the
     // script by electron-webpack, so we throw them out until
@@ -39,24 +45,28 @@ function electronArgv(argv) {
       }
       script = raw.shift();
       if (path.extname(path.basename(script)) === ".js") {
-        kernel.push(script);
+        // We throw away the path because that doesn't
+        // get passed to electron-webpack, it works based off
+        // cwd
         break;
       }
     }
   } else {
     // This program is running in a bundled form and should be
     // executed directly
-    kernel.push(cmd);
+    // TODO: What if not in exe?
+    prefix.push(cmd);
   }
 
-  return { kernel, args: raw };
+  const kernel = prefix.concat(["kernel", "{connection_file}"]);
+
+  return { prefix, args: raw, kernel };
 }
 
-function commanderArgv({ kernel, args }) {
-  if (kernel.length === 2) {
-    return kernel.concat(args);
-  }
-  return [kernel[0], "dummy.js"].concat(args);
+function commanderArgv({ prefix, args }) {
+  const [a, b] = prefix;
+
+  return [a || "dummy.exe", b || "dummy.js"].concat(args);
 }
 
 function cloneContext(old) {
