@@ -33,7 +33,7 @@ function useAdminState(context) {
   }
 
   function checkInitialState() {
-    if (ctx.jupyterCommand) {
+    if (ctx.jupyter.command) {
       return setStatus("registering");
     }
     return setStatus("searching");
@@ -43,11 +43,10 @@ function useAdminState(context) {
   async function searchForJupyter() {
     let c;
     try {
-      c = await (await ctx.loadVersionInfo()).searchForJupyter();
+      c = await ctx.searchForJupyter();
     } catch (err) {
       c = cloneContext(ctx);
       c.error = err;
-      console.log(err);
       setState({ status: "confused", context: c });
       return;
       return;
@@ -159,7 +158,6 @@ function Admin({ context }) {
         <div>
           <h1>which jupyter?</h1>
           <h2>TODO: file picker widget here</h2>
-          <h1>{JSON.stringify(context)}</h1>
           <Button onClick={trySearching}>detect jupyter automatically</Button>
           <Button onClick={tryRegistering}>use this command</Button>
           <Button onClick={exit}>exit</Button>

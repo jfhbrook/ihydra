@@ -106,7 +106,7 @@ async function installKernel(context) {
   console.log("copied");
 
   // Install kernel spec
-  const args = context.jupyterCommand.concat([
+  const args = context.jupyter.command.concat([
     "kernelspec install --replace",
     specDir
   ]);

@@ -10,7 +10,6 @@ const { quote } = require("shell-quote");
 const which = require("which");
 
 const Argv = require("./argv");
-const { readFile } = require("./fs");
 const { exec } = require("./process");
 const packageJson = require("../../package.json");
 
@@ -22,26 +21,67 @@ function cloneContext(old) {
   };
 }
 
-// Should be in separate versions package I think?
-function getMajorVersion(fullVersion) {
-  // Cheesing it a little here. This should check if the version
-  // matches some regexp or other - but in this codebase "unknown"
-  // is used as a sentinel value so it's fine
-  if (fullVersion === "unknown") {
-    return Infinity;
-  }
-  return parseInt(fullVersion.split(".")[0], 10);
-}
+function kernelAction(config) {
+  console.log("kernelAction is getting created");
+  return (connectionFile, opts) => {
+    console.log("kernelAction is being called");
+    // Adopted from kernel.js
+    const action = "kernel";
+    Object.assign(config, {
+      debug: opts.debug || false,
+      hideExecutionResult: false,
+      hideUndefined: false,
+      protocolVersion: opts.protocol,
+      connection: JSON.parse(fs.readFileSync(connectionFile)),
+      cwd: opts.sessionWorkingDir,
+      startupCallback() {
+        console.error("startupCallback:", this.startupCallback);
+      }
+    });
 
-function getVersionTuple(fullVersion) {
-  return fullVersion.split('.').map(v => parseInt(v, 10));
+    let nodeVersion;
+    let protocolVersion;
+    let ihydraVersion;
+    const majorVersion = parseInt(config.protocolVersion.split(".")[0], 10);
+
+    if (majorVersion <= 4) {
+      nodeVersion = process.versions.node.split(".").map(v => parseInt(v, 10));
+      protocolVersion = config.protocolVersion
+        .split(".")
+        .map(v => parseInt(v, 10));
+      config.kernelInfoReply = {
+        language: "javascript",
+        language_version: nodeVersion,
+        protocol_version: protocolVersion
+      };
+    } else {
+      nodeVersion = process.versions.node;
+      protocolVersion = config.protocolVersion;
+      ihydraVersion = packageJson.version;
+      config.kernelInfoReply = {
+        protocol_version: protocolVersion,
+        implementation: "ihydra",
+        implementation_version: ihydraVersion,
+        language_info: {
+          name: "javascript",
+          version: nodeVersion,
+          mimetype: "application/javascript",
+          file_extension: ".js"
+        },
+        banner: `IHydra v${ihydraVersion}\nhttps://github.com/jfhbrook/ihydra\n`,
+        help_links: [
+          {
+            text: "IHydra Homepage",
+            url: "https://github.com/jfhbrook/ihydra"
+          }
+        ]
+      };
+    }
+  };
 }
 
 function kernelCommand(parser) {
-  let action = null;
-  let protocolVersion;
-  let connectionFile;
-  let sessionWorkingDir;
+  const config = {};
 
   parser
     .command("kernel <connection_file>")
@@ -55,21 +95,13 @@ function kernelCommand(parser) {
       "The working directory for this kernel session",
       process.cwd()
     )
-    .action((f, opts) => {
-      action = "kernel";
-      protocolVersion = opts.protocol;
-      connectionFile = f;
-      sessionWorkingDir = opts.sessionWorkingDir;
-    });
+    .action(kernelAction(config));
 
   return context => {
-    if (action === "kernel") {
+    if (config.action === "kernel") {
       return {
-        ...context,
-        action,
-        protocolVersion,
-        connectionFile,
-        sessionWorkingDir
+        action: "kernel",
+        config
       };
     }
     return context;
@@ -86,12 +118,17 @@ function adminCommand(parser) {
   });
 
   return context => {
+    console.log("trying to detect the admin call");
+    console.log(context);
+    console.log(action);
+
     // In these cases, we intended it to be admin
     // no action + default for ctx means no matched args
     if (
       (!action && context.action === "default") ||
       context.action === "admin"
     ) {
+      console.log("yeah man its admin");
       return {
         ...context,
         action: "admin",
@@ -103,9 +140,11 @@ function adminCommand(parser) {
 
     // This means it's already been set by something - leave it alone
     if (context.action !== "default") {
+      console.log("not changing");
       return context;
     }
 
+    console.log(`tryna override the action with ${action}`);
     // Otherwise, at least set the action
     return { ...context, action };
   };
@@ -142,60 +181,17 @@ function hydrateContext(old) {
       return context;
     },
 
-    async loadVersionInfo() {
-      const context = cloneContext(this);
-
-      async function getPackageInfo(pkg) {
-        let p;
-        let j;
-        let v;
-        try {
-          p = path.dirname(require.resolve(pkg));
-          j = JSON.parse(await readFile(path.join(p, "package.json")));
-          v = j.version;
-        } catch (err) {
-          console.log(err);
-          v = "unknown";
-        }
-
-        return [pkg, v];
-      }
-
-      context.versions = Object.fromEntries(
-        (
-          await Promise.all(
-            [
-              'jmp',
-              'jmp-kernel',
-              'nel',
-              'uuid',
-              'zeromq'
-            ].map(getPackageInfo)
-          )
-        ).concat([
-          [
-            'node',
-            'v8',
-            'chrome',
-            'electron'
-          ].map(k => process.versions[k])
-        ]).concat([['ihydra', packageJson.version]])
-      );
-
-      return context;
-    },
-
     async searchForJupyter() {
       const context = cloneContext(this);
 
-      let command = context.jupyterCommand;
+      let command = context.jupyter && context.jupyter.command;
 
       if (!command) {
         command = [await which("jupyter")];
       }
 
       if (command) {
-        context.jupyterCommand = command;
+        context.jupyter.command = command;
         return context;
       }
 
@@ -205,21 +201,21 @@ function hydrateContext(old) {
     async loadJupyterInfo() {
       const context = cloneContext(this);
 
-      const command = context.jupyterCommand;
+      const command = context.jupyter && context.jupyter.command;
       if (!command) {
         throw new Error("don't know how to run Jupyter");
       }
 
       const { stdout } = await exec(quote(command.concat(["--version"])));
 
-      context.jupyterCommand = command;
+      context.jupyter = { command };
 
       let version;
       let majorVersion;
 
       // Parse version number before Jupyter 4.5.0
       version = stdout.toString().trim();
-      majorVersion = getMajorVersion(version);
+      majorVersion = parseInt(version.split(".")[0], 10);
 
       if (Number.isNaN(majorVersion)) {
         // Parse version number after Jupyter 4.5.0
@@ -227,61 +223,25 @@ function hydrateContext(old) {
         if (match) {
           // eslint-disable-next-line prefer-destructuring
           version = match[1];
+          majorVersion = parseInt(version.split(".")[0], 10);
         } else {
           // Failed to parse the output of "jupyter --version"
           console.warn("Warning: Unable to parse Jupyter version:", stdout);
           version = "unknown";
+          majorVersion = Infinity;
         }
       }
 
-      context.versions.jupyter = version;
+      context.jupyter.version = version;
+      context.jupyter.majorVersion = majorVersion;
 
       return context;
     },
 
     ensureSupportedJupyterVersion() {
-      if (getMajorVersion(this.versions.jupyter) < 3) {
+      if (this.jupyter.majorVersion < 3) {
         throw new Error("frontend major version must be >= 3");
       }
-    },
-
-    async loadKernelInfoReply() {
-      let context = cloneContext(this);
-
-      // Set by the cli parser for the kernel
-      const protocolVersion = context.protocolVersion;
-
-      if (getMajorVersion(context.protocolVersion) <= 4) {
-        context.kernelInfoReply = {
-          language: "javascript",
-          language_version: getVersionTuple(process.versions.node),
-          protocol_version: getVersionTuple(context.protocolVersion)
-        };
-
-      } else {
-        context = await context.loadVersionInfo();
-
-        context.kernelInfoReply = {
-          protocol_version: protocolVersion,
-          implementation: "ihydra",
-          implementation_version: context.versions.ihydra,
-          language_info: {
-            name: "javascript",
-            version: context.versions.node,
-            mimetype: "application/javascript",
-            file_extension: ".js"
-          },
-          banner: `IHydra v${context.versions.ihydra}\nhttps://github.com/jfhbrook/ihydra\n`,
-          help_links: [
-            {
-              text: "IHydra Homepage",
-              url: "https://github.com/jfhbrook/ihydra"
-            }
-          ]
-        };
-      }
-
-      return context;
     }
   };
 
@@ -306,7 +266,7 @@ function createDehydratedContext() {
       root,
       images: path.join(root, "images")
     },
-    jupyter: null
+    jupyter: {}
   };
 }
 

@@ -8,7 +8,6 @@ const crypto = require("crypto");
 const rimraf = require("rimraf");
 
 const mkdir = promisify(fs.mkdir);
-const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 const rmrf = promisify(rimraf);
