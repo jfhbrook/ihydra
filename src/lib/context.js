@@ -98,10 +98,13 @@ function kernelCommand(parser) {
     .action(kernelAction(config));
 
   return context => {
-    return {
-      action: "kernel",
-      config
-    };
+    if (config.action === "kernel") {
+      return {
+        action: "kernel",
+        config
+      };
+    }
+    return context;
   };
 }
 
