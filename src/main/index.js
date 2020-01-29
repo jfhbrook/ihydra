@@ -40,17 +40,17 @@ const kernel = require("../lib/kernel");
 const { createContext } = require("../lib/context");
 
 async function main() {
-  console.log('yes this is main');
+  console.log("yes this is main");
   let context = createContext();
 
   context = context.parseArgs(process.argv);
 
-  console.log('le context:');
+  console.log("le context:");
   console.log(context);
 
   switch (context.action) {
     case "kernel":
-      console.log('ostensibly starting that kernel');
+      console.log("ostensibly starting that kernel");
       kernel(context.config);
       break;
     case "admin":

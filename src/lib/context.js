@@ -10,7 +10,7 @@ const { quote } = require("shell-quote");
 const which = require("which");
 
 const Argv = require("./argv");
-const exec = require("./process").exec;
+const { exec } = require("./process");
 const packageJson = require("../../package.json");
 
 const root = path.resolve(path.dirname(require.resolve("../../package.json")));
@@ -22,9 +22,9 @@ function cloneContext(old) {
 }
 
 function kernelAction(config) {
-  console.log('kernelAction is getting created');
+  console.log("kernelAction is getting created");
   return (connectionFile, opts) => {
-    console.log('kernelAction is being called');
+    console.log("kernelAction is being called");
     // Adopted from kernel.js
     const action = "kernel";
     Object.assign(config, {
@@ -97,10 +97,10 @@ function kernelCommand(parser) {
     )
     .action(kernelAction(config));
 
-  return (context) => {
+  return context => {
     return {
-      action: 'kernel',
-      config: config
+      action: "kernel",
+      config
     };
   };
 }
@@ -114,17 +114,18 @@ function adminCommand(parser) {
     action = args[0];
   });
 
-  return (context) => {
-    console.log('trying to detect the admin call');
+  return context => {
+    console.log("trying to detect the admin call");
     console.log(context);
     console.log(action);
 
     // In these cases, we intended it to be admin
     // no action + default for ctx means no matched args
     if (
-      (!action && context.action === "default") || context.action === "admin"
-    ){
-      console.log('yeah man its admin');
+      (!action && context.action === "default") ||
+      context.action === "admin"
+    ) {
+      console.log("yeah man its admin");
       return {
         ...context,
         action: "admin",
@@ -136,19 +137,19 @@ function adminCommand(parser) {
 
     // This means it's already been set by something - leave it alone
     if (context.action !== "default") {
-      console.log('not changing');
+      console.log("not changing");
       return context;
     }
 
-    console.log('tryna override the action with ' + action);
+    console.log(`tryna override the action with ${action}`);
     // Otherwise, at least set the action
-    return {...context, action};
+    return { ...context, action };
   };
 }
 
 function hydrateContext(old) {
   let context = {
-     ...old,
+    ...old,
     parseArgs(argv) {
       let context = cloneContext(this);
       context.argv = new Argv(argv, this.paths.root);
@@ -157,7 +158,7 @@ function hydrateContext(old) {
 
       const parser = new commander.Command();
 
-      const attachCommand = (command) => {
+      const attachCommand = command => {
         hooks.push(command(parser));
       };
 
@@ -170,7 +171,7 @@ function hydrateContext(old) {
 
       const parsed = parser.parse(context.argv.commanderArgv);
 
-      hooks.forEach(hook => context = hook(context));
+      hooks.forEach(hook => (context = hook(context)));
 
       context.debug = parsed.debug;
 
@@ -190,15 +191,14 @@ function hydrateContext(old) {
         context.jupyter.command = command;
         return context;
       }
-      else {
-        throw new Error("could not find Jupyter");
-      }
+
+      throw new Error("could not find Jupyter");
     },
 
     async loadJupyterInfo() {
       const context = cloneContext(this);
 
-      let command = context.jupyter && context.jupyter.command;
+      const command = context.jupyter && context.jupyter.command;
       if (!command) {
         throw new Error("don't know how to run Jupyter");
       }
@@ -254,7 +254,7 @@ function dehydrateContext(old) {
   // instead of cheesing it like we are now
 
   return JSON.parse(JSON.stringify(old));
-};
+}
 
 function createDehydratedContext() {
   return {
@@ -269,7 +269,7 @@ function createDehydratedContext() {
 
 function createContext() {
   return hydrateContext(createDehydratedContext());
-};
+}
 
 module.exports = {
   createContext,

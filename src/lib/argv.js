@@ -1,8 +1,8 @@
-const path = require('path');
+const path = require("path");
 
-const isDev = require('electron-is-dev');
-const quote = require('shell-quote').quote
-const which = require('which');
+const isDev = require("electron-is-dev");
+const { quote } = require("shell-quote");
+const which = require("which");
 
 class Argv {
   constructor(argv, root) {
@@ -50,7 +50,7 @@ class Argv {
   }
 
   get commanderArgv() {
-    return ['dummy.exe', 'dummy.js'].concat(this.args);
+    return ["dummy.exe", "dummy.js"].concat(this.args);
   }
 
   async getKernelPrefix() {
@@ -64,12 +64,12 @@ class Argv {
       // In development mode we're running our app using electron-webpack's
       // HMR server and we can't naively run "electron.exe ./dev-bundle.js"
       // because the bundle depends on HMR socket information passed by env
-      // variable. 
+      // variable.
 
       // So we construct args for running electron-webpack - but note that
       // without setting the cwd to the project root somehow this won't do
       // the right thing. :)
-      prefix = [await which('electron-webpack'), 'dev'];
+      prefix = [await which("electron-webpack"), "dev"];
     } else {
       // In production, we should be able to run the command naively
       prefix = this.argv[0];
@@ -87,10 +87,10 @@ class Argv {
 
     let shells;
 
-    if (process.platform === 'win32') {
-      shells = ['powershell'];
+    if (process.platform === "win32") {
+      shells = ["powershell"];
     } else {
-      shells = ['bash', 'sh'];
+      shells = ["bash", "sh"];
     }
 
     async function* finder() {
@@ -103,7 +103,7 @@ class Argv {
             yield shell;
           }
         } catch (err) {
-          if (err.code === 'ENOENT') {
+          if (err.code === "ENOENT") {
             continue;
           }
           throw err;
@@ -113,12 +113,12 @@ class Argv {
       }
     }
 
-    for await (let shell of finder()) {
+    for await (const shell of finder()) {
       this.cachedShell = shell;
       return shell;
     }
 
-    throw new Error('shell not found');
+    throw new Error("shell not found");
   }
 }
 

@@ -6,7 +6,7 @@ const { makeTmpdir, mkdir, writeFile, copy, rmrf } = require("../lib/fs");
 const { exec } = require("../lib/process");
 
 function quote(xs) {
-  if (process.platform !== 'win32') {
+  if (process.platform !== "win32") {
     return shellQuote(xs);
   }
 
@@ -14,29 +14,31 @@ function quote(xs) {
   // quoting work in the powershell case.
 
   // For more info, see: https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_quoting_rules
-  return xs.map((s) => {
-    // If double quotes and spaces but no single quotes,
-    // naively add single-quotes to either side and
-    // quote single-quotes
-    if (/["\s]/.test(s) && !/'/.test(s)) {
-      return `'${s.replace(/'/g, "''")}'`
-    }
+  return xs
+    .map(s => {
+      // If double quotes and spaces but no single quotes,
+      // naively add single-quotes to either side and
+      // quote single-quotes
+      if (/["\s]/.test(s) && !/'/.test(s)) {
+        return `'${s.replace(/'/g, "''")}'`;
+      }
 
-    // If a case where we have to double-quote, do so
-    // and naively escape dollar signs and double-quotes
-    if (/["'\s]/.test(s)) {
-      return `"${s.replace(/([$"])/g, '`$1')}"`
-    }
+      // If a case where we have to double-quote, do so
+      // and naively escape dollar signs and double-quotes
+      if (/["'\s]/.test(s)) {
+        return `"${s.replace(/([$"])/g, "`$1")}"`;
+      }
 
-    return s;
-  }).join(' ');
+      return s;
+    })
+    .join(" ");
 }
 
 async function getKernelCommand(context) {
   const prefix = await context.argv.getKernelPrefix();
 
-  let command = prefix.concat(['kernel', '{connection_file}']);
-  
+  let command = prefix.concat(["kernel", "{connection_file}"]);
+
   if (!isDev) {
     return command;
   }
@@ -48,22 +50,16 @@ async function getKernelCommand(context) {
 
   let shimScript;
 
-  if (['bash', 'sh'].includes(shell)) {
-    shimScript = [
-      shell, '-c',
-      `cd ${root} && exec ${command}`
-    ];
-  } else if (shell === 'powershell') {
-    shimScript = [
-      shell, '-Command',
-      `cd ${root}; ${command}`
-    ];
+  if (["bash", "sh"].includes(shell)) {
+    shimScript = [shell, "-c", `cd ${root} && exec ${command}`];
+  } else if (shell === "powershell") {
+    shimScript = [shell, "-Command", `cd ${root}; ${command}`];
   } else {
-    throw new Error('dont know how to do this shell');
+    throw new Error("dont know how to do this shell");
   }
 
   return shimScript;
-};
+}
 
 async function installKernel(context) {
   // Create temporary spec folder

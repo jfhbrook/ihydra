@@ -1,4 +1,4 @@
-const promisify = require("util").promisify;
+const { promisify } = require("util");
 const fs = require("fs");
 const stream = require("stream");
 const path = require("path");
@@ -8,7 +8,7 @@ const crypto = require("crypto");
 const rimraf = require("rimraf");
 
 const mkdir = promisify(fs.mkdir);
-const writeFile =  promisify(fs.writeFile);
+const writeFile = promisify(fs.writeFile);
 
 const rmrf = promisify(rimraf);
 
@@ -31,7 +31,7 @@ async function makeTmpdir(maxAttempts) {
   }
 
   if (!tmpdir) {
-    throw new Error('did not find a tmpdir');
+    throw new Error("did not find a tmpdir");
   }
 
   return tmpdir;

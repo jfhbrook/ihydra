@@ -32,103 +32,103 @@
  *
  */
 
-var console = require("console");
-var fs = require("fs");
-var path = require("path");
-var spawn = require("child_process").spawn;
-var vm = require("vm");
+const console = require("console");
+const fs = require("fs");
+const path = require("path");
+const { spawn } = require("child_process");
+const vm = require("vm");
 
-var app = require("electron").app;
-var dbug = require("debug");
-var JpKernel = require("jp-kernel");
-var Session = require("nel").Session;
+const { app } = require("electron");
+const dbug = require("debug");
+const JpKernel = require("jp-kernel");
+const { Session } = require("nel");
 
-var server = require("./server/index");
+const server = require("./server/index");
 
 // Add app exit to destroy hooks
 class Kernel extends JpKernel {
-    destroy(destroyCB) {
-        super.destroy(function(code, signal) {
-            destroyCB(code, signal);
-        });
-    }
+  destroy(destroyCB) {
+    super.destroy(function(code, signal) {
+      destroyCB(code, signal);
+    });
+  }
 }
 
 module.exports = function run(config, callback) {
   // Setup logging helpers
-  var log;
-  var dontLog = function dontLog() {};
-  var doLog = function doLog() {
-      process.stderr.write("KERNEL: ");
-      console.error.apply(this, arguments);
+  let log;
+  const dontLog = function dontLog() {};
+  let doLog = function doLog() {
+    process.stderr.write("KERNEL: ");
+    console.error.apply(this, arguments);
   };
 
   if (process.env.DEBUG) {
-      global.DEBUG = true;
+    global.DEBUG = true;
 
-      try {
-          doLog = debug("KERNEL:");
-      } catch (err) {}
+    try {
+      doLog = debug("KERNEL:");
+    } catch (err) {}
   }
 
   log = global.DEBUG ? doLog : dontLog;
 
   function sessionFactory(config) {
-      return new Session({
+    return new Session({
+      cwd: config.cwd,
+      transpile: config.transpile,
+      serverFactory() {
+        return spawn(Session._command, ["--eval", server], {
           cwd: config.cwd,
-          transpile: config.transpile,
-          serverFactory: function() {
-              return spawn(Session._command, ["--eval", server], {
-                  cwd: config.cwd,
-                  stdio: global.DEBUG ?
-                      [process.stdin, process.stdout, process.stderr, "ipc"] :
-                      ["ignore", "ignore", "ignore", "ipc"],
-              });
-          }
-      });
+          stdio: global.DEBUG
+            ? [process.stdin, process.stdout, process.stderr, "ipc"]
+            : ["ignore", "ignore", "ignore", "ipc"]
+        });
+      }
+    });
   }
 
   config.sessionFactory = sessionFactory;
 
   // Start kernel
-  var kernel = new Kernel(config);
+  const kernel = new Kernel(config);
 
   // WORKAROUND: Fixes https://github.com/n-riesco/ijavascript/issues/97
   kernel.handlers.is_complete_request = function is_complete_request(request) {
-      request.respond(this.iopubSocket, "status", {
-          execution_state: "busy"
-      });
+    request.respond(this.iopubSocket, "status", {
+      execution_state: "busy"
+    });
 
-      var content;
-      try {
-          new vm.Script(request.content.code);
-          content = {
-              status: "complete",
-          };
-      } catch (err) {
-          content = {
-              status: "incomplete",
-              indent: "",
-          };
-      }
+    let content;
+    try {
+      new vm.Script(request.content.code);
+      content = {
+        status: "complete"
+      };
+    } catch (err) {
+      content = {
+        status: "incomplete",
+        indent: ""
+      };
+    }
 
-      request.respond(
-          this.shellSocket,
-          "is_complete_reply",
-          content,
-          {},
-          this.protocolVersion
-      );
+    request.respond(
+      this.shellSocket,
+      "is_complete_reply",
+      content,
+      {},
+      this.protocolVersion
+    );
 
-      request.respond(this.iopubSocket, "status", {
-          execution_state: "idle"
-      });
+    request.respond(this.iopubSocket, "status", {
+      execution_state: "idle"
+    });
   };
 
   // Interpret a SIGINT signal as a request to interrupt the kernel
   process.on("SIGINT", function() {
-      log("Interrupting kernel");
-      kernel.restart(); // TODO(NR) Implement kernel interruption
+    log("Interrupting kernel");
+    kernel.restart(); // TODO(NR) Implement kernel interruption
   });
 
   return kernel;
