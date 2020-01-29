@@ -21,13 +21,13 @@ function cloneContext(old) {
   };
 }
 
-function kernelAction(context) {
+function kernelAction(config) {
   console.log('kernelAction is getting created');
   return (connectionFile, opts) => {
     console.log('kernelAction is being called');
     // Adopted from kernel.js
     const action = "kernel";
-    const config = {
+    Object.assign(config, {
       debug: opts.debug || false,
       hideExecutionResult: false,
       hideUndefined: false,
@@ -37,7 +37,7 @@ function kernelAction(context) {
       startupCallback() {
         console.error("startupCallback:", this.startupCallback);
       }
-    };
+    });
 
     let nodeVersion;
     let protocolVersion;
@@ -77,14 +77,11 @@ function kernelAction(context) {
         ]
       };
     }
-
-    context.action = action;
-    context.config = config;
   };
 }
 
-function kernelCommand(old, parser) {
-  const context = cloneContext(old);
+function kernelCommand(parser) {
+  const config = {};
 
   parser
     .command("kernel <connection_file>")
@@ -98,37 +95,55 @@ function kernelCommand(old, parser) {
       "The working directory for this kernel session",
       process.cwd()
     )
-    .action(kernelAction(context));
+    .action(kernelAction(config));
 
-  return [context];
+  return (context) => {
+    return {
+      action: 'kernel',
+      config: config
+    };
+  };
 }
 
-function adminCommand(old, parser) {
-  let context = cloneContext(old);
-
-  // Admin is the default action
-  context.action = "admin";
+function adminCommand(parser) {
+  let action = null;
 
   // We use a catch-all to direct anything that isn't either
   // the root or "admin"
   parser.command("*").action((cmd, args) => {
-    [context.action] = args;
+    action = args[0];
   });
 
-  return [context, (ctx) => {
-    // If we're the admin then we can safely do admin-specific data loading
-    if (ctx.action === "admin") {
+  return (context) => {
+    console.log('trying to detect the admin call');
+    console.log(context);
+    console.log(action);
+
+    // In these cases, we intended it to be admin
+    // no action + default for ctx means no matched args
+    if (
+      (!action && context.action === "default") || context.action === "admin"
+    ){
+      console.log('yeah man its admin');
       return {
-        ...ctx,
+        ...context,
         action: "admin",
         name: isDev ? "ihydra-dev" : "ihydra",
         displayName: isDev ? "IHydra (development)" : "IHydra",
         localInstall: true
       };
-    } else {
-      return cloneContext(ctx);
     }
-  }];
+
+    // This means it's already been set by something - leave it alone
+    if (context.action !== "default") {
+      console.log('not changing');
+      return context;
+    }
+
+    console.log('tryna override the action with ' + action);
+    // Otherwise, at least set the action
+    return {...context, action};
+  };
 }
 
 function hydrateContext(old) {
@@ -138,19 +153,12 @@ function hydrateContext(old) {
       let context = cloneContext(this);
       context.argv = new Argv(argv, this.paths.root);
 
-      const afterHooks = [];
+      const hooks = [];
 
       const parser = new commander.Command();
 
       const attachCommand = (command) => {
-        let afterHook;
-        [ctx, afterHook] = command(context, parser);
-
-        context = ctx;
-
-        if (afterHook) {
-          afterHooks.push(afterHook);
-        }
+        hooks.push(command(parser));
       };
 
       parser.version(packageJson.version);
@@ -160,14 +168,11 @@ function hydrateContext(old) {
       attachCommand(kernelCommand);
       attachCommand(adminCommand);
 
-      console.log(context.argv);
-      console.log(context.argv.commanderArgv);
+      const parsed = parser.parse(context.argv.commanderArgv);
 
-      parser.parse(context.argv.commanderArgv);
+      hooks.forEach(hook => context = hook(context));
 
-      afterHooks.forEach(hook => context = hook(context));
-
-      context.debug = parser.debug;
+      context.debug = parsed.debug;
 
       return context;
     },
