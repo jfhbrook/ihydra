@@ -34,11 +34,11 @@ module.exports = function InstallerConfig({ context }) {
           </TableRow>
           <TableRow>
             <TableCell>Jupyter Command</TableCell>
-            <TableCell>{quote(context.jupyter.command)}</TableCell>
+            <TableCell>{quote(context.jupyterCommand)}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Jupyter Version</TableCell>
-            <TableCell>{context.jupyter.version}</TableCell>
+            <TableCell>{context.versions.jupyter}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Kernel Command</TableCell>
