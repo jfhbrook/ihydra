@@ -30,7 +30,7 @@ module.exports = function InstallerConfig({ context }) {
           </TableRow>
           <TableRow>
             <TableCell>Instaling locally?</TableCell>
-            <TableCell>{context.localInstall ? 'yup' : 'nah'}</TableCell>
+            <TableCell>{context.localInstall ? "yup" : "nah"}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Jupyter Command</TableCell>
@@ -42,7 +42,7 @@ module.exports = function InstallerConfig({ context }) {
           </TableRow>
           <TableRow>
             <TableCell>Kernel Command</TableCell>
-            <TableCell>{quote(context.kernel)}</TableCell>
+            <TableCell>TODO</TableCell>
           </TableRow>
         </TableBody>
       </Table>

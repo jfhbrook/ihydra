@@ -9,55 +9,11 @@ const isDev = require("electron-is-dev");
 const { quote } = require("shell-quote");
 const which = require("which");
 
+const Argv = require("./argv");
 const exec = require("./process").exec;
 const packageJson = require("../../package.json");
 
 const root = path.resolve(path.dirname(require.resolve("../../package.json")));
-
-function electronArgv(argv) {
-  const raw = argv.slice();
-  const kernel = [];
-
-  const cmd = argv.shift();
-
-  if (isDev) {
-    // This script *should* be running using the electron bin
-    kernel.push(cmd);
-
-    // Many arguments can be passed to electron before the
-    // script by electron-webpack, so we throw them out until
-    // we get one that looks like a script. This is both so
-    // that we don't confuse commander and so that we can
-    // use this information to reliably run the kernel.
-    //
-    // This may or may not end up being super brittle.
-    let script = null;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      if (!raw.length) {
-        break;
-      }
-      script = raw.shift();
-      if (path.extname(path.basename(script)) === ".js") {
-        kernel.push(script);
-        break;
-      }
-    }
-  } else {
-    // This program is running in a bundled form and should be
-    // executed directly
-    kernel.push(cmd);
-  }
-
-  return { kernel, args: raw };
-}
-
-function commanderArgv({ kernel, args }) {
-  if (kernel.length === 2) {
-    return kernel.concat(args);
-  }
-  return [kernel[0], "dummy.js"].concat(args);
-}
 
 function cloneContext(old) {
   return {
@@ -66,7 +22,9 @@ function cloneContext(old) {
 }
 
 function kernelAction(context) {
+  console.log('kernelAction is getting created');
   return (connectionFile, opts) => {
+    console.log('kernelAction is being called');
     // Adopted from kernel.js
     const action = "kernel";
     const config = {
@@ -130,7 +88,6 @@ function kernelCommand(old, parser) {
 
   parser
     .command("kernel <connection_file>")
-    .option("--debug", "Debug flag for jp-kernel")
     .option(
       "--protocol <version>",
       "Set the Jupyter protocol version (format: Major[.minor[.patch]]])",
@@ -164,8 +121,8 @@ function adminCommand(old, parser) {
       return {
         ...ctx,
         action: "admin",
-        name: "hydra",
-        displayName: "IHydra",
+        name: isDev ? "ihydra-dev" : "ihydra",
+        displayName: isDev ? "IHydra (development)" : "IHydra",
         localInstall: true
       };
     } else {
@@ -175,22 +132,21 @@ function adminCommand(old, parser) {
 }
 
 function hydrateContext(old) {
-  return {
+  let context = {
      ...old,
     parseArgs(argv) {
       let context = cloneContext(this);
+      context.argv = new Argv(argv, this.paths.root);
 
       const afterHooks = [];
-      const eArgv = electronArgv(argv);
-
-      context.kernel = eArgv.kernel;
-      context.args = eArgv.args;
 
       const parser = new commander.Command();
 
       const attachCommand = (command) => {
         let afterHook;
-        [context, afterHook] = command(context, parser);
+        [ctx, afterHook] = command(context, parser);
+
+        context = ctx;
 
         if (afterHook) {
           afterHooks.push(afterHook);
@@ -204,7 +160,10 @@ function hydrateContext(old) {
       attachCommand(kernelCommand);
       attachCommand(adminCommand);
 
-      parser.parse(commanderArgv(eArgv));
+      console.log(context.argv);
+      console.log(context.argv.commanderArgv);
+
+      parser.parse(context.argv.commanderArgv);
 
       afterHooks.forEach(hook => context = hook(context));
 
@@ -277,12 +236,17 @@ function hydrateContext(old) {
       }
     }
   };
+
+  if (old.argv) {
+    context = context.parseArgs(old.argv.argv);
+  }
+
+  return context;
 }
 
 function dehydrateContext(old) {
-  // TODO: This should create a new object that
-  // whitelists expected properties instead of
-  // cheesing it like we are now
+  // TODO: This should intentionally and explicitly create a new object
+  // instead of cheesing it like we are now
 
   return JSON.parse(JSON.stringify(old));
 };

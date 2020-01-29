@@ -6,7 +6,7 @@ const React = require("react");
 const { useState } = React;
 const Button = require("../components/WizardButton");
 const InstallerConfig = require("../components/InstallerConfig");
-const installKernel = require("../../services/installer").installKernel;
+const { installKernel } = require("../../services/installer");
 
 const contextProp = require("../context").prop;
 const { cloneContext } = require("../../lib/context");

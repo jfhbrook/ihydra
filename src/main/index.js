@@ -40,12 +40,17 @@ const kernel = require("../lib/kernel");
 const { createContext } = require("../lib/context");
 
 async function main() {
+  console.log('yes this is main');
   let context = createContext();
 
   context = context.parseArgs(process.argv);
 
+  console.log('le context:');
+  console.log(context);
+
   switch (context.action) {
     case "kernel":
+      console.log('ostensibly starting that kernel');
       kernel(context);
       break;
     case "admin":
@@ -53,8 +58,8 @@ async function main() {
       break;
     default:
       console.log("derp");
+      app.exit();
   }
-  app.exit();
 }
 
 main().then(console.log, console.log);
