@@ -22,6 +22,7 @@ function cloneContext(old) {
   };
 }
 
+// Should be in separate versions package I think?
 function getMajorVersion(fullVersion) {
   // Cheesing it a little here. This should check if the version
   // matches some regexp or other - but in this codebase "unknown"
