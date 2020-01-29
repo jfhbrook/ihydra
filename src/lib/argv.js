@@ -1,3 +1,5 @@
+const path = require('path');
+
 const isDev = require('electron-is-dev');
 const quote = require('shell-quote').quote
 const which = require('which');
@@ -8,54 +10,47 @@ class Argv {
     this.root = root;
   }
 
-  calculateArgs() {
-    if (isDev) {
-      const args = argv.slice();
-
-      if (isDev) {
-        // First line is electron.exe
-        args.shift();
-
-        // Many arguments can be passed to electron before the
-        // script so we shift args off until we get one that looks like a
-        // script.
-        //
-        // This may or may not end up being super brittle.
-        let maybeScript = null;
-
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-          if (!raw.length) {
-            break;
-          }
-          maybeScript = raw.shift();
-          if (path.extname(path.basename(maybeScript)) === ".js") {
-            break;
-          }
-        }
-      } else {
-        // This program is running in a bundled form so it shouldn't
-        // have a script argument
-        args.shift();
-      }
-
-      return args;
-    }
-  }
-
   get args() {
-    if (!this.cachedArgs) {
-      this.cachedArgs = this.calculateArgs();
+    if (this.cachedArgs) {
+      return this.cachedArgs;
     }
-    return this.cachedArgs;
+
+    const args = this.argv.slice();
+
+    if (isDev) {
+      // First line is electron.exe
+      args.shift();
+
+      // Many arguments can be passed to electron before the
+      // script so we shift args off until we get one that looks like a
+      // script.
+      //
+      // This may or may not end up being super brittle.
+      let maybeScript = null;
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        if (!args.length) {
+          break;
+        }
+        maybeScript = args.shift();
+        if (path.extname(path.basename(maybeScript)) === ".js") {
+          break;
+        }
+      }
+    } else {
+      // This program is running in a bundled form so it shouldn't
+      // have a script argument
+      args.shift();
+    }
+
+    this.cachedArgs = args;
+
+    return args;
   }
 
   get commanderArgv() {
     return ['dummy.exe', 'dummy.js'].concat(this.args);
-  }
-
-  async runJupyterCommand(args) {
-    return await exec((await this.getKernelPrefix()).concat(args));
   }
 
   async getKernelPrefix() {
@@ -63,47 +58,30 @@ class Argv {
       return this.cachedKernelPrefix;
     }
 
+    let prefix;
+
     if (isDev) {
       // In development mode we're running our app using electron-webpack's
       // HMR server and we can't naively run "electron.exe ./dev-bundle.js"
       // because the bundle depends on HMR socket information passed by env
       // variable. 
 
-      // So we construct args for running electron-webpack...
-      const command = quote(['electron-webpack', 'dev']);
-
-      // ...but electron-webpack depends on being in the project directory
-      // and kernel.json has no way of encoding that path, so we need to wrap
-      // our command in an environment-specific shell script
-      const root = quote([this.root]);
-      const shell = await this.getShell();
-      let shimScript;
-
-      if (['bash', 'sh'].find(shell)) {
-        shimScript = [
-          shell, '-c',
-          `cd ${root} && exec ${command)}`
-        ];
-      } else if (shell === 'powershell') {
-        shimScript = [
-          shell, '-Command',
-          `(cd ${root)} -and (${command)}`
-        ];
-      } else {
-        throw new Error('dont know how to do this shell');
-      }
-
-      this.cachedKernelPrefix = shimScript;
-
-      return shimScript;
+      // So we construct args for running electron-webpack - but note that
+      // without setting the cwd to the project root somehow this won't do
+      // the right thing. :)
+      prefix = [await which('electron-webpack'), 'dev'];
     } else {
       // In production, we should be able to run the command naively
-      return this.argv[0];
+      prefix = this.argv[0];
     }
+
+    this.cachedKernelPrefix = prefix;
+
+    return prefix;
   }
 
   async getShell() {
-    if (!this.cachedShell) {
+    if (this.cachedShell) {
       return this.cachedShell;
     }
 
@@ -119,7 +97,11 @@ class Argv {
       let i = 0;
       while (i < shells.length) {
         try {
-          yield await which(shells[i]);
+          const shell = shells[i];
+          const resolved = await which(shells[i]);
+          if (resolved) {
+            yield shell;
+          }
         } catch (err) {
           if (err.code === 'ENOENT') {
             continue;

@@ -42,7 +42,7 @@ module.exports = function InstallerConfig({ context }) {
           </TableRow>
           <TableRow>
             <TableCell>Kernel Command</TableCell>
-            <TableCell>{quote(context.kernel)}</TableCell>
+            <TableCell>TODO</TableCell>
           </TableRow>
         </TableBody>
       </Table>
