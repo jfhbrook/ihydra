@@ -33,7 +33,7 @@ function useAdminState(context) {
   }
 
   function checkInitialState() {
-    if (ctx.jupyter.command) {
+    if (ctx.jupyterCommand) {
       return setStatus("registering");
     }
     return setStatus("searching");
@@ -43,6 +43,7 @@ function useAdminState(context) {
   async function searchForJupyter() {
     let c;
     try {
+      c = ctx.loadVersionInfo();
       c = await ctx.searchForJupyter();
     } catch (err) {
       c = cloneContext(ctx);
