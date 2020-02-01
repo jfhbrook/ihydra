@@ -15,6 +15,20 @@ const packageJson = require("../../package.json");
 
 const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
+function getMajorVersion(fullVersion) {
+  // Cheesing it a little here. This should check if the version
+  // matches some regexp or other - but in this codebase "unknown"
+  // is used as a sentinel value so it's fine
+  if (fullVersion === "unknown") {
+    return Infinity;
+  }
+  return parseInt(fullVersion.split(".")[0], 10);
+}
+
+function getVersionTuple(fullVersion) {
+  return fullVersion.split(".").map(v => parseInt(v, 10));
+}
+
 function cloneContext(old) {
   return {
     ...old
@@ -42,13 +56,11 @@ function kernelAction(context) {
     let nodeVersion;
     let protocolVersion;
     let ihydraVersion;
-    const majorVersion = parseInt(config.protocolVersion.split(".")[0], 10);
+    const majorVersion = getMajorVersion(config.protocolVersion);
 
     if (majorVersion <= 4) {
-      nodeVersion = process.versions.node.split(".").map(v => parseInt(v, 10));
-      protocolVersion = config.protocolVersion
-        .split(".")
-        .map(v => parseInt(v, 10));
+      nodeVersion = getVersionTuple(process.versions.node);
+      protocolVersion = getVersionTuple(config.protocolVersion);
       config.kernelInfoReply = {
         language: "javascript",
         language_version: nodeVersion,
@@ -207,7 +219,7 @@ function hydrateContext(old) {
 
       // Parse version number before Jupyter 4.5.0
       version = stdout.toString().trim();
-      majorVersion = parseInt(version.split(".")[0], 10);
+      majorVersion = getMajorVersion(version);
 
       if (Number.isNaN(majorVersion)) {
         // Parse version number after Jupyter 4.5.0
@@ -215,7 +227,7 @@ function hydrateContext(old) {
         if (match) {
           // eslint-disable-next-line prefer-destructuring
           version = match[1];
-          majorVersion = parseInt(version.split(".")[0], 10);
+          majorVersion = getMajorVersion(version);
         } else {
           // Failed to parse the output of "jupyter --version"
           console.warn("Warning: Unable to parse Jupyter version:", stdout);
@@ -225,13 +237,12 @@ function hydrateContext(old) {
       }
 
       context.versions.jupyter = version;
-      context.jupyterMajorVersion = majorVersion;
 
       return context;
     },
 
     ensureSupportedJupyterVersion() {
-      if (this.jupyterMajorVersion < 3) {
+      if (getMajorVersion(this.versions.jupyter) < 3) {
         throw new Error("frontend major version must be >= 3");
       }
     }
@@ -259,7 +270,6 @@ function createDehydratedContext() {
       images: path.join(root, "images")
     },
     jupyterCommand: null,
-    jupyterMajorVersion: null,
     versions: {}
   };
 }
