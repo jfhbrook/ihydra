@@ -51,6 +51,8 @@ async function main() {
   switch (context.action) {
     case "kernel":
       console.log('ostensibly starting that kernel');
+
+      context = await context.loadVersionInfo().loadKernelInfoReply();
       kernel(context);
       break;
     case "admin":

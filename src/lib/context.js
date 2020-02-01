@@ -95,8 +95,11 @@ function kernelAction(context) {
   };
 }
 
-function kernelCommand(old, parser) {
-  const context = cloneContext(old);
+function kernelCommand(parser) {
+  let action;
+  let protocolVersion;
+  let connectionFile;
+  let sessionWorkingDir;
 
   parser
     .command("kernel <connection_file>")
@@ -110,37 +113,55 @@ function kernelCommand(old, parser) {
       "The working directory for this kernel session",
       process.cwd()
     )
-    .action(kernelAction(context));
+    .action((f, opts) => {
+      action = "kernel";
+      protocolVersion = opts.protocol;
+      connectionFile = f;
+      sessionWorkingDir = opts.sessionWorkingDir;
+    });
 
-  return [context];
+  return context => {
+    if (action === "kernel") {
+      return {
+        ...context,
+        action,
+        protocolVersion,
+        connectionFile,
+        sessionWorkingDir
+      };
+    }
+    return context;
+  };
 }
 
-function adminCommand(old, parser) {
-  let context = cloneContext(old);
-
-  // Admin is the default action
-  context.action = "admin";
+function adminCommand(parser) {
+  let action;
 
   // We use a catch-all to direct anything that isn't either
   // the root or "admin"
   parser.command("*").action((cmd, args) => {
-    [context.action] = args;
+    action = args[0];
   });
 
-  return [context, (ctx) => {
-    // If we're the admin then we can safely do admin-specific data loading
-    if (ctx.action === "admin") {
+  return context => {
+    if (
+      (!action && context.action === "default") ||
+      context.action === "admin"
+    ) {
       return {
-        ...ctx,
+        ...context,
         action: "admin",
         name: isDev ? "ihydra-dev" : "ihydra",
         displayName: isDev ? "IHydra (development)" : "IHydra",
         localInstall: true
       };
-    } else {
-      return cloneContext(ctx);
     }
-  }];
+
+    if (context.action !== "default") {
+      return context;
+    }
+    return { ...context, action };
+  };
 }
 
 function hydrateContext(old) {
@@ -150,19 +171,12 @@ function hydrateContext(old) {
       let context = cloneContext(this);
       context.argv = new Argv(argv, this.paths.root);
 
-      const afterHooks = [];
+      const hooks = [];
 
       const parser = new commander.Command();
 
       const attachCommand = (command) => {
-        let afterHook;
-        [ctx, afterHook] = command(context, parser);
-
-        context = ctx;
-
-        if (afterHook) {
-          afterHooks.push(afterHook);
-        }
+        hooks.push(command(parser));
       };
 
       parser.version(packageJson.version);
@@ -177,7 +191,7 @@ function hydrateContext(old) {
 
       parser.parse(context.argv.commanderArgv);
 
-      afterHooks.forEach(hook => context = hook(context));
+      hooks.forEach(hook => context = hook(context));
 
       context.debug = parser.debug;
 
@@ -263,7 +277,47 @@ function hydrateContext(old) {
       if (getMajorVersion(this.versions.jupyter) < 3) {
         throw new Error("frontend major version must be >= 3");
       }
+    },
+
+    async loadKernelInfoReply() {
+      let context = cloneContext(this);
+
+      const protocolVersion = context.protocoVersion;
+
+      if (getMajorVersion(context.protocolVersion) <= 4) {
+        context.kernelInfoReply = {
+          language: "javascript",
+          language_version: getVersionTuple(process.versions.node),
+          protocol_version: getVersionTuple(protocolVersion)
+        };
+      } else {
+        context = context.loadVersionInfo();
+
+        context.kernelInfoReply = {
+          protocol_version: protocolVersion,
+          implementation: "ihydra",
+          implementation_version: context.versions.ihydra,
+          language_info: {
+            name: "javascript",
+            version: context.versions.node,
+            mimetype: "application/javascript",
+            file_extension: ".js"
+          },
+          banner: `IHydra v${context.versions.ihydra}
+  https://github.com/jfhbrook/ihydra
+  `,
+          help_links: [
+            {
+              text: "IHydra Homepage",
+              url: "https://github.com/jfhbrook/ihydra"
+            }
+          ]
+        };
+
+        return context;
+      }
     }
+
   };
 
   if (old.argv) {
