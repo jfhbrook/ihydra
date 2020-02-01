@@ -184,6 +184,24 @@ function hydrateContext(old) {
       return context;
     },
 
+    loadVersionInfo() {
+      const context = cloneContext(this);
+
+      context.versions = Object.assign(context.versions, {
+        jmp: require("jmp/package.json").version,
+        nel: require("nel/package.json").version,
+        uuid: require("uuid/package.json").version,
+        zeromq: require("zeromq/package.json").version,
+        node: process.versions.node,
+        v8: process.versions.v8,
+        chrome: process.versions.chrome,
+        electron: process.versions.electron,
+        ihydra: require("../../package.json").version
+      });
+
+      return context;
+    },
+
     async searchForJupyter() {
       const context = cloneContext(this);
 

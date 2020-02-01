@@ -43,6 +43,7 @@ function useAdminState(context) {
   async function searchForJupyter() {
     let c;
     try {
+      c = ctx.loadVersionInfo();
       c = await ctx.searchForJupyter();
     } catch (err) {
       c = cloneContext(ctx);
