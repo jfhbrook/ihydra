@@ -175,14 +175,14 @@ function hydrateContext(old) {
     async searchForJupyter() {
       const context = cloneContext(this);
 
-      let command = context.jupyter && context.jupyter.command;
+      let command = context.jupyterCommand;
 
       if (!command) {
         command = [await which("jupyter")];
       }
 
       if (command) {
-        context.jupyter.command = command;
+        context.jupyterCommand = command;
         return context;
       }
       else {
@@ -193,14 +193,14 @@ function hydrateContext(old) {
     async loadJupyterInfo() {
       const context = cloneContext(this);
 
-      let command = context.jupyter && context.jupyter.command;
+      let command = context.jupyterCommand;
       if (!command) {
         throw new Error("don't know how to run Jupyter");
       }
 
       const { stdout } = await exec(quote(command.concat(["--version"])));
 
-      context.jupyter = { command };
+      context.jupyterCommand = command;
 
       let version;
       let majorVersion;
@@ -224,14 +224,14 @@ function hydrateContext(old) {
         }
       }
 
-      context.jupyter.version = version;
-      context.jupyter.majorVersion = majorVersion;
+      context.versions.jupyter = version;
+      context.jupyterMajorVersion = majorVersion;
 
       return context;
     },
 
     ensureSupportedJupyterVersion() {
-      if (this.jupyter.majorVersion < 3) {
+      if (this.jupyterMajorVersion < 3) {
         throw new Error("frontend major version must be >= 3");
       }
     }
@@ -258,7 +258,9 @@ function createDehydratedContext() {
       root,
       images: path.join(root, "images")
     },
-    jupyter: {}
+    jupyterCommand: null,
+    jupyterMajorVersion: null,
+    versions: {}
   };
 }
 

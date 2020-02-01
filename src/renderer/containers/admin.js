@@ -33,7 +33,7 @@ function useAdminState(context) {
   }
 
   function checkInitialState() {
-    if (ctx.jupyter.command) {
+    if (ctx.jupyterCommand) {
       return setStatus("registering");
     }
     return setStatus("searching");
