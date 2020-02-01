@@ -186,7 +186,7 @@ function hydrateContext(old) {
 
       const parsed = parser.parse(context.argv.commanderArgv);
 
-      hooks.forEach(hook => context = hook(context));
+      hooks.forEach(hook => (context = hook(context)));
 
       context.debug = parsed.debug;
 
@@ -231,7 +231,7 @@ function hydrateContext(old) {
     async loadJupyterInfo() {
       const context = cloneContext(this);
 
-      let command = context.jupyterCommand;
+      const command = context.jupyterCommand;
 
       if (!command) {
         throw new Error("don't know how to run Jupyter");
@@ -312,7 +312,6 @@ function hydrateContext(old) {
         return context;
       }
     }
-
   };
 
   if (old.argv) {
