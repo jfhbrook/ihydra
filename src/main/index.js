@@ -39,29 +39,34 @@ const { adminWindowManager } = require("./window");
 const kernel = require("../lib/kernel");
 const { createContext } = require("../lib/context");
 
+const Loader = require("../lib/loader").Loader;
+
+const loader = new Loader();
+
+loader.register('kernel', async (ctx) => {
+  const context = await ctx.loadVersionInfo().loadKernelInfoReply();
+  // TODO: Make this blocking so I can unify exit calls
+  kernel(context);
+});
+
+loader.register('admin', async (context) => {
+  console.log('running the admin');
+  await adminWindowManager(context);
+  console.log('admin ran');
+
+  app.exit();
+});
+
 async function main() {
   console.log("yes this is main");
   let context = createContext();
 
   context = context.parseArgs(process.argv);
 
-  console.log("le context:");
   console.log(context);
 
-  switch (context.action) {
-    case "kernel":
-      console.log("ostensibly starting that kernel");
+  await loader.run(context);
 
-      context = await context.loadVersionInfo().loadKernelInfoReply();
-      kernel(context);
-      break;
-    case "admin":
-      await adminWindowManager(context);
-      break;
-    default:
-      console.log("derp");
-      app.exit();
-  }
 }
 
 main().then(console.log, console.log);
