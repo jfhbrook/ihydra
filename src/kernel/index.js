@@ -35,20 +35,16 @@
 const util = require("util");
 const vm = require("vm");
 
-const _process = process;
 const { ipcRenderer } = require("electron");
-
-process = ipcRenderer;
 
 const { Context, defaultMimer } = require("./context");
 const Requester = require("./requester");
 
 // Shared variables
-const DEBUG = !!_process.env.DEBUG;
+const DEBUG = !!process.env.DEBUG;
 let log;
 let requester;
 let initialContext;
-
 
 // Init IPC server
 // init();
@@ -56,24 +52,24 @@ let initialContext;
 // return;
 
 module.exports = function init() {
-  console.log('brohonest.ly');
-  console.log(process);
+  console.log("brohonest.ly");
+  console.log(ipcRenderer);
 
   // Setup logger
   log = DEBUG
     ? function log() {
-        process.send({
+        ipcRenderer.send({
           log: `SERVER: ${util.format.apply(this, arguments)}`
         });
       }
     : function noop() {};
 
   // Create instance to send requests
-  requester = new Requester();
+  requester = new Requester(ipcRenderer);
 
   // Capture the initial context
   // (id left undefined to indicate this is the initial context)
-  initialContext = new Context(requester);
+  initialContext = new Context(ipcRenderer, requester);
   initialContext.captureGlobalContext();
 
   Object.defineProperty(global, "$$defaultMimer$$", {
@@ -83,21 +79,21 @@ module.exports = function init() {
     enumerable: false
   });
 
-  process.on("message", onMessage.bind(this));
+  ipcRenderer.on("message", onMessage.bind(this));
 
-  process.on("uncaughtException", onUncaughtException.bind(this));
+  ipcRenderer.on("uncaughtException", onUncaughtException.bind(this));
 
-  console.log('all part of the process');
-  console.log(process);
+  console.log("all part of the ipcRenderer");
+  console.log(ipcRenderer);
 
-  process.send({
+  ipcRenderer.send({
     status: "online"
   });
 };
 
 function onUncaughtException(error) {
   log("UNCAUGHTEXCEPTION:", error.stack);
-  process.send({
+  ipcRenderer.send({
     stderr: error.stack.toString()
   });
 }

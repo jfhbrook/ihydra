@@ -32,398 +32,311 @@
  *
  */
 
-/* global console */
-/* global stream */
-/* global util */
+/* window console */
+/* window stream */
+/* window util */
 
 const console = require("console");
 const stream = require("stream");
 const util = require("util");
 
-const _process = process;
-const { ipcRenderer } = require("electron");
+const createDisplay = require("./display");
 
-process = ipcRenderer;
+class Context {
+  constructor(ipc, requester, id) {
+    this.ipc = ipc;
+    this.requester = requester;
+    this.id = id;
 
-/* global log */
-/* global Display */
-const display = require("./display");
+    // TODO
+    //this.console = new console.Console();
 
-function Stdout(id, opt) {
-  stream.Transform.call(this, opt);
+    //this._capturedConsole = null;
 
-  this._id = id;
-}
+    this._async = false;
+    this._done = false;
 
-Stdout.prototype = Object.create(stream.Transform.prototype);
+    // `$$` provides an interface for users to access the execution context
+    this.$$ = Object.create(null);
 
-Stdout.prototype._transform = function(data, encoding, callback) {
-  const response = {
-    id: this._id,
-    stdout: data.toString()
-  };
-  log("STDOUT:", response);
-  process.send(response);
-  this.push(data);
-  callback();
-};
-
-function Stderr(id, opt) {
-  stream.Transform.call(this, opt);
-
-  this._id = id;
-}
-
-Stderr.prototype = Object.create(stream.Transform.prototype);
-
-Stderr.prototype._transform = function(data, encoding, callback) {
-  const response = {
-    id: this._id,
-    stderr: data.toString()
-  };
-  log("STDERR:", response);
-  process.send(response);
-  this.push(data);
-  callback();
-};
-
-const Context = (exports.Context = function Context(requester, id) {
-  this.requester = requester;
-  this.id = id;
-
-  this.stdout = new Stdout(this.id);
-  this.stderr = new Stderr(this.id);
-  this.console = new console.Console(this.stdout, this.stderr);
-
-  this._capturedStdout = null;
-  this._capturedStderr = null;
-  this._capturedConsole = null;
-
-  this._async = false;
-  this._done = false;
-
-  // `$$` provides an interface for users to access the execution context
-  this.$$ = Object.create(null);
-
-  this.$$.async = function async(value) {
-    this._async = arguments.length === 0 ? true : !!value;
-    return this._async;
-  }.bind(this);
-
-  this.$$.done = function done(result) {
-    this.send(
-      arguments.length === 0
-        ? {
-            end: true
-          }
-        : {
-            mime: toMime(result),
-            end: true
-          }
-    );
-  }.bind(this);
-
-  this.$$.sendResult = resolvePromise.call(this, function sendResult(
-    result,
-    keepAlive
-  ) {
-    if (keepAlive) this.$$.async();
-
-    this.send({
-      mime: toMime(result),
-      end: !keepAlive
-    });
-  });
-
-  this.$$.sendError = resolvePromise.call(this, function sendError(
-    error,
-    keepAlive
-  ) {
-    if (keepAlive) this.$$.async();
-
-    this.send({
-      error: formatError(error),
-      end: !keepAlive
-    });
-  });
-
-  this.$$.mime = resolvePromise.call(this, function sendMime(
-    mimeBundle,
-    keepAlive
-  ) {
-    if (keepAlive) this.$$.async();
-
-    this.send({
-      mime: mimeBundle,
-      end: !keepAlive
-    });
-  });
-
-  this.$$.text = resolvePromise.call(this, function sendText(text, keepAlive) {
-    if (keepAlive) this.$$.async();
-
-    this.send({
-      mime: {
-        "text/plain": text
-      },
-      end: !keepAlive
-    });
-  });
-
-  this.$$.html = resolvePromise.call(this, function sendHtml(html, keepAlive) {
-    if (keepAlive) this.$$.async();
-
-    this.send({
-      mime: {
-        "text/html": html
-      },
-      end: !keepAlive
-    });
-  });
-
-  this.$$.svg = resolvePromise.call(this, function sendSvg(svg, keepAlive) {
-    if (keepAlive) this.$$.async();
-
-    this.send({
-      mime: {
-        "image/svg+xml": svg
-      },
-      end: !keepAlive
-    });
-  });
-
-  this.$$.png = resolvePromise.call(this, function sendPng(png, keepAlive) {
-    if (keepAlive) this.$$.async();
-
-    this.send({
-      mime: {
-        "image/png": png
-      },
-      end: !keepAlive
-    });
-  });
-
-  this.$$.jpeg = resolvePromise.call(this, function sendJpeg(jpeg, keepAlive) {
-    if (keepAlive) this.$$.async();
-
-    this.send({
-      mime: {
-        "image/jpeg": jpeg
-      },
-      end: !keepAlive
-    });
-  });
-
-  this.$$.json = resolvePromise.call(this, function sendJson(json, keepAlive) {
-    if (keepAlive) this.$$.async();
-
-    this.send({
-      mime: {
-        "application/json": json
-      },
-      end: !keepAlive
-    });
-  });
-
-  this.$$.input = function input(options, callback) {
-    this.$$.async();
-
-    const inputRequest = {
-      input: options
+    this.$$.setAsync = value => {
+      this._async = arguments.length === 0 ? true : !!value;
+      return this._async;
     };
 
-    let inputCallback;
-    if (typeof callback === "function") {
-      inputCallback = function inputCallback(error, reply) {
-        callback(error, reply.input);
+    this.$$.done = result => {
+      this.send(
+        arguments.length === 0
+          ? {
+              end: true
+            }
+          : {
+              mime: toMime(result),
+              end: true
+            }
+      );
+    };
+
+    function isPromise(output) {
+      return output.then && typeof output.then === "function";
+    }
+
+    const resolvePromise = outputHandler => {
+      return async (output, keepAlive) => {
+        let resolved = output;
+        let error;
+        if (isPromise(output)) {
+          this.$$.async();
+
+          try {
+            resolved = await output;
+          } catch (err) {
+            error = err;
+            this.send({
+              error: formatError(err),
+              end: true
+            });
+          }
+        }
+
+        if (!error) {
+          outputHandler(resolved, keepAlive);
+        }
       };
-    }
+    };
 
-    const promise = this.requester.send(this, inputRequest, inputCallback);
-    if (promise) {
-      return promise.then(function(reply) {
-        return reply.input;
+    this.$$.sendResult = resolvePromise((result, keepAlive) => {
+      if (keepAlive) this.$$.async();
+
+      this.send({
+        mime: toMime(result),
+        end: !keepAlive
       });
-    }
-  }.bind(this);
-
-  this.$$.display = function createDisplay(id) {
-    return arguments.length === 0
-      ? new Display(this.id)
-      : new Display(this.id, id);
-  }.bind(this);
-
-  this.$$.clear = function clear(options) {
-    this.send({
-      request: {
-        clear: options || {}
-      }
     });
-  }.bind(this);
 
-  function isPromise(output) {
-    if (!global.Promise || typeof global.Promise !== "function") {
-      return false;
-    }
-    return output instanceof global.Promise;
-  }
+    this.$$.sendError = resolvePromise((error, keepAlive) => {
+      if (keepAlive) this.$$.async();
 
-  function resolvePromise(outputHandler) {
-    return function(output, keepAlive) {
-      if (isPromise(output)) {
-        this.$$.async();
+      this.send({
+        error: formatError(error),
+        end: !keepAlive
+      });
+    });
 
-        output
-          .then(
-            function(resolvedOutput) {
-              outputHandler.call(this, resolvedOutput, keepAlive);
-            }.bind(this)
-          )
-          .catch(
-            function(error) {
-              this.send({
-                error: formatError(error),
-                end: true
-              });
-            }.bind(this)
-          );
+    this.$$.mime = resolvePromise((mimeBundle, keepAlive) => {
+      if (keepAlive) this.$$.async();
 
-        return;
+      this.send({
+        mime: mimeBundle,
+        end: !keepAlive
+      });
+    });
+
+    this.$$.text = resolvePromise((text, keepAlive) => {
+      if (keepAlive) this.$$.async();
+
+      this.send({
+        mime: {
+          "text/plain": text
+        },
+        end: !keepAlive
+      });
+    });
+
+    this.$$.html = resolvePromise((html, keepAlive) => {
+      if (keepAlive) this.$$.async();
+
+      this.send({
+        mime: {
+          "text/html": html
+        },
+        end: !keepAlive
+      });
+    });
+
+    this.$$.svg = resolvePromise((svg, keepAlive) => {
+      if (keepAlive) this.$$.async();
+
+      this.send({
+        mime: {
+          "image/svg+xml": svg
+        },
+        end: !keepAlive
+      });
+    });
+
+    this.$$.png = resolvePromise((png, keepAlive) => {
+      if (keepAlive) this.$$.async();
+
+      this.send({
+        mime: {
+          "image/png": png
+        },
+        end: !keepAlive
+      });
+    });
+
+    this.$$.jpeg = resolvePromise((jpeg, keepAlive) => {
+      if (keepAlive) this.$$.async();
+
+      this.send({
+        mime: {
+          "image/jpeg": jpeg
+        },
+        end: !keepAlive
+      });
+    });
+
+    this.$$.json = resolvePromise((json, keepAlive) => {
+      if (keepAlive) this.$$.async();
+
+      this.send({
+        mime: {
+          "application/json": json
+        },
+        end: !keepAlive
+      });
+    });
+
+    this.$$.input = (options, callback) => {
+      this.$$.async();
+
+      const inputRequest = {
+        input: options
+      };
+
+      let inputCallback;
+      if (typeof callback === "function") {
+        inputCallback = (error, reply) => {
+          callback(error, reply.input);
+        };
       }
 
-      outputHandler.apply(this, arguments);
-    }.bind(this);
-  }
-});
+      const promise = this.requester.send(this, inputRequest, inputCallback);
+      if (promise) {
+        return promise.then(function(reply) {
+          return reply.input;
+        });
+      }
+    };
 
-Context.prototype.send = function send(message) {
-  message.id = this.id;
+    this.$$.display = id => {
+      return arguments.length === 0
+        ? createDisplay(this.ipc, this.id)
+        : createDisplay(this.ipc, this.id, id);
+    };
 
-  if (this._done) {
-    log("SEND: DROPPED:", message);
-    return;
-  }
-
-  if (message.end) {
-    this._done = true;
-    this._async = false;
-  }
-
-  log("SEND:", message);
-
-  process.send(message);
-};
-
-Context.prototype.captureGlobalContext = function captureGlobalContext() {
-  this._capturedStdout = process.stdout;
-  this._capturedStderr = process.stderr;
-  this._capturedConsole = console;
-
-  this.stdout.pipe(this._capturedStdout);
-  this.stderr.pipe(this._capturedStderr);
-  this.console.Console = this._capturedConsole.Console;
-
-  delete process.stdout;
-  process.stdout = this.stdout;
-
-  delete process.stderr;
-  process.stderr = this.stderr;
-
-  delete global.console;
-  global.console = this.console;
-
-  delete global.$$;
-  global.$$ = this.$$;
-
-  if (typeof global.$$mimer$$ !== "function") {
-    global.$$mimer$$ = defaultMimer;
+    this.$$.clear = options => {
+      this.send({
+        request: {
+          clear: options || {}
+        }
+      });
+    };
   }
 
-  delete global.$$mime$$;
-  Object.defineProperty(global, "$$mime$$", {
-    set: this.$$.mime,
-    configurable: true,
-    enumerable: false
-  });
+  send(message) {
+    message.id = this.id;
 
-  delete global.$$html$$;
-  Object.defineProperty(global, "$$html$$", {
-    set: this.$$.html,
-    configurable: true,
-    enumerable: false
-  });
+    if (this._done) {
+      log("SEND: DROPPED:", message);
+      return;
+    }
 
-  delete global.$$svg$$;
-  Object.defineProperty(global, "$$svg$$", {
-    set: this.$$.svg,
-    configurable: true,
-    enumerable: false
-  });
+    if (message.end) {
+      this._done = true;
+      this._async = false;
+    }
 
-  delete global.$$png$$;
-  Object.defineProperty(global, "$$png$$", {
-    set: this.$$.png,
-    configurable: true,
-    enumerable: false
-  });
+    log("SEND:", message);
 
-  delete global.$$jpeg$$;
-  Object.defineProperty(global, "$$jpeg$$", {
-    set: this.$$.jpeg,
-    configurable: true,
-    enumerable: false
-  });
+    process.send(message);
+  }
 
-  delete global.$$async$$;
-  Object.defineProperty(global, "$$async$$", {
-    get: function() {
-      return this._async;
-    }.bind(this),
-    set: function(value) {
-      this._async = !!value;
-    }.bind(this),
-    configurable: true,
-    enumerable: false
-  });
+  captureGlobalContext() {
+    /*this._capturedConsole = console;
 
-  global.$$done$$ = this.$$.done.bind(this);
+    this.console.Console = this._capturedConsole.Console;
 
-  if (!global.hasOwnProperty("$$defaultMimer$$")) {
-    Object.defineProperty(global, "$$defaultMimer$$", {
-      value: defaultMimer,
-      configurable: false,
-      writable: false,
+    delete window.console;
+    window.console = this.console;
+    */
+
+    delete window.$$;
+    window.$$ = this.$$;
+
+    if (typeof window.$$mimer$$ !== "function") {
+      window.$$mimer$$ = defaultMimer;
+    }
+
+    delete window.$$mime$$;
+    Object.defineProperty(window, "$$mime$$", {
+      set: this.$$.mime,
+      configurable: true,
       enumerable: false
     });
+
+    delete window.$$html$$;
+    Object.defineProperty(window, "$$html$$", {
+      set: this.$$.html,
+      configurable: true,
+      enumerable: false
+    });
+
+    delete window.$$svg$$;
+    Object.defineProperty(window, "$$svg$$", {
+      set: this.$$.svg,
+      configurable: true,
+      enumerable: false
+    });
+
+    delete window.$$png$$;
+    Object.defineProperty(window, "$$png$$", {
+      set: this.$$.png,
+      configurable: true,
+      enumerable: false
+    });
+
+    delete window.$$jpeg$$;
+    Object.defineProperty(window, "$$jpeg$$", {
+      set: this.$$.jpeg,
+      configurable: true,
+      enumerable: false
+    });
+
+    delete window.$$async$$;
+    Object.defineProperty(window, "$$async$$", {
+      get: function() {
+        return this._async;
+      }.bind(this),
+      set: function(value) {
+        this._async = !!value;
+      }.bind(this),
+      configurable: true,
+      enumerable: false
+    });
+
+    window.$$done$$ = this.$$.done.bind(this);
+
+    if (!window.hasOwnProperty("$$defaultMimer$$")) {
+      Object.defineProperty(window, "$$defaultMimer$$", {
+        value: defaultMimer,
+        configurable: false,
+        writable: false,
+        enumerable: false
+      });
+    }
   }
-};
 
-Context.prototype.releaseGlobalContext = function releaseGlobalContext() {
-  if (process.stdout === this.stdout) {
-    this.stdout.unpipe();
+  releaseGlobalContext() {
+    if (window.console === this.console) {
+      delete window.console;
+      window.console = this._capturedConsole;
 
-    delete process.stdout;
-    process.stdout = this._capturedStdout;
-
-    this._capturedStdout = null;
+      this._capturedConsole = null;
+    }
   }
-
-  if (process.stderr === this.stderr) {
-    this.stderr.unpipe();
-
-    delete process.stderr;
-    process.stderr = this._capturedStderr;
-
-    this._capturedStderr = null;
-  }
-
-  if (global.console === this.console) {
-    delete global.console;
-    global.console = this._capturedConsole;
-
-    this._capturedConsole = null;
-  }
-};
+}
 
 function formatError(error) {
   return {
@@ -435,7 +348,7 @@ function formatError(error) {
 
 function toMime(result) {
   const mimer =
-    typeof global.$$mimer$$ === "function" ? global.$$mimer$$ : defaultMimer;
+    typeof window.$$mimer$$ === "function" ? window.$$mimer$$ : defaultMimer;
   return mimer(result);
 }
 
@@ -494,6 +407,6 @@ function defaultMimer(result) {
   }
 
   return mime;
-};
+}
 
-exports.defaultMimer = defaultMimer;
+module.exports = { Context, defaultMimer };

@@ -45,10 +45,7 @@ const loader = new Loader();
 
 loader.register("kernel", async ctx => {
   const context = await (
-    await (ctx
-      .loadVersionInfo()
-      .loadKernelInfoReply()
-    )
+    await ctx.loadVersionInfo().loadKernelInfoReply()
   ).loadConnectionInfo();
 
   console.log(context);

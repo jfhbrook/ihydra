@@ -87,7 +87,7 @@ module.exports = async function runKernel(context, callback) {
         // TODO: Hooks for if/when window closes?
         createWindow(config);
 
-        console.log('STR8 INTERFACING');
+        console.log("STR8 INTERFACING");
 
         // ipc interface *should* conform to child process API
         // so we should be good!

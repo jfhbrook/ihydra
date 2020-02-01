@@ -32,53 +32,14 @@
  *
  */
 
-const { process: ipcMain } = require("electron");
-
-module.exports = function Display(context_id, display_id) {
+module.exports = function createDisplay(ipc, context_id, display_id) {
   // eslint-disable-line no-unused-vars
   let send;
 
-  this.mime = function mime(mimeBundle) {
-    send(mimeBundle);
-  };
-
-  this.text = function text(text) {
-    send({ "text/plain": text });
-  };
-
-  this.html = function html(html) {
-    send({ "text/html": html });
-  };
-
-  this.svg = function svg(svg) {
-    send({ "image/svg+xml": svg });
-  };
-
-  this.png = function png(png) {
-    send({ "image/png": png });
-  };
-
-  this.jpeg = function jpeg(jpeg) {
-    send({ "image/jpeg": jpeg });
-  };
-
-  this.json = function json(json) {
-    send({ "application/json": json });
-  };
-
-  this.close = function close() {
-    process.send({
-      id: context_id,
-      display: {
-        close: display_id
-      }
-    });
-  };
-
-  if (arguments.length < 2) {
+  if (arguments.length < 3) {
     // case: without a display_id
     send = function send(mime) {
-      process.send({
+      ipc.send({
         id: context_id,
         display: {
           mime
@@ -88,7 +49,7 @@ module.exports = function Display(context_id, display_id) {
   } else {
     // case: with a display_id
     send = function send(mime) {
-      process.send({
+      ipc.send({
         id: context_id,
         display: {
           display_id,
@@ -98,11 +59,50 @@ module.exports = function Display(context_id, display_id) {
     };
 
     // open the display_id
-    process.send({
+    ipc.send({
       id: context_id,
       display: {
         open: display_id
       }
     });
   }
+
+  return {
+    mime(mimeBundle) {
+      send(mimeBundle);
+    },
+
+    text(text) {
+      send({ "text/plain": text });
+    },
+
+    html(html) {
+      send({ "text/html": html });
+    },
+
+    svg(svg) {
+      send({ "image/svg+xml": svg });
+    },
+
+    png(png) {
+      send({ "image/png": png });
+    },
+
+    jpeg(jpeg) {
+      send({ "image/jpeg": jpeg });
+    },
+
+    json(json) {
+      send({ "application/json": json });
+    },
+
+    close() {
+      process.send({
+        id: context_id,
+        display: {
+          close: display_id
+        }
+      });
+    }
+  };
 };

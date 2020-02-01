@@ -34,69 +34,69 @@
 
 /* global Promise */
 
-const Requester = (module.exports = function Requester() {
-  // id for next request
-  this.id = 0;
+class Requester {
+  constructor(ipc) {
+    this.ipc = ipc;
+    // id for next request
+    this.id = 0;
 
-  // callback associated with a request (indexed by id)
-  this.callbacks = {};
+    // callback associated with a request (indexed by id)
+    this.callbacks = {};
 
-  // the Promise resolve callback associated with a request (indexed by id)
-  this.resolves = {};
+    // the Promise resolve callback associated with a request (indexed by id)
+    this.resolves = {};
 
-  // the Promise reject callback associated with a request (indexed by id)
-  this.rejects = {};
+    // the Promise reject callback associated with a request (indexed by id)
+    this.rejects = {};
 
-  // the string to be returned to a request (indexed by id)
-  this.responses = {};
-});
-
-// send a request
-Requester.prototype.send = function send(context, request, callback) {
-  const id = this.id++;
-
-  if (callback) {
-    this.callbacks[id] = callback;
+    // the string to be returned to a request (indexed by id)
+    this.responses = {};
   }
 
-  let promise;
-  if (global.Promise) {
-    promise = new Promise(
-      function(resolve, reject) {
-        if (!this.responses.hasOwnProperty(id)) {
-          this.resolves[id] = resolve;
-          this.rejects[id] = reject;
-          return;
-        }
+  // send a request
+  send(context, request, callback) {
+    const id = this.id++;
 
-        const response = this.responses[id];
-        delete this.responses[id];
-        resolve(response);
-      }.bind(this)
-    );
+    if (callback) {
+      this.callbacks[id] = callback;
+    }
+
+    const promise = new Promise((resolve, reject) => {
+      if (!this.responses.hasOwnProperty(id)) {
+        this.resolves[id] = resolve;
+        this.rejects[id] = reject;
+        return;
+      }
+
+      const response = this.responses[id];
+      delete this.responses[id];
+      resolve(response);
+    });
+
+    request.id = id;
+
+    context.send({
+      request
+    });
+
+    return promise;
   }
 
-  request.id = id;
+  // pass reply to the callbacks associated with a request
+  receive(id, reply) {
+    const callback = this.callbacks[id];
+    if (callback) {
+      delete this.callbacks[id];
+      callback(null, reply);
+    }
 
-  context.send({
-    request
-  });
-
-  return promise;
-};
-
-// pass reply to the callbacks associated with a request
-Requester.prototype.receive = function receive(id, reply) {
-  const callback = this.callbacks[id];
-  if (callback) {
-    delete this.callbacks[id];
-    callback(null, reply);
+    const resolve = this.resolves[id];
+    if (resolve) {
+      delete this.resolves[id];
+      delete this.rejects[id];
+      resolve(reply);
+    }
   }
+}
 
-  const resolve = this.resolves[id];
-  if (resolve) {
-    delete this.resolves[id];
-    delete this.rejects[id];
-    resolve(reply);
-  }
-};
+module.exports = Requester;

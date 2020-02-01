@@ -107,7 +107,7 @@ function adminCommand(parser) {
 }
 
 function hydrateContext(old) {
-  let context = {
+  const context = {
     ...old,
     parseArgs(argv) {
       let context = cloneContext(this);
@@ -262,7 +262,6 @@ function hydrateContext(old) {
       context.connection = JSON.parse(await readFile(this.connectionFile));
       return context;
     }
-
   };
 
   if (old.argv) {
