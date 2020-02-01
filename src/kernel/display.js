@@ -32,74 +32,77 @@
  *
  */
 
-module.exports = function Display(context_id, display_id) { // eslint-disable-line no-unused-vars
-    var send;
+const { process: ipcMain } = require("electron");
 
-    this.mime = function mime(mimeBundle) {
-        send(mimeBundle);
+module.exports = function Display(context_id, display_id) {
+  // eslint-disable-line no-unused-vars
+  let send;
+
+  this.mime = function mime(mimeBundle) {
+    send(mimeBundle);
+  };
+
+  this.text = function text(text) {
+    send({ "text/plain": text });
+  };
+
+  this.html = function html(html) {
+    send({ "text/html": html });
+  };
+
+  this.svg = function svg(svg) {
+    send({ "image/svg+xml": svg });
+  };
+
+  this.png = function png(png) {
+    send({ "image/png": png });
+  };
+
+  this.jpeg = function jpeg(jpeg) {
+    send({ "image/jpeg": jpeg });
+  };
+
+  this.json = function json(json) {
+    send({ "application/json": json });
+  };
+
+  this.close = function close() {
+    process.send({
+      id: context_id,
+      display: {
+        close: display_id
+      }
+    });
+  };
+
+  if (arguments.length < 2) {
+    // case: without a display_id
+    send = function send(mime) {
+      process.send({
+        id: context_id,
+        display: {
+          mime
+        }
+      });
+    };
+  } else {
+    // case: with a display_id
+    send = function send(mime) {
+      process.send({
+        id: context_id,
+        display: {
+          display_id,
+          mime
+        }
+      });
     };
 
-    this.text = function text(text) {
-        send({"text/plain": text});
-    };
-
-    this.html = function html(html) {
-        send({"text/html": html});
-    };
-
-    this.svg = function svg(svg) {
-        send({"image/svg+xml": svg});
-    };
-
-    this.png = function png(png) {
-        send({"image/png": png});
-    };
-
-    this.jpeg = function jpeg(jpeg) {
-        send({"image/jpeg": jpeg});
-    };
-
-    this.json = function json(json) {
-        send({"application/json": json});
-    };
-
-    this.close = function close() {
-        process.send({
-            id: context_id,
-            display: {
-                close: display_id,
-            },
-        });
-    };
-
-    if (arguments.length < 2) {
-        // case: without a display_id
-        send = function send(mime) {
-            process.send({
-                id: context_id,
-                display: {
-                    mime: mime,
-                },
-            });
-        };
-    } else {
-        // case: with a display_id
-        send = function send(mime) {
-            process.send({
-                id: context_id,
-                display: {
-                    display_id: display_id,
-                    mime: mime,
-                },
-            });
-        };
-
-        // open the display_id
-        process.send({
-            id: context_id,
-            display: {
-                open: display_id,
-            },
-        });
-    }
-}
+    // open the display_id
+    process.send({
+      id: context_id,
+      display: {
+        open: display_id
+      }
+    });
+  }
+};

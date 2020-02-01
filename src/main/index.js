@@ -36,37 +36,41 @@ const electron = require("electron");
 const { app } = electron;
 
 const { adminWindowManager } = require("./window");
-const kernel = require("../lib/kernel");
+const kernel = require("./kernel");
 const { createContext } = require("../lib/context");
 
-const Loader = require("../lib/loader").Loader;
+const { Loader } = require("../lib/loader");
 
 const loader = new Loader();
 
-loader.register('kernel', async (ctx) => {
-  const context = await ctx.loadVersionInfo().loadKernelInfoReply();
+loader.register("kernel", async ctx => {
+  const context = await (
+    await (ctx
+      .loadVersionInfo()
+      .loadKernelInfoReply()
+    )
+  ).loadConnectionInfo();
+
+  console.log(context);
+
   // TODO: Make this blocking so I can unify exit calls
   kernel(context);
 });
 
-loader.register('admin', async (context) => {
-  console.log('running the admin');
+loader.register("admin", async context => {
+  console.log("running the admin");
   await adminWindowManager(context);
-  console.log('admin ran');
+  console.log("admin ran");
 
   app.exit();
 });
 
 async function main() {
-  console.log("yes this is main");
   let context = createContext();
 
   context = context.parseArgs(process.argv);
 
-  console.log(context);
-
   await loader.run(context);
-
 }
 
 main().then(console.log, console.log);

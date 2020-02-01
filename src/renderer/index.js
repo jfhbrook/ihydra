@@ -10,15 +10,16 @@ const Hydra = require("./containers/hydra");
 
 // TODO: Subclass Loader
 function runContainer(Component) {
-  return context => render(
-    <Component context={hydrateContext(context)} />,
-    document.getElementById("app")
-  );
+  return context =>
+    render(
+      <Component context={hydrateContext(context)} />,
+      document.getElementById("app")
+    );
 }
 
 const loader = new Loader();
 
 loader.register("admin", runContainer(Admin));
-loader.register("hydra", runContainer(Hydra));
+loader.register("kernel", runContainer(Hydra));
 
 loader.run(__args__);

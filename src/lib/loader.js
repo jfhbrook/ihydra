@@ -13,7 +13,7 @@ class Loader {
   }
 
   async run(context) {
-    const action = context.action;
+    const { action } = context;
     let handler;
 
     if (this.handlers.has(action)) {

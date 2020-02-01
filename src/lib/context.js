@@ -12,6 +12,7 @@ const which = require("which");
 const Argv = require("./argv");
 const { exec } = require("./process");
 const packageJson = require("../../package.json");
+const { readFile } = require("./fs");
 
 const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
@@ -32,63 +33,6 @@ function getVersionTuple(fullVersion) {
 function cloneContext(old) {
   return {
     ...old
-  };
-}
-
-function kernelAction(config) {
-  console.log("kernelAction is getting created");
-  return (connectionFile, opts) => {
-    console.log("kernelAction is being called");
-    // Adopted from kernel.js
-    const action = "kernel";
-    Object.assign(config, {
-      debug: opts.debug || false,
-      hideExecutionResult: false,
-      hideUndefined: false,
-      protocolVersion: opts.protocol,
-      connection: JSON.parse(fs.readFileSync(connectionFile)),
-      cwd: opts.sessionWorkingDir,
-      startupCallback() {
-        console.error("startupCallback:", this.startupCallback);
-      }
-    });
-
-    let nodeVersion;
-    let protocolVersion;
-    let ihydraVersion;
-    const majorVersion = getMajorVersion(config.protocolVersion);
-
-    if (majorVersion <= 4) {
-      nodeVersion = getVersionTuple(process.versions.node);
-      protocolVersion = getVersionTuple(config.protocolVersion);
-      config.kernelInfoReply = {
-        language: "javascript",
-        language_version: nodeVersion,
-        protocol_version: protocolVersion
-      };
-    } else {
-      nodeVersion = process.versions.node;
-      protocolVersion = config.protocolVersion;
-      ihydraVersion = packageJson.version;
-      config.kernelInfoReply = {
-        protocol_version: protocolVersion,
-        implementation: "ihydra",
-        implementation_version: ihydraVersion,
-        language_info: {
-          name: "javascript",
-          version: nodeVersion,
-          mimetype: "application/javascript",
-          file_extension: ".js"
-        },
-        banner: `IHydra v${ihydraVersion}\nhttps://github.com/jfhbrook/ihydra\n`,
-        help_links: [
-          {
-            text: "IHydra Homepage",
-            url: "https://github.com/jfhbrook/ihydra"
-          }
-        ]
-      };
-    }
   };
 }
 
@@ -311,11 +255,18 @@ function hydrateContext(old) {
 
         return context;
       }
+    },
+
+    async loadConnectionInfo() {
+      const context = cloneContext(this);
+      context.connection = JSON.parse(await readFile(this.connectionFile));
+      return context;
     }
+
   };
 
   if (old.argv) {
-    context = context.parseArgs(old.argv.argv);
+    context.argv = new Argv(old.argv.argv, old.argv.root);
   }
 
   return context;

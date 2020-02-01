@@ -35,14 +35,20 @@
 const util = require("util");
 const vm = require("vm");
 
+const _process = process;
+const { ipcRenderer } = require("electron");
+
+process = ipcRenderer;
+
 const { Context, defaultMimer } = require("./context");
 const Requester = require("./requester");
 
 // Shared variables
-var DEBUG = !!process.env.DEBUG;
-var log;
-var requester;
-var initialContext;
+const DEBUG = !!_process.env.DEBUG;
+let log;
+let requester;
+let initialContext;
+
 
 // Init IPC server
 // init();
@@ -50,268 +56,272 @@ var initialContext;
 // return;
 
 module.exports = function init() {
-    // Setup logger
-    log = DEBUG ?
-        function log() {
-            process.send({
-                log: "SERVER: " + util.format.apply(this, arguments),
-            });
-        } :
-        function noop() {};
+  console.log('brohonest.ly');
+  console.log(process);
 
-    // Create instance to send requests
-    requester = new Requester();
+  // Setup logger
+  log = DEBUG
+    ? function log() {
+        process.send({
+          log: `SERVER: ${util.format.apply(this, arguments)}`
+        });
+      }
+    : function noop() {};
 
-    // Capture the initial context
-    // (id left undefined to indicate this is the initial context)
-    initialContext = new Context(requester);
-    initialContext.captureGlobalContext();
+  // Create instance to send requests
+  requester = new Requester();
 
-    Object.defineProperty(global, "$$defaultMimer$$", {
-        value: defaultMimer,
-        configurable: false,
-        writable: false,
-        enumerable: false,
-    });
+  // Capture the initial context
+  // (id left undefined to indicate this is the initial context)
+  initialContext = new Context(requester);
+  initialContext.captureGlobalContext();
 
-    process.on("message", onMessage.bind(this));
+  Object.defineProperty(global, "$$defaultMimer$$", {
+    value: defaultMimer,
+    configurable: false,
+    writable: false,
+    enumerable: false
+  });
 
-    process.on("uncaughtException", onUncaughtException.bind(this));
+  process.on("message", onMessage.bind(this));
 
-    process.send({
-        status: "online",
-    });
-}
+  process.on("uncaughtException", onUncaughtException.bind(this));
+
+  console.log('all part of the process');
+  console.log(process);
+
+  process.send({
+    status: "online"
+  });
+};
 
 function onUncaughtException(error) {
-    log("UNCAUGHTEXCEPTION:", error.stack);
-    process.send({
-        stderr: error.stack.toString(),
-    });
+  log("UNCAUGHTEXCEPTION:", error.stack);
+  process.send({
+    stderr: error.stack.toString()
+  });
 }
 
 function onMessage(message) {
-    log("RECEIVED:", message);
+  log("RECEIVED:", message);
 
-    var action = message[0];
-    var code = message[1];
-    var id = message[2];
+  const action = message[0];
+  const code = message[1];
+  const id = message[2];
 
-    initialContext.releaseGlobalContext();
-    var context = new Context(requester, id);
-    context.captureGlobalContext();
+  initialContext.releaseGlobalContext();
+  const context = new Context(requester, id);
+  context.captureGlobalContext();
 
-    try {
-        if (action === "getAllPropertyNames") {
-            onNameRequest(code, context);
-        } else if (action === "inspect") {
-            onInspectRequest(code, context);
-        } else if (action === "run") {
-            onRunRequest(code, context);
-        } else if (action === "reply") {
-            onReply(message);
-        } else {
-            throw new Error("NEL: Unhandled action: " + action);
-        }
-    } catch (error) {
-        context.$$.sendError(error);
+  try {
+    if (action === "getAllPropertyNames") {
+      onNameRequest(code, context);
+    } else if (action === "inspect") {
+      onInspectRequest(code, context);
+    } else if (action === "run") {
+      onRunRequest(code, context);
+    } else if (action === "reply") {
+      onReply(message);
+    } else {
+      throw new Error(`NEL: Unhandled action: ${action}`);
     }
+  } catch (error) {
+    context.$$.sendError(error);
+  }
 
-    context.releaseGlobalContext();
-    initialContext.captureGlobalContext();
-    initialContext._done = false;
+  context.releaseGlobalContext();
+  initialContext.captureGlobalContext();
+  initialContext._done = false;
 }
 
 function onReply(message) {
-    var reply = message[1];
-    var id = message[3];
-    requester.receive(id, reply);
+  const reply = message[1];
+  const id = message[3];
+  requester.receive(id, reply);
 }
 
 function onNameRequest(code, context) {
-    var message = {
-        id: context.id,
-        names: getAllPropertyNames(run(code)),
-        end: true,
-    };
-    context.send(message);
+  const message = {
+    id: context.id,
+    names: getAllPropertyNames(run(code)),
+    end: true
+  };
+  context.send(message);
 }
 
 function onInspectRequest(code, context) {
-    var message = {
-        id: context.id,
-        inspection: inspect(run(code)),
-        end: true,
-    };
-    context.send(message);
+  const message = {
+    id: context.id,
+    inspection: inspect(run(code)),
+    end: true
+  };
+  context.send(message);
 }
 
 function onRunRequest(code, context) {
-    var result = run(code);
+  const result = run(code);
 
-    // If a result has already been sent, do not send this result.
-    if (context._done) {
-        return;
-    }
-
-    // If the result is a Promise, send the result fulfilled by the promise
-    if (isPromise(result)) {
-        context.$$.sendResult(result);
-        return;
-    }
-
-    // If async mode has been enabled (and the result is not a Promise),
-    // do not send this result.
-    if (context._async) {
-        return;
-    }
-
-    // If no result has been sent yet and async mode has not been enabled,
-    // send this result.
-    context.$$.sendResult(result);
-
+  // If a result has already been sent, do not send this result.
+  if (context._done) {
     return;
+  }
 
-    function isPromise(output) {
-        if (!global.Promise || typeof global.Promise !== "function") {
-            return false;
-        }
-        return output instanceof global.Promise;
+  // If the result is a Promise, send the result fulfilled by the promise
+  if (isPromise(result)) {
+    context.$$.sendResult(result);
+    return;
+  }
+
+  // If async mode has been enabled (and the result is not a Promise),
+  // do not send this result.
+  if (context._async) {
+    return;
+  }
+
+  // If no result has been sent yet and async mode has not been enabled,
+  // send this result.
+  context.$$.sendResult(result);
+
+  function isPromise(output) {
+    if (!global.Promise || typeof global.Promise !== "function") {
+      return false;
     }
+    return output instanceof global.Promise;
+  }
 }
 
 function getAllPropertyNames(object) {
-    var propertyList = [];
+  const propertyList = [];
 
-    if (object === undefined) {
-        return [];
+  if (object === undefined) {
+    return [];
+  }
+
+  if (object === null) {
+    return [];
+  }
+
+  let prototype;
+  if (typeof object === "boolean") {
+    prototype = Boolean.prototype;
+  } else if (typeof object === "number") {
+    prototype = Number.prototype;
+  } else if (typeof object === "string") {
+    prototype = String.prototype;
+  } else {
+    prototype = object;
+  }
+
+  const prototypeList = [prototype];
+
+  function pushToPropertyList(e) {
+    if (propertyList.indexOf(e) === -1) {
+      propertyList.push(e);
+    }
+  }
+
+  while (prototype) {
+    const names = Object.getOwnPropertyNames(prototype).sort();
+    names.forEach(pushToPropertyList);
+
+    prototype = Object.getPrototypeOf(prototype);
+    if (prototype === null) {
+      break;
     }
 
-    if (object === null) {
-        return [];
+    if (prototypeList.indexOf(prototype) === -1) {
+      prototypeList.push(prototype);
     }
+  }
 
-    var prototype;
-    if (typeof object === "boolean") {
-        prototype = Boolean.prototype;
-    } else if (typeof object === "number") {
-        prototype = Number.prototype;
-    } else if (typeof object === "string") {
-        prototype = String.prototype;
-    } else {
-        prototype = object;
-    }
-
-    var prototypeList = [prototype];
-
-    function pushToPropertyList(e) {
-        if (propertyList.indexOf(e) === -1) {
-            propertyList.push(e);
-        }
-    }
-
-    while (prototype) {
-        var names = Object.getOwnPropertyNames(prototype).sort();
-        names.forEach(pushToPropertyList);
-
-        prototype = Object.getPrototypeOf(prototype);
-        if (prototype === null) {
-            break;
-        }
-
-        if (prototypeList.indexOf(prototype) === -1) {
-            prototypeList.push(prototype);
-        }
-    }
-
-    return propertyList;
+  return propertyList;
 }
 
 function inspect(object) {
-    if (object === undefined) {
-        return {
-            string: "undefined",
-            type: "Undefined",
-        };
-    }
-
-    if (object === null) {
-        return {
-            string: "null",
-            type: "Null",
-        };
-    }
-
-    if (typeof object === "boolean") {
-        return {
-            string: object ? "true" : "false",
-            type: "Boolean",
-            constructorList: ["Boolean", "Object"],
-        };
-    }
-
-    if (typeof object === "number") {
-        return {
-            string: util.inspect(object),
-            type: "Number",
-            constructorList: ["Number", "Object"],
-        };
-    }
-
-    if (typeof object === "string") {
-        return {
-            string: object,
-            type: "String",
-            constructorList: ["String", "Object"],
-            length: object.length,
-        };
-    }
-
-    if (typeof object === "function") {
-        return {
-            string: object.toString(),
-            type: "Function",
-            constructorList: ["Function", "Object"],
-            length: object.length,
-        };
-    }
-
-    var constructorList = getConstructorList(object);
-    var result = {
-        string: toString(object),
-        type: constructorList[0] || "",
-        constructorList: constructorList,
+  if (object === undefined) {
+    return {
+      string: "undefined",
+      type: "Undefined"
     };
+  }
 
-    if ("length" in object) {
-        result.length = object.length;
+  if (object === null) {
+    return {
+      string: "null",
+      type: "Null"
+    };
+  }
+
+  if (typeof object === "boolean") {
+    return {
+      string: object ? "true" : "false",
+      type: "Boolean",
+      constructorList: ["Boolean", "Object"]
+    };
+  }
+
+  if (typeof object === "number") {
+    return {
+      string: util.inspect(object),
+      type: "Number",
+      constructorList: ["Number", "Object"]
+    };
+  }
+
+  if (typeof object === "string") {
+    return {
+      string: object,
+      type: "String",
+      constructorList: ["String", "Object"],
+      length: object.length
+    };
+  }
+
+  if (typeof object === "function") {
+    return {
+      string: object.toString(),
+      type: "Function",
+      constructorList: ["Function", "Object"],
+      length: object.length
+    };
+  }
+
+  const constructorList = getConstructorList(object);
+  const result = {
+    string: toString(object),
+    type: constructorList[0] || "",
+    constructorList
+  };
+
+  if ("length" in object) {
+    result.length = object.length;
+  }
+
+  return result;
+
+  function toString(object) {
+    try {
+      return util.inspect(object.valueOf());
+    } catch (e) {
+      return util.inspect(object);
+    }
+  }
+
+  function getConstructorList(object) {
+    const constructorList = [];
+
+    for (
+      let prototype = Object.getPrototypeOf(object);
+      prototype && prototype.constructor;
+      prototype = Object.getPrototypeOf(prototype)
+    ) {
+      constructorList.push(prototype.constructor.name);
     }
 
-    return result;
-
-    function toString(object) {
-        try {
-            return util.inspect(object.valueOf());
-        } catch (e) {
-            return util.inspect(object);
-        }
-    }
-
-    function getConstructorList(object) {
-        var constructorList = [];
-
-        for (
-            var prototype = Object.getPrototypeOf(object);
-            prototype && prototype.constructor;
-            prototype = Object.getPrototypeOf(prototype)
-        ) {
-            constructorList.push(prototype.constructor.name);
-        }
-
-        return constructorList;
-    }
+    return constructorList;
+  }
 }
 
 function run(code) {
-    return vm.runInThisContext(code);
+  return vm.runInThisContext(code);
 }
