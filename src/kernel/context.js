@@ -250,7 +250,7 @@ class Context {
 
     log("SEND:", message);
 
-    process.send(message);
+    this.ipc.send(message);
   }
 
   captureGlobalContext() {

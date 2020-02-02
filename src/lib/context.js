@@ -221,8 +221,6 @@ function hydrateContext(old) {
     async loadKernelInfoReply() {
       let context = cloneContext(this);
 
-      const protocolVersion = context.protocoVersion;
-
       if (getMajorVersion(context.protocolVersion) <= 4) {
         context.kernelInfoReply = {
           language: "javascript",
@@ -233,7 +231,7 @@ function hydrateContext(old) {
         context = context.loadVersionInfo();
 
         context.kernelInfoReply = {
-          protocol_version: protocolVersion,
+          protocol_version: context.protocolVersion,
           implementation: "ihydra",
           implementation_version: context.versions.ihydra,
           language_info: {

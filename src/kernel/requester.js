@@ -35,8 +35,7 @@
 /* global Promise */
 
 class Requester {
-  constructor(ipc) {
-    this.ipc = ipc;
+  constructor() {
     // id for next request
     this.id = 0;
 

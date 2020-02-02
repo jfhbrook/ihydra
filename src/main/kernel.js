@@ -33,6 +33,7 @@
  */
 
 const console = require("console");
+const EventEmitter = require("events").EventEmitter;
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
@@ -43,7 +44,7 @@ const dbug = require("debug");
 const JpKernel = require("jp-kernel");
 const { Session } = require("nel");
 
-// const server = require("../lib/server/index");
+const Channel = require("../kernel/channel");
 const { createWindow } = require("./window");
 
 // Add app exit to destroy hooks
@@ -56,10 +57,6 @@ class Kernel extends JpKernel {
 }
 
 module.exports = async function runKernel(context, callback) {
-  console.log(context);
-
-  console.log(new Error());
-
   // Setup logging helpers
   let log;
   const dontLog = function dontLog() {};
@@ -85,13 +82,39 @@ module.exports = async function runKernel(context, callback) {
       serverFactory() {
         // Create the window
         // TODO: Hooks for if/when window closes?
-        createWindow(config);
+        const window = createWindow(config);
 
         console.log("STR8 INTERFACING");
 
-        // ipc interface *should* conform to child process API
-        // so we should be good!
-        return ipcMain;
+        const server = Object.assign(new EventEmitter(), {
+          send(payload) {
+            throw new Error('brohonestly');
+            // ipc to the window
+            console.log("sending kernel message:");
+            window.webContents.send('kernel-send-message', payload);
+          },
+
+          kill(signal) {
+            console.log("sending kernel kill message:", signal);
+            window.webContents.send('kernel-send-kill', signal);
+            // Close window when receive received??
+            // return true if successful, false if not?? (emit the error anyway)
+          }
+        });
+
+        window.webContents.on("kernel-receive-message", (payload) => {
+          console.log("received kernel message:", payload);
+          server.emit("message", payload);
+        });
+
+        window.webContents.on("kernel-receive-exit", (code, signal) => {
+          console.log("received exit signal", code, signal);
+          server.emit("exit", code, signal);
+        });
+
+        console.log(server);
+
+        return server;
       }
     });
   }

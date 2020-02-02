@@ -34,9 +34,11 @@
 
 const util = require("util");
 const vm = require("vm");
+const EventEmitter = require("events").EventEmitter;
 
 const { ipcRenderer } = require("electron");
 
+const Channel = require("./channel");
 const { Context, defaultMimer } = require("./context");
 const Requester = require("./requester");
 
@@ -51,25 +53,44 @@ let initialContext;
 
 // return;
 
+// TODO: de-globalize
+let channel;
+
 module.exports = function init() {
+  channel = Object.assign(new EventEmitter(), {
+    send(payload) {
+      console.log('sending payload back to main:', payload);
+      ipcRenderer.send('kernel-receive-message', payload);
+    }
+  });
+
+  ipcRenderer.on("kernel-send-message", payload => onMessage(payload));
+
+  // TODO
+  channel.on("uncaughtException", err => onUncaughtException(err));
+
+  channel.send({
+    status: "online"
+  });
+
   console.log("brohonest.ly");
-  console.log(ipcRenderer);
+  console.log(channel);
 
   // Setup logger
   log = DEBUG
     ? function log() {
-        ipcRenderer.send({
+        channel.send({
           log: `SERVER: ${util.format.apply(this, arguments)}`
         });
       }
     : function noop() {};
 
   // Create instance to send requests
-  requester = new Requester(ipcRenderer);
+  requester = new Requester();
 
   // Capture the initial context
   // (id left undefined to indicate this is the initial context)
-  initialContext = new Context(ipcRenderer, requester);
+  initialContext = new Context(channel, requester);
   initialContext.captureGlobalContext();
 
   Object.defineProperty(global, "$$defaultMimer$$", {
@@ -79,21 +100,11 @@ module.exports = function init() {
     enumerable: false
   });
 
-  ipcRenderer.on("message", onMessage.bind(this));
-
-  ipcRenderer.on("uncaughtException", onUncaughtException.bind(this));
-
-  console.log("all part of the ipcRenderer");
-  console.log(ipcRenderer);
-
-  ipcRenderer.send({
-    status: "online"
-  });
 };
 
 function onUncaughtException(error) {
   log("UNCAUGHTEXCEPTION:", error.stack);
-  ipcRenderer.send({
+  channel.send({
     stderr: error.stack.toString()
   });
 }
