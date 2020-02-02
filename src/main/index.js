@@ -45,6 +45,9 @@ const loader = new Loader();
 
 loader.register('kernel', async (ctx) => {
   const context = await ctx.loadVersionInfo().loadKernelInfoReply();
+
+  const fs = require('fs');
+  context.connection = JSON.parse(fs.readFileSync(context.connectionFile));
   // TODO: Make this blocking so I can unify exit calls
   kernel(context);
 });
