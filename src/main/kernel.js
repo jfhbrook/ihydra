@@ -88,7 +88,6 @@ module.exports = async function runKernel(context, callback) {
 
         const server = Object.assign(new EventEmitter(), {
           send(payload) {
-            throw new Error('brohonestly');
             // ipc to the window
             console.log("sending kernel message:");
             window.webContents.send('kernel-send-message', payload);
@@ -102,12 +101,12 @@ module.exports = async function runKernel(context, callback) {
           }
         });
 
-        window.webContents.on("kernel-receive-message", (payload) => {
+        ipcMain.on("kernel-receive-message", (event, payload) => {
           console.log("received kernel message:", payload);
           server.emit("message", payload);
         });
 
-        window.webContents.on("kernel-receive-exit", (code, signal) => {
+        ipcMain.on("kernel-receive-exit", (event, code, signal) => {
           console.log("received exit signal", code, signal);
           server.emit("exit", code, signal);
         });

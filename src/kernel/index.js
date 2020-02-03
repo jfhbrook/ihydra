@@ -64,17 +64,10 @@ module.exports = function init() {
     }
   });
 
-  ipcRenderer.on("kernel-send-message", payload => onMessage(payload));
+  ipcRenderer.on("kernel-send-message", (event, payload) => onMessage(payload));
 
   // TODO
-  channel.on("uncaughtException", err => onUncaughtException(err));
-
-  channel.send({
-    status: "online"
-  });
-
-  console.log("brohonest.ly");
-  console.log(channel);
+  channel.on("uncaughtException", (event, err) => onUncaughtException(err));
 
   // Setup logger
   log = DEBUG
@@ -100,6 +93,11 @@ module.exports = function init() {
     enumerable: false
   });
 
+  console.log('telling everyone we are online')
+  // Telling everyone we are online?
+  channel.send({
+    status: "online"
+  });
 };
 
 function onUncaughtException(error) {
@@ -110,6 +108,7 @@ function onUncaughtException(error) {
 }
 
 function onMessage(message) {
+  console.log('received a message!!!', message)
   log("RECEIVED:", message);
 
   const action = message[0];

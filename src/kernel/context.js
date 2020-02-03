@@ -36,11 +36,13 @@
 /* window stream */
 /* window util */
 
-const console = require("console");
+// const console = require("console");
 const stream = require("stream");
 const util = require("util");
 
 const createDisplay = require("./display");
+
+const log = console.log.bind(console);
 
 class Context {
   constructor(ipc, requester, id) {
