@@ -5,13 +5,16 @@ const React = require("react");
 
 const { useState } = React;
 const Button = require("../components/WizardButton");
+// TODO: Overhaul the "installer config" component, it is currently dumb and wrong
 const InstallerConfig = require("../components/InstallerConfig");
+// TODO: This didn't end up being a "service" really, should this be moved elsewhere?
 const { installKernel } = require("../../services/installer");
 
+// TODO: Move props to lib/context and make good instead of bad :)
 const contextProp = require("../context").prop;
 const { cloneContext } = require("../../lib/context");
 
-function useAdminState(context) {
+function useLauncherState(context) {
   const [state, rawSetState] = useState({
     status: "loading",
     context
@@ -39,7 +42,7 @@ function useAdminState(context) {
     return setStatus("searching");
   }
 
-  // TODO: dry these out
+  // TODO: DRY this try/catch pattern out w/ a "capture" helper of some kind
   async function searchForJupyter() {
     let c;
     try {
@@ -126,15 +129,15 @@ function useAdminState(context) {
       setStatus("installing");
     },
     launchJupyter() {
-      /* TODO */
+      // TODO: Launch jupyter notebook
     },
     exit() {
-      /* TODO */ app.exit();
+      // TODO: Write actual exit logic
     }
   };
 }
 
-function Admin({ context }) {
+function Launcher({ context }) {
   const {
     state,
     trySearching,
@@ -144,7 +147,7 @@ function Admin({ context }) {
     tryInstall,
     launchJupyter,
     exit
-  } = useAdminState(context);
+  } = useLauncherState(context);
 
   switch (state.status) {
     case "loading":
@@ -205,8 +208,8 @@ function Admin({ context }) {
   }
 }
 
-Admin.propTypes = {
+Launcher.propTypes = {
   context: contextProp.isRequired
 };
 
-module.exports = Admin;
+module.exports = Launcher;

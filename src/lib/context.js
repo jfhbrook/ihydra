@@ -75,11 +75,11 @@ function kernelCommand(parser) {
   };
 }
 
-function adminCommand(parser) {
+function launcherCommand(parser) {
   let action;
 
   // We use a catch-all to direct anything that isn't either
-  // the root or "admin"
+  // the root or "launcher"
   parser.command("*").action((cmd, args) => {
     action = args[0];
   });
@@ -87,11 +87,11 @@ function adminCommand(parser) {
   return context => {
     if (
       (!action && context.action === "default") ||
-      context.action === "admin"
+      context.action === "launcher"
     ) {
       return {
         ...context,
-        action: "admin",
+        action: "launcher",
         name: isDev ? "ihydra-dev" : "ihydra",
         displayName: isDev ? "IHydra (development)" : "IHydra",
         localInstall: true
@@ -126,7 +126,7 @@ function hydrateContext(old) {
       parser.option("--debug", "Log debug messages");
 
       attachCommand(kernelCommand);
-      attachCommand(adminCommand);
+      attachCommand(launcherCommand);
 
       const parsed = parser.parse(context.argv.commanderArgv);
 

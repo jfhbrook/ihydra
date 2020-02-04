@@ -51,7 +51,7 @@ loader.register("kernel", async ctx => {
   return await kernel(context);
 });
 
-loader.register("admin", launcher);
+loader.register("launcher", launcher);
 
 async function main() {
   // TODO: Integrate this into the loader

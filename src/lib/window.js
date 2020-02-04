@@ -4,6 +4,8 @@ const { app } = require("electron");
 const isDev = require("electron-is-dev");
 const window = require("electron-window");
 
+const { dehydrateContext } = require("./context");
+
 function createWindow(context, callback) {
   const win = window.createWindow({
     webPreferences: { nodeIntegration: true }

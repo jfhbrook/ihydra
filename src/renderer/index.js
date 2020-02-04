@@ -5,8 +5,8 @@ const { hydrateContext } = require("../lib/context");
 
 const { Loader } = require("../lib/loader");
 
-const Admin = require("./containers/admin");
-const Hydra = require("./containers/hydra");
+const Launcher = require("./containers/launcher");
+const Kernel = require("./containers/kernel");
 
 // TODO: Subclass Loader
 function runContainer(Component) {
@@ -19,7 +19,7 @@ function runContainer(Component) {
 
 const loader = new Loader();
 
-loader.register("admin", runContainer(Admin));
-loader.register("kernel", runContainer(Hydra));
+loader.register("launcher", runContainer(Launcher));
+loader.register("kernel", runContainer(Kernel));
 
 loader.run(__args__);
