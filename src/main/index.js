@@ -38,9 +38,9 @@ const kernel = require("./apps/kernel");
 
 const { createContext } = require("../lib/context");
 
-const { Loader } = require("../lib/loader");
+const { AppLoader } = require("../lib/loader");
 
-const loader = new Loader();
+const loader = new AppLoader();
 
 loader.register("kernel", async ctx => {
   // TODO: Move this out of this handler and into the window code
@@ -53,17 +53,5 @@ loader.register("kernel", async ctx => {
 
 loader.register("launcher", launcher);
 
-async function main() {
-  // TODO: Integrate this into the loader
-  let context = createContext();
-
-  context = context.parseArgs(process.argv);
-
-  await loader.run(context);
-
-  // TODO: Do something more graceful here
-  app.exit();
-}
-
 // TODO: Replace this with an explicit decorated handler
-main().then(console.log, console.log);
+loader.run(createContext()).then(console.log, console.log);

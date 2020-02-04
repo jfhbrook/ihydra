@@ -1,9 +1,9 @@
 const React = require("react");
 const { render } = require("react-dom");
 
-const { hydrateContext } = require("../lib/context");
+const { createContext, hydrateContext } = require("../lib/context");
 
-class Loader {
+class BaseLoader {
   constructor() {
     this.handlers = new Map();
   }
@@ -12,18 +12,37 @@ class Loader {
     this.handlers.set(action, handler);
   }
 
-  async run(context) {
+  getHandler(context) {
     const { action } = context;
     let handler;
 
     if (this.handlers.has(action)) {
-      handler = this.handlers.get(action);
-    } else {
-      handler = this.handlers.get("default");
+      return this.handlers.get(action);
     }
+    return this.handlers.get("default");
+  }
 
+  async run(context) {
+    const handler = this.getHandler(context);
     return await handler(context);
   }
 }
 
-module.exports = { Loader };
+class AppLoader extends BaseLoader {
+  async run() {
+    return await super.run(createContext().parseArgs(process.argv));
+  }
+}
+
+class ComponentLoader extends BaseLoader {
+  // TODO: Pass exit hook to components
+  async run(context) {
+    const Component = this.getHandler(context);
+    render(
+        <Component context={hydrateContext(context)} />,
+      document.getElementById("app")
+    );
+  }
+}
+
+module.exports = { AppLoader, ComponentLoader };
