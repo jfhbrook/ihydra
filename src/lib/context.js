@@ -218,6 +218,14 @@ function hydrateContext(old) {
       }
     },
 
+    async loadConnectionFile() {
+      let context = cloneContext(this);
+
+      context.connection = JSON.parse(await readFile(context.connectionFile));
+
+      return context;
+    },
+
     async loadKernelInfoReply() {
       let context = cloneContext(this);
 
