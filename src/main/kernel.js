@@ -33,7 +33,7 @@
  */
 
 const console = require("console");
-const EventEmitter = require("events").EventEmitter;
+const { EventEmitter } = require("events");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
@@ -90,12 +90,12 @@ module.exports = async function runKernel(context, callback) {
           send(payload) {
             // ipc to the window
             console.log("sending kernel message:");
-            window.webContents.send('kernel-send-message', payload);
+            window.webContents.send("kernel-send-message", payload);
           },
 
           kill(signal) {
             console.log("sending kernel kill message:", signal);
-            window.webContents.send('kernel-send-kill', signal);
+            window.webContents.send("kernel-send-kill", signal);
             // Close window when receive received??
             // return true if successful, false if not?? (emit the error anyway)
           }

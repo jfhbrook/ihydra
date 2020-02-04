@@ -51,9 +51,9 @@ class Context {
     this.id = id;
 
     // TODO
-    //this.console = new console.Console();
+    // this.console = new console.Console();
 
-    //this._capturedConsole = null;
+    // this._capturedConsole = null;
 
     this._async = false;
     this._done = false;
@@ -256,7 +256,7 @@ class Context {
   }
 
   captureGlobalContext() {
-    /*this._capturedConsole = console;
+    /* this._capturedConsole = console;
 
     this.console.Console = this._capturedConsole.Console;
 

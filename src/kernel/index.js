@@ -34,7 +34,7 @@
 
 const util = require("util");
 const vm = require("vm");
-const EventEmitter = require("events").EventEmitter;
+const { EventEmitter } = require("events");
 
 const { ipcRenderer } = require("electron");
 
@@ -59,8 +59,8 @@ let channel;
 module.exports = function init() {
   channel = Object.assign(new EventEmitter(), {
     send(payload) {
-      console.log('sending payload back to main:', payload);
-      ipcRenderer.send('kernel-receive-message', payload);
+      console.log("sending payload back to main:", payload);
+      ipcRenderer.send("kernel-receive-message", payload);
     }
   });
 
@@ -93,7 +93,7 @@ module.exports = function init() {
     enumerable: false
   });
 
-  console.log('telling everyone we are online')
+  console.log("telling everyone we are online");
   // Telling everyone we are online?
   channel.send({
     status: "online"
@@ -108,7 +108,7 @@ function onUncaughtException(error) {
 }
 
 function onMessage(message) {
-  console.log('received a message!!!', message)
+  console.log("received a message!!!", message);
   log("RECEIVED:", message);
 
   const action = message[0];
