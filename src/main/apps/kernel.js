@@ -32,31 +32,19 @@
  *
  */
 
-const console = require("console");
 const { EventEmitter } = require("events");
-const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const vm = require("vm");
 
 const { app, ipcMain } = require("electron");
 const dbug = require("debug");
-const JpKernel = require("jp-kernel");
+const Kernel = require("jp-kernel");
 const { Session } = require("nel");
 
-const Channel = require("../kernel/channel");
-const { createWindow } = require("./window");
+const { createWindow } = require("../../lib/window");
 
-// Add app exit to destroy hooks
-class Kernel extends JpKernel {
-  destroy(destroyCB) {
-    super.destroy(function(code, signal) {
-      destroyCB(code, signal);
-    });
-  }
-}
-
-module.exports = async function runKernel(context, callback) {
+module.exports = async function kernel(context, callback) {
   // Setup logging helpers
   let log;
   const dontLog = function dontLog() {};
@@ -75,29 +63,25 @@ module.exports = async function runKernel(context, callback) {
 
   log = global.DEBUG ? doLog : dontLog;
 
+  // TODO: Kernel needs to be able to gracefully exit
+  const exitP = new Promise((resolve, reject) => {});
+
   function sessionFactory(config) {
     return new Session({
       cwd: config.cwd,
       transpile: config.transpile,
       serverFactory() {
-        // Create the window
-        // TODO: Hooks for if/when window closes?
         const window = createWindow(config);
-
-        console.log("STR8 INTERFACING");
 
         const server = Object.assign(new EventEmitter(), {
           send(payload) {
-            // ipc to the window
-            console.log("sending kernel message:");
             window.webContents.send("kernel-send-message", payload);
           },
 
           kill(signal) {
-            console.log("sending kernel kill message:", signal);
             window.webContents.send("kernel-send-kill", signal);
-            // Close window when receive received??
-            // return true if successful, false if not?? (emit the error anyway)
+            // TODO: Gracefully exit when this is called
+            // return true if successful, false if not??
           }
         });
 
@@ -120,9 +104,7 @@ module.exports = async function runKernel(context, callback) {
 
   context.sessionFactory = sessionFactory;
 
-  // Start kernel
   // TODO: Any good way of knowing when the kernel is "done" ?
-  // A good way to do a clean exit?
   const kernel = new Kernel(context);
 
   // WORKAROUND: Fixes https://github.com/n-riesco/ijavascript/issues/97
@@ -163,5 +145,7 @@ module.exports = async function runKernel(context, callback) {
     kernel.restart(); // TODO(NR) Implement kernel interruption
   });
 
-  return kernel;
+  // TODO: This is currently forever blocking because it's not wired
+  // up to anything
+  return await exitP;
 };

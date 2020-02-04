@@ -31,12 +31,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-const electron = require("electron");
+const { app }= require("electron");
 
-const { app } = electron;
+const launcher = require("./apps/launcher");
+const kernel = require("./apps/kernel");
 
-const { adminWindowManager } = require("./window");
-const kernel = require("./kernel");
 const { createContext } = require("../lib/context");
 
 const { Loader } = require("../lib/loader");
@@ -44,27 +43,27 @@ const { Loader } = require("../lib/loader");
 const loader = new Loader();
 
 loader.register("kernel", async ctx => {
+  // TODO: Move this out of this handler and into the window code
   const context = await (
     await ctx.loadVersionInfo().loadKernelInfoReply()
   ).loadConnectionInfo();
 
-  kernel(context);
+  return await kernel(context);
 });
 
-loader.register("admin", async context => {
-  console.log("running the admin");
-  await adminWindowManager(context);
-  console.log("admin ran");
-
-  app.exit();
-});
+loader.register("admin", launcher);
 
 async function main() {
+  // TODO: Integrate this into the loader
   let context = createContext();
 
   context = context.parseArgs(process.argv);
 
   await loader.run(context);
+
+  // TODO: Do something more graceful here
+  app.exit();
 }
 
+// TODO: Replace this with an explicit decorated handler
 main().then(console.log, console.log);
