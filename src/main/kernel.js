@@ -33,17 +33,19 @@
  */
 
 const console = require("console");
+const { EventEmitter } = require("events");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const vm = require("vm");
 
-const { app } = require("electron");
+const { app, ipcMain } = require("electron");
 const dbug = require("debug");
 const JpKernel = require("jp-kernel");
 const { Session } = require("nel");
 
-const server = require("./server/index");
+const Channel = require("../kernel/channel");
+const { createWindow } = require("./window");
 
 // Add app exit to destroy hooks
 class Kernel extends JpKernel {
@@ -54,7 +56,7 @@ class Kernel extends JpKernel {
   }
 }
 
-module.exports = function run(config, callback) {
+module.exports = async function runKernel(context, callback) {
   // Setup logging helpers
   let log;
   const dontLog = function dontLog() {};
@@ -78,20 +80,50 @@ module.exports = function run(config, callback) {
       cwd: config.cwd,
       transpile: config.transpile,
       serverFactory() {
-        return spawn(Session._command, ["--eval", server], {
-          cwd: config.cwd,
-          stdio: global.DEBUG
-            ? [process.stdin, process.stdout, process.stderr, "ipc"]
-            : ["ignore", "ignore", "ignore", "ipc"]
+        // Create the window
+        // TODO: Hooks for if/when window closes?
+        const window = createWindow(config);
+
+        console.log("STR8 INTERFACING");
+
+        const server = Object.assign(new EventEmitter(), {
+          send(payload) {
+            // ipc to the window
+            console.log("sending kernel message:");
+            window.webContents.send("kernel-send-message", payload);
+          },
+
+          kill(signal) {
+            console.log("sending kernel kill message:", signal);
+            window.webContents.send("kernel-send-kill", signal);
+            // Close window when receive received??
+            // return true if successful, false if not?? (emit the error anyway)
+          }
         });
+
+        ipcMain.on("kernel-receive-message", (event, payload) => {
+          console.log("received kernel message:", payload);
+          server.emit("message", payload);
+        });
+
+        ipcMain.on("kernel-receive-exit", (event, code, signal) => {
+          console.log("received exit signal", code, signal);
+          server.emit("exit", code, signal);
+        });
+
+        console.log(server);
+
+        return server;
       }
     });
   }
 
-  config.sessionFactory = sessionFactory;
+  context.sessionFactory = sessionFactory;
 
   // Start kernel
-  const kernel = new Kernel(config);
+  // TODO: Any good way of knowing when the kernel is "done" ?
+  // A good way to do a clean exit?
+  const kernel = new Kernel(context);
 
   // WORKAROUND: Fixes https://github.com/n-riesco/ijavascript/issues/97
   kernel.handlers.is_complete_request = function is_complete_request(request) {

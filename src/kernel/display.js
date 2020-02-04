@@ -1,7 +1,7 @@
 /*
  * BSD 3-Clause License
  *
- * Copyright (c) 2015, Nicolas Riesco and others as credited in the AUTHORS file
+ * Copyright (c) 2017, Nicolas Riesco and others as credited in the AUTHORS file
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,46 +31,78 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-const electron = require("electron");
 
-const { app } = electron;
+module.exports = function createDisplay(ipc, context_id, display_id) {
+  // eslint-disable-line no-unused-vars
+  let send;
 
-const { adminWindowManager } = require("./window");
-const kernel = require("./kernel");
-const { createContext } = require("../lib/context");
+  if (arguments.length < 3) {
+    // case: without a display_id
+    send = function send(mime) {
+      ipc.send({
+        id: context_id,
+        display: {
+          mime
+        }
+      });
+    };
+  } else {
+    // case: with a display_id
+    send = function send(mime) {
+      ipc.send({
+        id: context_id,
+        display: {
+          display_id,
+          mime
+        }
+      });
+    };
 
-const { Loader } = require("../lib/loader");
+    // open the display_id
+    ipc.send({
+      id: context_id,
+      display: {
+        open: display_id
+      }
+    });
+  }
 
-const loader = new Loader();
+  return {
+    mime(mimeBundle) {
+      send(mimeBundle);
+    },
 
-loader.register("kernel", async ctx => {
-  const context = await (
-    await ctx.loadVersionInfo().loadKernelInfoReply()
-  ).loadConnectionInfo();
+    text(text) {
+      send({ "text/plain": text });
+    },
 
-  const fs = require('fs');
-  context.connection = JSON.parse(fs.readFileSync(context.connectionFile));
+    html(html) {
+      send({ "text/html": html });
+    },
 
-  console.log(context);
+    svg(svg) {
+      send({ "image/svg+xml": svg });
+    },
 
-  // TODO: Make this blocking so I can unify exit calls
-  kernel(context);
-});
+    png(png) {
+      send({ "image/png": png });
+    },
 
-loader.register("admin", async context => {
-  console.log("running the admin");
-  await adminWindowManager(context);
-  console.log("admin ran");
+    jpeg(jpeg) {
+      send({ "image/jpeg": jpeg });
+    },
 
-  app.exit();
-});
+    json(json) {
+      send({ "application/json": json });
+    },
 
-async function main() {
-  let context = createContext();
-
-  context = context.parseArgs(process.argv);
-
-  await loader.run(context);
-}
-
-main().then(console.log, console.log);
+    close() {
+      process.send({
+        id: context_id,
+        display: {
+          close: display_id
+        }
+      });
+    }
+  };
+};

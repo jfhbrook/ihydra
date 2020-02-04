@@ -1,7 +1,7 @@
 /*
  * BSD 3-Clause License
  *
- * Copyright (c) 2015, Nicolas Riesco and others as credited in the AUTHORS file
+ * Copyright (c) 2017, Nicolas Riesco and others as credited in the AUTHORS file
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,46 +31,71 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-const electron = require("electron");
 
-const { app } = electron;
+/* global Promise */
 
-const { adminWindowManager } = require("./window");
-const kernel = require("./kernel");
-const { createContext } = require("../lib/context");
+class Requester {
+  constructor() {
+    // id for next request
+    this.id = 0;
 
-const { Loader } = require("../lib/loader");
+    // callback associated with a request (indexed by id)
+    this.callbacks = {};
 
-const loader = new Loader();
+    // the Promise resolve callback associated with a request (indexed by id)
+    this.resolves = {};
 
-loader.register("kernel", async ctx => {
-  const context = await (
-    await ctx.loadVersionInfo().loadKernelInfoReply()
-  ).loadConnectionInfo();
+    // the Promise reject callback associated with a request (indexed by id)
+    this.rejects = {};
 
-  const fs = require('fs');
-  context.connection = JSON.parse(fs.readFileSync(context.connectionFile));
+    // the string to be returned to a request (indexed by id)
+    this.responses = {};
+  }
 
-  console.log(context);
+  // send a request
+  send(context, request, callback) {
+    const id = this.id++;
 
-  // TODO: Make this blocking so I can unify exit calls
-  kernel(context);
-});
+    if (callback) {
+      this.callbacks[id] = callback;
+    }
 
-loader.register("admin", async context => {
-  console.log("running the admin");
-  await adminWindowManager(context);
-  console.log("admin ran");
+    const promise = new Promise((resolve, reject) => {
+      if (!this.responses.hasOwnProperty(id)) {
+        this.resolves[id] = resolve;
+        this.rejects[id] = reject;
+        return;
+      }
 
-  app.exit();
-});
+      const response = this.responses[id];
+      delete this.responses[id];
+      resolve(response);
+    });
 
-async function main() {
-  let context = createContext();
+    request.id = id;
 
-  context = context.parseArgs(process.argv);
+    context.send({
+      request
+    });
 
-  await loader.run(context);
+    return promise;
+  }
+
+  // pass reply to the callbacks associated with a request
+  receive(id, reply) {
+    const callback = this.callbacks[id];
+    if (callback) {
+      delete this.callbacks[id];
+      callback(null, reply);
+    }
+
+    const resolve = this.resolves[id];
+    if (resolve) {
+      delete this.resolves[id];
+      delete this.rejects[id];
+      resolve(reply);
+    }
+  }
 }
 
-main().then(console.log, console.log);
+module.exports = Requester;
