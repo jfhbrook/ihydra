@@ -16,6 +16,8 @@ const { readFile } = require("./fs");
 
 const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
+const { Logger, consoleObserver } = require("./logger");
+
 function getMajorVersion(fullVersion) {
   // Cheesing it a little here. This should check if the version
   // matches some regexp or other - but in this codebase "unknown"
@@ -41,6 +43,7 @@ function kernelCommand(parser) {
   let protocolVersion;
   let connectionFile;
   let sessionWorkingDir;
+  let debug;
 
   parser
     .command("kernel <connection_file>")
@@ -59,6 +62,7 @@ function kernelCommand(parser) {
       protocolVersion = opts.protocol;
       connectionFile = f;
       sessionWorkingDir = opts.sessionWorkingDir;
+      debug = opts.debug;
     });
 
   return context => {
@@ -68,7 +72,8 @@ function kernelCommand(parser) {
         action,
         protocolVersion,
         connectionFile,
-        sessionWorkingDir
+        sessionWorkingDir,
+        debug: isDev || debug
       };
     }
     return context;
@@ -77,10 +82,12 @@ function kernelCommand(parser) {
 
 function launcherCommand(parser) {
   let action;
+  let debug;
 
   // We use a catch-all to direct anything that isn't either
   // the root or "launcher"
-  parser.command("*").action((cmd, args) => {
+  parser.command("*").action((opts, args) => {
+    debug = opts.debug;
     action = args[0];
   });
 
@@ -94,7 +101,8 @@ function launcherCommand(parser) {
         action: "launcher",
         name: isDev ? "ihydra-dev" : "ihydra",
         displayName: isDev ? "IHydra (development)" : "IHydra",
-        localInstall: true
+        localInstall: true,
+        debug: isDev || debug
       };
     }
 
@@ -132,7 +140,13 @@ function hydrateContext(old) {
 
       hooks.forEach(hook => (context = hook(context)));
 
-      context.debug = parsed.debug;
+      return context;
+    },
+
+    setLogger(logger) {
+      const context = cloneContext(this);
+
+      context.logger = logger;
 
       return context;
     },
@@ -219,7 +233,7 @@ function hydrateContext(old) {
     },
 
     async loadConnectionFile() {
-      let context = cloneContext(this);
+      const context = cloneContext(this);
 
       context.connection = JSON.parse(await readFile(context.connectionFile));
 
@@ -258,9 +272,8 @@ function hydrateContext(old) {
             }
           ]
         };
-
-        return context;
       }
+      return context;
     },
 
     async loadConnectionInfo() {
@@ -274,6 +287,10 @@ function hydrateContext(old) {
     context.argv = new Argv(old.argv.argv, old.argv.root);
   }
 
+  if (old.logger.namespace) {
+    context.logger = new Logger(old.logger.namespace);
+  }
+
   return context;
 }
 
@@ -285,6 +302,10 @@ function dehydrateContext(old) {
 }
 
 function createDehydratedContext() {
+  const logger = new Logger("ihydra.lib.context");
+
+  logger.observe('warning', consoleObserver);
+
   return {
     action: "default",
     paths: {
@@ -292,7 +313,8 @@ function createDehydratedContext() {
       images: path.join(root, "images")
     },
     jupyterCommand: null,
-    versions: {}
+    versions: {},
+    logger
   };
 }
 

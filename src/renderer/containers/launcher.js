@@ -23,10 +23,8 @@ function useLauncherState(context) {
   const ctx = state.context;
 
   function setState(newState) {
-    // TODO: Better logging lmao
-    console.log(newState);
     if (newState.status !== status) {
-      console.log(`${status} -> ${newState.status}`);
+      ctx.logger.debug(`Launcher status change: ${status} -> ${newState.status}`);
     }
     rawSetState(newState);
   }
@@ -52,7 +50,6 @@ function useLauncherState(context) {
       c = cloneContext(ctx);
       c.error = err;
       setState({ status: "confused", context: c });
-      return;
       return;
     }
 
@@ -84,7 +81,7 @@ function useLauncherState(context) {
     try {
       await installKernel(ctx);
     } catch (err) {
-      console.log(err);
+      ctx.logger.exception(err);
       c = cloneContext(ctx);
       c.error = err;
       setState({ status: "install_failed", context: c });

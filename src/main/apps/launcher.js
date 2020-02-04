@@ -5,7 +5,7 @@ const electron = require("electron");
 const { app } = electron;
 const isDev = require("electron-is-dev");
 const window = require("electron-window");
-const { createWindow } = require('../../lib/window');
+const { createWindow } = require("../../lib/window");
 
 function launcher(context) {
   let launcher = null;
