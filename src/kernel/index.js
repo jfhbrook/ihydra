@@ -116,7 +116,7 @@ function onMessage(message) {
   const id = message[2];
 
   initialContext.releaseGlobalContext();
-  const context = new Context(requester, id);
+  const context = new Context(channel, requester, id);
   context.captureGlobalContext();
 
   try {
