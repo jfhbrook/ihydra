@@ -31,46 +31,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-const electron = require("electron");
+const { app } = require("electron");
 
-const { app } = electron;
+const launcher = require("./apps/launcher");
+const kernel = require("./apps/kernel");
 
-const { adminWindowManager } = require("./window");
-const kernel = require("./kernel");
-const { createContext } = require("../lib/context");
+const { createConfig } = require("../lib/config");
 
-const { Loader } = require("../lib/loader");
+const { AppLoader } = require("../lib/loader");
 
-const loader = new Loader();
+const loader = new AppLoader();
 
-loader.register("kernel", async ctx => {
-  const context = await (
-    await ctx.loadVersionInfo().loadKernelInfoReply()
+loader.register("kernel", async cfg => {
+  // TODO: Move this out of this handler and into the window code
+  const config = await (
+    await cfg.loadVersionInfo().loadKernelInfoReply()
   ).loadConnectionInfo();
 
-  const fs = require('fs');
-  context.connection = JSON.parse(fs.readFileSync(context.connectionFile));
-
-  console.log(context);
-
-  // TODO: Make this blocking so I can unify exit calls
-  kernel(context);
+  return await kernel(config);
 });
 
-loader.register("admin", async context => {
-  console.log("running the admin");
-  await adminWindowManager(context);
-  console.log("admin ran");
+loader.register("launcher", launcher);
 
-  app.exit();
-});
-
-async function main() {
-  let context = createContext();
-
-  context = context.parseArgs(process.argv);
-
-  await loader.run(context);
-}
-
-main().then(console.log, console.log);
+// TODO: Replace this with an explicit decorated handler
+loader.run(createConfig()).then(console.log, console.log);

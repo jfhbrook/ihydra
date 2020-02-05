@@ -5,25 +5,28 @@ const React = require("react");
 
 const { useState } = React;
 const Button = require("../components/WizardButton");
+// TODO: Overhaul the "installer config" component, it is currently dumb and wrong
 const InstallerConfig = require("../components/InstallerConfig");
+// TODO: This didn't end up being a "service" really, should this be moved elsewhere?
 const { installKernel } = require("../../services/installer");
 
-const contextProp = require("../context").prop;
-const { cloneContext } = require("../../lib/context");
+// TODO: Move props to lib/config and make good instead of bad :)
+const configProp = require("../config").prop;
+const { cloneConfig } = require("../../lib/config");
 
-function useAdminState(context) {
+function useLauncherState(config) {
   const [state, rawSetState] = useState({
     status: "loading",
-    context
+    config
   });
   const { status } = state;
-  const ctx = state.context;
+  const cfg = state.config;
 
   function setState(newState) {
-    // TODO: Better logging lmao
-    console.log(newState);
     if (newState.status !== status) {
-      console.log(`${status} -> ${newState.status}`);
+      cfg.logger.debug(
+        `Launcher status change: ${status} -> ${newState.status}`
+      );
     }
     rawSetState(newState);
   }
@@ -33,23 +36,22 @@ function useAdminState(context) {
   }
 
   function checkInitialState() {
-    if (ctx.jupyterCommand) {
+    if (cfg.jupyterCommand) {
       return setStatus("registering");
     }
     return setStatus("searching");
   }
 
-  // TODO: dry these out
+  // TODO: DRY this try/catch pattern out w/ a "capture" helper of some kind
   async function searchForJupyter() {
     let c;
     try {
-      c = ctx.loadVersionInfo();
-      c = await ctx.searchForJupyter();
+      c = cfg.loadVersionInfo();
+      c = await cfg.searchForJupyter();
     } catch (err) {
-      c = cloneContext(ctx);
+      c = cloneConfig(cfg);
       c.error = err;
-      setState({ status: "confused", context: c });
-      return;
+      setState({ status: "confused", config: c });
       return;
     }
 
@@ -57,34 +59,34 @@ function useAdminState(context) {
       c.ensureSupportedJupyterVersion();
     } catch (err) {
       c.error = err;
-      setState({ status: "confused", context: c });
+      setState({ status: "confused", config: c });
     }
 
-    setState({ status: "registering", context: c });
+    setState({ status: "registering", config: c });
   }
 
   async function loadJupyterInfo() {
     let c;
     try {
-      c = await ctx.loadJupyterInfo();
+      c = await cfg.loadJupyterInfo();
     } catch (err) {
-      c = cloneContext(ctx);
+      c = cloneConfig(cfg);
       c.error = err;
-      setState({ status: "which", context: c });
+      setState({ status: "which", config: c });
       return;
     }
-    setState({ status: "ready", context: c });
+    setState({ status: "ready", config: c });
   }
 
   async function install() {
-    let c = ctx;
+    let c = cfg;
     try {
-      await installKernel(ctx);
+      await installKernel(cfg);
     } catch (err) {
-      console.log(err);
-      c = cloneContext(ctx);
+      cfg.logger.exception(err);
+      c = cloneConfig(cfg);
       c.error = err;
-      setState({ status: "install_failed", context: c });
+      setState({ status: "install_failed", config: c });
       return;
     }
 
@@ -126,15 +128,15 @@ function useAdminState(context) {
       setStatus("installing");
     },
     launchJupyter() {
-      /* TODO */
+      // TODO: Launch jupyter notebook
     },
     exit() {
-      /* TODO */ app.exit();
+      // TODO: Write actual exit logic
     }
   };
 }
 
-function Admin({ context }) {
+function Launcher({ config }) {
   const {
     state,
     trySearching,
@@ -144,7 +146,7 @@ function Admin({ context }) {
     tryInstall,
     launchJupyter,
     exit
-  } = useAdminState(context);
+  } = useLauncherState(config);
 
   switch (state.status) {
     case "loading":
@@ -175,7 +177,7 @@ function Admin({ context }) {
       return (
         <div>
           <h1>ready</h1>
-          <InstallerConfig context={state.context} />
+          <InstallerConfig config={state.config} />
           <Button onClick={tryInstall}>install</Button>
           <Button onClick={goBackToWhich}>
             set command for starting jupyter
@@ -205,8 +207,8 @@ function Admin({ context }) {
   }
 }
 
-Admin.propTypes = {
-  context: contextProp.isRequired
+Launcher.propTypes = {
+  config: configProp.isRequired
 };
 
-module.exports = Admin;
+module.exports = Launcher;

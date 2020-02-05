@@ -1,25 +1,11 @@
-const React = require("react");
-const { render } = require("react-dom");
+const { ComponentLoader } = require("../lib/loader");
 
-const { hydrateContext } = require("../lib/context");
+const Launcher = require("./containers/launcher");
+const Kernel = require("./containers/kernel");
 
-const { Loader } = require("../lib/loader");
+const loader = new ComponentLoader();
 
-const Admin = require("./containers/admin");
-const Hydra = require("./containers/hydra");
-
-// TODO: Subclass Loader
-function runContainer(Component) {
-  return context =>
-    render(
-      <Component context={hydrateContext(context)} />,
-      document.getElementById("app")
-    );
-}
-
-const loader = new Loader();
-
-loader.register("admin", runContainer(Admin));
-loader.register("kernel", runContainer(Hydra));
+loader.register("launcher", Launcher);
+loader.register("kernel", Kernel);
 
 loader.run(__args__);

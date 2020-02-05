@@ -37,23 +37,52 @@
 /* window util */
 
 // const console = require("console");
-const stream = require("stream");
+const { Transform } = require("stream");
 const util = require("util");
+const { Console } = require("console");
+
+class StdioStream extends Transform {
+  constructor(server, id, name, options) {
+    super(options);
+    this._server = server;
+    this.id = id;
+    this._name = name;
+  }
+
+  _transform(data, encoding, callback) {
+    const response = {
+      id: this.id,
+      stdout: data.toString()
+    };
+
+    this._server.debug(
+      `Written to ${this._name}: \`${JSON.stringify(response)}\``
+    );
+
+    this._server.channel.send(response);
+    this.push(data);
+    callback();
+  }
+}
 
 const createDisplay = require("./display");
 
-const log = console.log.bind(console);
-
 class Context {
-  constructor(ipc, requester, id) {
-    this.ipc = ipc;
-    this.requester = requester;
+  constructor(server, id) {
+    this.channel = server.channel;
+    this.request = server.requester;
+    this.logger = server.logger;
     this.id = id;
 
-    // TODO
-    // this.console = new console.Console();
+    this.logger.debug(`Creating context #${id || "<initial>"}`);
 
-    // this._capturedConsole = null;
+    this.stdout = new StdioStream(server, this.id, "stdout");
+    this.stderr = new StdioStream(server, this.id, "stderr");
+    this.console = new Console(this.stdout, this.stderr);
+
+    this._capturedStdout = null;
+    this._capturedStderr = null;
+    this._capturedConsole = null;
 
     this._async = false;
     this._done = false;
@@ -61,7 +90,7 @@ class Context {
     // `$$` provides an interface for users to access the execution context
     this.$$ = Object.create(null);
 
-    this.$$.setAsync = value => {
+    this.$$.async = value => {
       this._async = arguments.length === 0 ? true : !!value;
       return this._async;
     };
@@ -80,7 +109,7 @@ class Context {
     };
 
     function isPromise(output) {
-      return output.then && typeof output.then === "function";
+      return output && output.then && typeof output.then === "function";
     }
 
     const resolvePromise = outputHandler => {
@@ -224,8 +253,8 @@ class Context {
 
     this.$$.display = id => {
       return arguments.length === 0
-        ? createDisplay(this.ipc, this.id)
-        : createDisplay(this.ipc, this.id, id);
+        ? createDisplay(this.channel, this.id)
+        : createDisplay(this.channel, this.id, id);
     };
 
     this.$$.clear = options => {
@@ -241,7 +270,11 @@ class Context {
     message.id = this.id;
 
     if (this._done) {
-      log("SEND: DROPPED:", message);
+      this.logger.warning(
+        `Message dropped because context is marked as done: ${JSON.stringify(
+          message
+        )}`
+      );
       return;
     }
 
@@ -250,19 +283,30 @@ class Context {
       this._async = false;
     }
 
-    log("SEND:", message);
-
-    this.ipc.send(message);
+    this.channel.send(message);
   }
 
   captureGlobalContext() {
-    /* this._capturedConsole = console;
+    this.logger.debug(`Capturing global context #${this.id || "<initial>"}`);
+
+    this._capturedStdout = process.stdout;
+    this._capturedStderr = process.stderr;
+    this._capturedConsole = console;
+
+    // TODO: Do I really wanna bleed these straight through like this?
+    this.stdout.pipe(this._capturedStdout);
+    this.stderr.pipe(this._capturedStderr);
 
     this.console.Console = this._capturedConsole.Console;
 
+    delete process.stdout;
+    process.stdout = this.stdout;
+
+    delete process.stderr;
+    process.stderr = this.stderr;
+
     delete window.console;
     window.console = this.console;
-    */
 
     delete window.$$;
     window.$$ = this.$$;
@@ -331,10 +375,28 @@ class Context {
   }
 
   releaseGlobalContext() {
+    this.logger.debug(`Releasing global context #${this.id || "<initial>"}`);
+
+    if (process.stdout === this.stdout) {
+      this.logger.debug("Releasing process.stdout");
+      this.stdout.unpipe();
+      delete process.stdout;
+      process.stdout = this._capturedStdout;
+      this._capturedStdout = null;
+    }
+
+    if (process.stderr === this.stderr) {
+      this.logger.debug("Releasing process.stderr");
+      this.stderr.unpipe();
+      delete process.stderr;
+      process.stderr = this._capturedStderr;
+      this._capturedStderr = null;
+    }
+
     if (window.console === this.console) {
+      this.logger.debug("Releasing console");
       delete window.console;
       window.console = this._capturedConsole;
-
       this._capturedConsole = null;
     }
   }

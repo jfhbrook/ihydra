@@ -9,7 +9,7 @@ const TableHead = require("@material-ui/core/TableHead").default;
 const TableRow = require("@material-ui/core/TableRow").default;
 const Paper = require("@material-ui/core/Paper").default;
 
-module.exports = function InstallerConfig({ context }) {
+module.exports = function InstallerConfig({ config }) {
   return (
     <TableContainer component={Paper}>
       <Table aria-label="Installer Config">
@@ -22,23 +22,23 @@ module.exports = function InstallerConfig({ context }) {
         <TableBody>
           <TableRow>
             <TableCell>Kernel Name</TableCell>
-            <TableCell>{context.name}</TableCell>
+            <TableCell>{config.name}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Kernel Display Name</TableCell>
-            <TableCell>{context.displayName}</TableCell>
+            <TableCell>{config.displayName}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Instaling locally?</TableCell>
-            <TableCell>{context.localInstall ? "yup" : "nah"}</TableCell>
+            <TableCell>{config.localInstall ? "yup" : "nah"}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Jupyter Command</TableCell>
-            <TableCell>{quote(context.jupyterCommand)}</TableCell>
+            <TableCell>{quote(config.jupyterCommand)}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Jupyter Version</TableCell>
-            <TableCell>{context.versions.jupyter}</TableCell>
+            <TableCell>{config.versions.jupyter}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Kernel Command</TableCell>
