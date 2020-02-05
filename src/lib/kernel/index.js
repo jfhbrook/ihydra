@@ -69,11 +69,12 @@ class Server {
     // Create instance to send requests
     const requester = new Requester();
 
+    this.requester = requester;
+
     // Capture the initial context
     // (id left undefined to indicate this is the initial context)
-    const initialContext = new Context(this.channel, requester, this.logger);
+    const initialContext = new Context(this);
 
-    this.requester = requester;
     this.initialContext = initialContext;
 
     Object.defineProperty(global, "$$defaultMimer$$", {
@@ -107,7 +108,7 @@ class Server {
     const id = message[2];
 
     this.initialContext.releaseGlobalContext();
-    const context = new Context(this.channel, this.requester, this.logger, id);
+    const context = new Context(this, id);
     context.captureGlobalContext();
 
     try {

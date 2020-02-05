@@ -43,11 +43,13 @@ const util = require("util");
 const createDisplay = require("./display");
 
 class Context {
-  constructor(ipc, requester, logger, id) {
-    this.ipc = ipc;
-    this.requester = requester;
-    this.logger = logger;
+  constructor(server, id) {
+    this.channel = server.channel;
+    this.request = server.requester;
+    this.logger = server.logger;
     this.id = id;
+
+    this.logger.debug(`Creating context #${id || "<initial>"}`);
 
     // TODO
     // this.console = new console.Console();
@@ -108,8 +110,6 @@ class Context {
 
     this.$$.sendResult = resolvePromise((result, keepAlive) => {
       if (keepAlive) this.$$.async();
-
-      console.log("calling this.send");
 
       this.send({
         mime: toMime(result),
@@ -225,8 +225,8 @@ class Context {
 
     this.$$.display = id => {
       return arguments.length === 0
-        ? createDisplay(this.ipc, this.id)
-        : createDisplay(this.ipc, this.id, id);
+        ? createDisplay(this.channel, this.id)
+        : createDisplay(this.channel, this.id, id);
     };
 
     this.$$.clear = options => {
@@ -255,7 +255,7 @@ class Context {
       this._async = false;
     }
 
-    this.ipc.send(message);
+    this.channel.send(message);
   }
 
   captureGlobalContext() {
