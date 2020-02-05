@@ -49,11 +49,6 @@ class StdioStream extends Transform {
     this._name = name;
   }
 
-  write(...args) {
-    this._server.logger.debug("yeah im being written to");
-    super.write.apply(this, args);
-  }
-
   _transform(data, encoding, callback) {
     const response = {
       id: this.id,

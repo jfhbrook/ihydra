@@ -32,7 +32,7 @@ function getVersionTuple(fullVersion) {
   return fullVersion.split(".").map(v => parseInt(v, 10));
 }
 
-function cloneContext(old) {
+function cloneConfig(old) {
   return {
     ...old
   };
@@ -65,10 +65,10 @@ function kernelCommand(parser) {
       debug = opts.debug;
     });
 
-  return context => {
+  return config => {
     if (action === "kernel") {
       return {
-        ...context,
+        ...config,
         action,
         protocolVersion,
         connectionFile,
@@ -76,7 +76,7 @@ function kernelCommand(parser) {
         debug: isDev || debug
       };
     }
-    return context;
+    return config;
   };
 }
 
@@ -91,13 +91,13 @@ function launcherCommand(parser) {
     action = args[0];
   });
 
-  return context => {
+  return config => {
     if (
-      (!action && context.action === "default") ||
-      context.action === "launcher"
+      (!action && config.action === "default") ||
+      config.action === "launcher"
     ) {
       return {
-        ...context,
+        ...config,
         action: "launcher",
         name: isDev ? "ihydra-dev" : "ihydra",
         displayName: isDev ? "IHydra (development)" : "IHydra",
@@ -106,20 +106,20 @@ function launcherCommand(parser) {
       };
     }
 
-    if (context.action !== "default") {
-      return context;
+    if (config.action !== "default") {
+      return config;
     }
 
-    return { ...context, action };
+    return { ...config, action };
   };
 }
 
-function hydrateContext(old) {
-  const context = {
+function hydrateConfig(old) {
+  const config = {
     ...old,
     parseArgs(argv) {
-      let context = cloneContext(this);
-      context.argv = new Argv(argv, this.paths.root);
+      let config = cloneConfig(this);
+      config.argv = new Argv(argv, this.paths.root);
 
       const hooks = [];
 
@@ -136,25 +136,25 @@ function hydrateContext(old) {
       attachCommand(kernelCommand);
       attachCommand(launcherCommand);
 
-      const parsed = parser.parse(context.argv.commanderArgv);
+      const parsed = parser.parse(config.argv.commanderArgv);
 
-      hooks.forEach(hook => (context = hook(context)));
+      hooks.forEach(hook => (config = hook(config)));
 
-      return context;
+      return config;
     },
 
     setLogger(logger) {
-      const context = cloneContext(this);
+      const config = cloneConfig(this);
 
-      context.logger = logger;
+      config.logger = logger;
 
-      return context;
+      return config;
     },
 
     loadVersionInfo() {
-      const context = cloneContext(this);
+      const config = cloneConfig(this);
 
-      context.versions = Object.assign(context.versions, {
+      config.versions = Object.assign(config.versions, {
         jmp: require("jmp/package.json").version,
         nel: require("nel/package.json").version,
         uuid: require("uuid/package.json").version,
@@ -166,30 +166,30 @@ function hydrateContext(old) {
         ihydra: require("../../package.json").version
       });
 
-      return context;
+      return config;
     },
 
     async searchForJupyter() {
-      const context = cloneContext(this);
+      const config = cloneConfig(this);
 
-      let command = context.jupyterCommand;
+      let command = config.jupyterCommand;
 
       if (!command) {
         command = [await which("jupyter")];
       }
 
       if (command) {
-        context.jupyterCommand = command;
-        return context;
+        config.jupyterCommand = command;
+        return config;
       }
 
       throw new Error("could not find Jupyter");
     },
 
     async loadJupyterInfo() {
-      const context = cloneContext(this);
+      const config = cloneConfig(this);
 
-      const command = context.jupyterCommand;
+      const command = config.jupyterCommand;
 
       if (!command) {
         throw new Error("don't know how to run Jupyter");
@@ -197,7 +197,7 @@ function hydrateContext(old) {
 
       const { stdout } = await exec(quote(command.concat(["--version"])));
 
-      context.jupyterCommand = command;
+      config.jupyterCommand = command;
 
       let version;
       let majorVersion;
@@ -221,9 +221,9 @@ function hydrateContext(old) {
         }
       }
 
-      context.versions.jupyter = version;
+      config.versions.jupyter = version;
 
-      return context;
+      return config;
     },
 
     ensureSupportedJupyterVersion() {
@@ -233,36 +233,36 @@ function hydrateContext(old) {
     },
 
     async loadConnectionFile() {
-      const context = cloneContext(this);
+      const config = cloneConfig(this);
 
-      context.connection = JSON.parse(await readFile(context.connectionFile));
+      config.connection = JSON.parse(await readFile(config.connectionFile));
 
-      return context;
+      return config;
     },
 
     async loadKernelInfoReply() {
-      let context = cloneContext(this);
+      let config = cloneConfig(this);
 
-      if (getMajorVersion(context.protocolVersion) <= 4) {
-        context.kernelInfoReply = {
+      if (getMajorVersion(config.protocolVersion) <= 4) {
+        config.kernelInfoReply = {
           language: "javascript",
           language_version: getVersionTuple(process.versions.node),
           protocol_version: getVersionTuple(protocolVersion)
         };
       } else {
-        context = context.loadVersionInfo();
+        config = config.loadVersionInfo();
 
-        context.kernelInfoReply = {
-          protocol_version: context.protocolVersion,
+        config.kernelInfoReply = {
+          protocol_version: config.protocolVersion,
           implementation: "ihydra",
-          implementation_version: context.versions.ihydra,
+          implementation_version: config.versions.ihydra,
           language_info: {
             name: "javascript",
-            version: context.versions.node,
+            version: config.versions.node,
             mimetype: "application/javascript",
             file_extension: ".js"
           },
-          banner: `IHydra v${context.versions.ihydra}
+          banner: `IHydra v${config.versions.ihydra}
   https://github.com/jfhbrook/ihydra
   `,
           help_links: [
@@ -273,36 +273,36 @@ function hydrateContext(old) {
           ]
         };
       }
-      return context;
+      return config;
     },
 
     async loadConnectionInfo() {
-      const context = cloneContext(this);
-      context.connection = JSON.parse(await readFile(this.connectionFile));
-      return context;
+      const config = cloneConfig(this);
+      config.connection = JSON.parse(await readFile(this.connectionFile));
+      return config;
     }
   };
 
   if (old.argv) {
-    context.argv = new Argv(old.argv.argv, old.argv.root);
+    config.argv = new Argv(old.argv.argv, old.argv.root);
   }
 
   if (old.logger.namespace) {
-    context.logger = new Logger(old.logger.namespace);
+    config.logger = new Logger(old.logger.namespace);
   }
 
-  return context;
+  return config;
 }
 
-function dehydrateContext(old) {
+function dehydrateConfig(old) {
   // TODO: This should intentionally and explicitly create a new object
   // instead of cheesing it like we are now
 
   return JSON.parse(JSON.stringify(old));
 }
 
-function createDehydratedContext() {
-  const logger = new Logger("ihydra.lib.context");
+function createDehydratedConfig() {
+  const logger = new Logger("ihydra.lib.config");
 
   logger.observe("warning", consoleObserver);
 
@@ -318,14 +318,14 @@ function createDehydratedContext() {
   };
 }
 
-function createContext() {
-  return hydrateContext(createDehydratedContext());
+function createConfig() {
+  return hydrateConfig(createDehydratedConfig());
 }
 
 module.exports = {
-  createContext,
-  createDehydratedContext,
-  hydrateContext,
-  dehydrateContext,
-  cloneContext
+  createConfig,
+  createDehydratedConfig,
+  hydrateConfig,
+  dehydrateConfig,
+  cloneConfig
 };

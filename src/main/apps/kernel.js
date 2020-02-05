@@ -44,10 +44,10 @@ const { Session } = require("nel");
 
 const { createWindow } = require("../../lib/window");
 
-module.exports = async function kernel(context) {
+module.exports = async function kernel(config) {
   // TODO: Kernel needs to be able to gracefully exit
   const exitP = new Promise((resolve, reject) => {});
-  const logger = context.logger.child("ihydra.main.apps.kernel");
+  const logger = config.logger.child("ihydra.main.apps.kernel");
 
   function sessionFactory(config) {
     return new Session({
@@ -96,10 +96,10 @@ module.exports = async function kernel(context) {
     });
   }
 
-  context.sessionFactory = sessionFactory;
+  config.sessionFactory = sessionFactory;
 
   // TODO: Any good way of knowing when the kernel is "done" ?
-  const kernel = new Kernel(context);
+  const kernel = new Kernel(config);
 
   // WORKAROUND: Fixes https://github.com/n-riesco/ijavascript/issues/97
   kernel.handlers.is_complete_request = function is_complete_request(request) {

@@ -34,8 +34,8 @@ function quote(xs) {
     .join(" ");
 }
 
-async function getKernelCommand(context) {
-  const prefix = await context.argv.getKernelPrefix();
+async function getKernelCommand(config) {
+  const prefix = await config.argv.getKernelPrefix();
 
   let command = prefix.concat(["kernel", "{connection_file}"]);
 
@@ -45,8 +45,8 @@ async function getKernelCommand(context) {
 
   command = quote(command);
 
-  const root = quote([context.argv.root]);
-  const shell = await context.argv.getShell();
+  const root = quote([config.argv.root]);
+  const shell = await config.argv.getShell();
 
   let shimScript;
 
@@ -61,7 +61,7 @@ async function getKernelCommand(context) {
   return shimScript;
 }
 
-async function installKernel(context) {
+async function installKernel(config) {
   // Create temporary spec folder
 
   console.log("making a tmpdir");
@@ -70,7 +70,7 @@ async function installKernel(context) {
 
   console.log("+1");
 
-  const specDir = path.join(tmpdir, context.name);
+  const specDir = path.join(tmpdir, config.name);
 
   console.log("making spec dir");
 
@@ -81,8 +81,8 @@ async function installKernel(context) {
   // Create spec file
   const specFile = path.join(specDir, "kernel.json");
   const spec = {
-    argv: await getKernelCommand(context),
-    display_name: context.displayName,
+    argv: await getKernelCommand(config),
+    display_name: config.displayName,
     language: "javascript"
   };
 
@@ -93,7 +93,7 @@ async function installKernel(context) {
   console.log("spec file written");
 
   // Copy logo files
-  const logoDir = path.join(context.paths.images, "nodejs");
+  const logoDir = path.join(config.paths.images, "nodejs");
   const logo32Src = path.join(logoDir, "js-green-32x32.png");
   const logo32Dst = path.join(specDir, "logo-32x32.png");
   const logo64Src = path.join(logoDir, "js-green-64x64.png");
@@ -106,11 +106,11 @@ async function installKernel(context) {
   console.log("copied");
 
   // Install kernel spec
-  const args = context.jupyterCommand.concat([
+  const args = config.jupyterCommand.concat([
     "kernelspec install --replace",
     specDir
   ]);
-  if (context.localInstall) {
+  if (config.localInstall) {
     args.push("--user");
   }
   const cmd = args.join(" ");

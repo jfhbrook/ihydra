@@ -1,7 +1,7 @@
 const React = require("react");
 const { render } = require("react-dom");
 
-const { createContext, hydrateContext } = require("../lib/context");
+const { createConfig, hydrateConfig } = require("../lib/config");
 const {
   Logger,
   consoleObserver,
@@ -18,8 +18,8 @@ class BaseLoader {
     this.handlers.set(action, handler);
   }
 
-  getHandler(context) {
-    const { action } = context;
+  getHandler(config) {
+    const { action } = config;
     let handler;
 
     if (this.handlers.has(action)) {
@@ -28,44 +28,44 @@ class BaseLoader {
     return this.handlers.get("default");
   }
 
-  async run(context) {
-    const handler = this.getHandler(context);
-    return await handler(context);
+  async run(config) {
+    const handler = this.getHandler(config);
+    return await handler(config);
   }
 }
 
 class AppLoader extends BaseLoader {
   async run() {
-    let context = createContext().parseArgs(process.argv);
-    const logger = new Logger(`ihydra.main.${context.action}`);
+    let config = createConfig().parseArgs(process.argv);
+    const logger = new Logger(`ihydra.main.${config.action}`);
 
-    context = context.setLogger(logger);
+    config = config.setLogger(logger);
 
-    logger.observe(context.debug ? "debug" : "info", consoleObserver);
+    logger.observe(config.debug ? "debug" : "info", consoleObserver);
     rendererThreadAdopter(logger);
 
-    logger.info(`Loading ${context.action}...`);
+    logger.info(`Loading ${config.action}...`);
 
-    return await super.run(context);
+    return await super.run(config);
   }
 }
 
 class ComponentLoader extends BaseLoader {
   // TODO: Pass exit hook to components
   async run(dehydrated) {
-    let context = hydrateContext(dehydrated);
-    const logger = new Logger(`ihydra.renderer.containers.${context.action}`);
+    let config = hydrateConfig(dehydrated);
+    const logger = new Logger(`ihydra.renderer.containers.${config.action}`);
 
-    logger.observe(context.debug ? "debug" : "info", consoleObserver);
+    logger.observe(config.debug ? "debug" : "info", consoleObserver);
     logger.observe("debug", mainThreadObserver);
 
-    context = context.setLogger(logger);
+    config = config.setLogger(logger);
 
-    const Component = this.getHandler(context);
+    const Component = this.getHandler(config);
 
-    logger.info(`Rendering ${context.action}...`);
+    logger.info(`Rendering ${config.action}...`);
 
-    render(<Component context={context} />, document.getElementById("app"));
+    render(<Component config={config} />, document.getElementById("app"));
   }
 }
 

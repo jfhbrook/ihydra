@@ -36,22 +36,22 @@ const { app } = require("electron");
 const launcher = require("./apps/launcher");
 const kernel = require("./apps/kernel");
 
-const { createContext } = require("../lib/context");
+const { createConfig } = require("../lib/config");
 
 const { AppLoader } = require("../lib/loader");
 
 const loader = new AppLoader();
 
-loader.register("kernel", async ctx => {
+loader.register("kernel", async cfg => {
   // TODO: Move this out of this handler and into the window code
-  const context = await (
-    await ctx.loadVersionInfo().loadKernelInfoReply()
+  const config = await (
+    await cfg.loadVersionInfo().loadKernelInfoReply()
   ).loadConnectionInfo();
 
-  return await kernel(context);
+  return await kernel(config);
 });
 
 loader.register("launcher", launcher);
 
 // TODO: Replace this with an explicit decorated handler
-loader.run(createContext()).then(console.log, console.log);
+loader.run(createConfig()).then(console.log, console.log);

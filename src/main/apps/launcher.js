@@ -7,11 +7,11 @@ const isDev = require("electron-is-dev");
 const window = require("electron-window");
 const { createWindow } = require("../../lib/window");
 
-function launcher(context) {
+function launcher(config) {
   let launcher = null;
 
   function createLauncher(callback) {
-    const panel = createWindow(context, callback);
+    const panel = createWindow(config, callback);
 
     panel.on("closed", () => {
       launcher = null;
