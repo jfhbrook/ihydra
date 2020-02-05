@@ -37,8 +37,38 @@
 /* window util */
 
 // const console = require("console");
-const stream = require("stream");
+const { Transform } = require("stream");
 const util = require("util");
+const { Console } = require("console");
+
+class StdioStream extends Transform {
+  constructor(server, id, name, options) {
+    super(options);
+    this._server = server;
+    this.id = id;
+    this._name = name;
+  }
+
+  write(...args) {
+    this._server.logger.debug("yeah im being written to");
+    super.write.apply(this, args);
+  }
+
+  _transform(data, encoding, callback) {
+    const response = {
+      id: this.id,
+      stdout: data.toString()
+    };
+
+    this._server.debug(
+      `Written to ${this._name}: \`${JSON.stringify(response)}\``
+    );
+
+    this._server.channel.send(response);
+    this.push(data);
+    callback();
+  }
+}
 
 const createDisplay = require("./display");
 
@@ -51,10 +81,13 @@ class Context {
 
     this.logger.debug(`Creating context #${id || "<initial>"}`);
 
-    // TODO
-    // this.console = new console.Console();
+    this.stdout = new StdioStream(server, this.id, "stdout");
+    this.stderr = new StdioStream(server, this.id, "stderr");
+    this.console = new Console(this.stdout, this.stderr);
 
-    // this._capturedConsole = null;
+    this._capturedStdout = null;
+    this._capturedStderr = null;
+    this._capturedConsole = null;
 
     this._async = false;
     this._done = false;
@@ -81,7 +114,7 @@ class Context {
     };
 
     function isPromise(output) {
-      return output.then && typeof output.then === "function";
+      return output && output.then && typeof output.then === "function";
     }
 
     const resolvePromise = outputHandler => {
@@ -259,13 +292,26 @@ class Context {
   }
 
   captureGlobalContext() {
-    /* this._capturedConsole = console;
+    this.logger.debug(`Capturing global context #${this.id || "<initial>"}`);
+
+    this._capturedStdout = process.stdout;
+    this._capturedStderr = process.stderr;
+    this._capturedConsole = console;
+
+    // TODO: Do I really wanna bleed these straight through like this?
+    this.stdout.pipe(this._capturedStdout);
+    this.stderr.pipe(this._capturedStderr);
 
     this.console.Console = this._capturedConsole.Console;
 
+    delete process.stdout;
+    process.stdout = this.stdout;
+
+    delete process.stderr;
+    process.stderr = this.stderr;
+
     delete window.console;
     window.console = this.console;
-    */
 
     delete window.$$;
     window.$$ = this.$$;
@@ -334,10 +380,28 @@ class Context {
   }
 
   releaseGlobalContext() {
+    this.logger.debug(`Releasing global context #${this.id || "<initial>"}`);
+
+    if (process.stdout === this.stdout) {
+      this.logger.debug("Releasing process.stdout");
+      this.stdout.unpipe();
+      delete process.stdout;
+      process.stdout = this._capturedStdout;
+      this._capturedStdout = null;
+    }
+
+    if (process.stderr === this.stderr) {
+      this.logger.debug("Releasing process.stderr");
+      this.stderr.unpipe();
+      delete process.stderr;
+      process.stderr = this._capturedStderr;
+      this._capturedStderr = null;
+    }
+
     if (window.console === this.console) {
+      this.logger.debug("Releasing console");
       delete window.console;
       window.console = this._capturedConsole;
-
       this._capturedConsole = null;
     }
   }

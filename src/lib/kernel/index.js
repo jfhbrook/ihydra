@@ -43,7 +43,7 @@ const Requester = require("./requester");
 
 class Server {
   constructor(config) {
-    const logger = config.logger.child('ihydra.lib.kernel.Server');
+    const logger = config.logger.child("ihydra.lib.kernel.Server");
     const channel = Object.assign(new EventEmitter(), {
       send(payload) {
         logger.debug(
