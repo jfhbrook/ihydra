@@ -304,7 +304,7 @@ function dehydrateContext(old) {
 function createDehydratedContext() {
   const logger = new Logger("ihydra.lib.context");
 
-  logger.observe('warning', consoleObserver);
+  logger.observe("warning", consoleObserver);
 
   return {
     action: "default",

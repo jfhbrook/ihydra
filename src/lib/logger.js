@@ -101,7 +101,11 @@ function formatEvent(event) {
 }
 
 function consoleObserver(event) {
-  console.log(`${event.level} - ${event.namespace} - ${formatEvent(event)}`);
+  formatEvent(event)
+    .split("\n")
+    .forEach(l => {
+      console.log(`${event.level} - ${event.namespace} - ${l}`);
+    });
 }
 
 function mainThreadObserver(event) {

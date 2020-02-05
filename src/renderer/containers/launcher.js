@@ -24,7 +24,9 @@ function useLauncherState(context) {
 
   function setState(newState) {
     if (newState.status !== status) {
-      ctx.logger.debug(`Launcher status change: ${status} -> ${newState.status}`);
+      ctx.logger.debug(
+        `Launcher status change: ${status} -> ${newState.status}`
+      );
     }
     rawSetState(newState);
   }

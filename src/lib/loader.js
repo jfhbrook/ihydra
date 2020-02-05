@@ -2,7 +2,12 @@ const React = require("react");
 const { render } = require("react-dom");
 
 const { createContext, hydrateContext } = require("../lib/context");
-const { Logger, consoleObserver, mainThreadObserver, rendererThreadAdopter } = require("../lib/logger");
+const {
+  Logger,
+  consoleObserver,
+  mainThreadObserver,
+  rendererThreadAdopter
+} = require("../lib/logger");
 
 class BaseLoader {
   constructor() {
@@ -49,7 +54,7 @@ class ComponentLoader extends BaseLoader {
   // TODO: Pass exit hook to components
   async run(dehydrated) {
     let context = hydrateContext(dehydrated);
-    const logger = new Logger(`ihydra.renderer.${context.action}`);
+    const logger = new Logger(`ihydra.renderer.containers.${context.action}`);
 
     logger.observe(context.debug ? "debug" : "info", consoleObserver);
     logger.observe("debug", mainThreadObserver);
@@ -60,10 +65,7 @@ class ComponentLoader extends BaseLoader {
 
     logger.info(`Rendering ${context.action}...`);
 
-    render(
-        <Component context={context} />,
-      document.getElementById("app")
-    );
+    render(<Component context={context} />, document.getElementById("app"));
   }
 }
 
