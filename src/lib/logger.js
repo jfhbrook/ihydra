@@ -70,7 +70,7 @@ class Logger extends EventEmitter {
   }
 
   child(namespace) {
-    const child = new Logger(`${this.namespace}.${namespace}`);
+    const child = new Logger(namespace);
 
     this.adopt(child);
 

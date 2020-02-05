@@ -44,27 +44,10 @@ const { Session } = require("nel");
 
 const { createWindow } = require("../../lib/window");
 
-module.exports = async function kernel(context, callback) {
-  // Setup logging helpers
-  let log;
-  const dontLog = function dontLog() {};
-  let doLog = function doLog() {
-    process.stderr.write("KERNEL: ");
-    console.error.apply(this, arguments);
-  };
-
-  if (process.env.DEBUG) {
-    global.DEBUG = true;
-
-    try {
-      doLog = debug("KERNEL:");
-    } catch (err) {}
-  }
-
-  log = global.DEBUG ? doLog : dontLog;
-
+module.exports = async function kernel(context) {
   // TODO: Kernel needs to be able to gracefully exit
   const exitP = new Promise((resolve, reject) => {});
+  const logger = context.logger.child('ihydra.main.apps.kernel');
 
   function sessionFactory(config) {
     return new Session({
@@ -75,10 +58,12 @@ module.exports = async function kernel(context, callback) {
 
         const server = Object.assign(new EventEmitter(), {
           send(payload) {
+            logger.debug(`Sending a message to the kernel: ${JSON.stringify(payload)}`, {payload});
             window.webContents.send("kernel-send-message", payload);
           },
 
           kill(signal) {
+            logger.debug(`Sending a kill signal to the kernel: ${signal}`, {signal});
             window.webContents.send("kernel-send-kill", signal);
             // TODO: Gracefully exit when this is called
             // return true if successful, false if not??
@@ -86,16 +71,14 @@ module.exports = async function kernel(context, callback) {
         });
 
         ipcMain.on("kernel-receive-message", (event, payload) => {
-          console.log("received kernel message:", payload);
+          logger.debug(`Received a message from the kernel: ${JSON.stringify(payload)}`, {ipcEvent: event, payload})
           server.emit("message", payload);
         });
 
         ipcMain.on("kernel-receive-exit", (event, code, signal) => {
-          console.log("received exit signal", code, signal);
+          logger.debug(`Received an exit signal from the kernel: ${code}, ${signal}`, {ipcEvent: event, code, signal});
           server.emit("exit", code, signal);
         });
-
-        console.log(server);
 
         return server;
       }
@@ -141,7 +124,7 @@ module.exports = async function kernel(context, callback) {
 
   // Interpret a SIGINT signal as a request to interrupt the kernel
   process.on("SIGINT", function() {
-    log("Interrupting kernel");
+    logger.debug(`Received a SIGINT; Interrupting kernel`)
     kernel.restart(); // TODO(NR) Implement kernel interruption
   });
 

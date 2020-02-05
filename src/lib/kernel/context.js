@@ -42,12 +42,11 @@ const util = require("util");
 
 const createDisplay = require("./display");
 
-const log = console.log.bind(console);
-
 class Context {
-  constructor(ipc, requester, id) {
+  constructor(ipc, requester, logger, id) {
     this.ipc = ipc;
     this.requester = requester;
+    this.logger = logger;
     this.id = id;
 
     // TODO
@@ -241,7 +240,7 @@ class Context {
     message.id = this.id;
 
     if (this._done) {
-      log("SEND: DROPPED:", message);
+      this.logger.warning(`Message dropped because context is marked as done: ${JSON.stringify(message)}`);
       return;
     }
 
@@ -249,8 +248,6 @@ class Context {
       this._done = true;
       this._async = false;
     }
-
-    log("SEND:", message);
 
     this.ipc.send(message);
   }

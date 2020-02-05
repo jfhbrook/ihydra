@@ -38,13 +38,10 @@ const { EventEmitter } = require("events");
 
 const { ipcRenderer } = require("electron");
 
-const Channel = require("./channel");
 const { Context, defaultMimer } = require("./context");
 const Requester = require("./requester");
 
 // Shared variables
-const DEBUG = !!process.env.DEBUG;
-let log;
 let requester;
 let initialContext;
 
@@ -55,35 +52,29 @@ let initialContext;
 
 // TODO: de-globalize
 let channel;
+let logger;
 
-module.exports = function init() {
+module.exports = function init(context) {
+  logger = context.logger;
+
   channel = Object.assign(new EventEmitter(), {
     send(payload) {
-      console.log("sending payload back to main:", payload);
+      logger.debug(`Sending payload to main thread: ${JSON.stringify(payload)}`, {payload});
       ipcRenderer.send("kernel-receive-message", payload);
     }
   });
 
   ipcRenderer.on("kernel-send-message", (event, payload) => onMessage(payload));
 
-  // TODO
+  // TODO: Handle uncaught exceptions
   channel.on("uncaughtException", (event, err) => onUncaughtException(err));
-
-  // Setup logger
-  log = DEBUG
-    ? function log() {
-        channel.send({
-          log: `SERVER: ${util.format.apply(this, arguments)}`
-        });
-      }
-    : function noop() {};
 
   // Create instance to send requests
   requester = new Requester();
 
   // Capture the initial context
   // (id left undefined to indicate this is the initial context)
-  initialContext = new Context(channel, requester);
+  initialContext = new Context(channel, requester, logger);
   initialContext.captureGlobalContext();
 
   Object.defineProperty(global, "$$defaultMimer$$", {
@@ -93,30 +84,29 @@ module.exports = function init() {
     enumerable: false
   });
 
-  console.log("telling everyone we are online");
-  // Telling everyone we are online?
+  logger.info("Kernel is online");
   channel.send({
     status: "online"
   });
 };
 
 function onUncaughtException(error) {
-  log("UNCAUGHTEXCEPTION:", error.stack);
+  logger.exception(error);
+  logger.debug(`Sending error to main thread: ${error.message}`);
   channel.send({
     stderr: error.stack.toString()
   });
 }
 
 function onMessage(message) {
-  console.log("received a message!!!", message);
-  log("RECEIVED:", message);
+  logger.debug(`Received a message from main thread: ${JSON.stringify(message)}`)
 
   const action = message[0];
   const code = message[1];
   const id = message[2];
 
   initialContext.releaseGlobalContext();
-  const context = new Context(channel, requester, id);
+  const context = new Context(channel, requester, logger, id);
   context.captureGlobalContext();
 
   try {
