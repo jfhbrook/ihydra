@@ -60,7 +60,7 @@ class Context {
     // `$$` provides an interface for users to access the execution context
     this.$$ = Object.create(null);
 
-    this.$$.setAsync = value => {
+    this.$$.async = value => {
       this._async = arguments.length === 0 ? true : !!value;
       return this._async;
     };
@@ -108,6 +108,8 @@ class Context {
 
     this.$$.sendResult = resolvePromise((result, keepAlive) => {
       if (keepAlive) this.$$.async();
+
+      console.log("calling this.send");
 
       this.send({
         mime: toMime(result),
@@ -240,7 +242,11 @@ class Context {
     message.id = this.id;
 
     if (this._done) {
-      this.logger.warning(`Message dropped because context is marked as done: ${JSON.stringify(message)}`);
+      this.logger.warning(
+        `Message dropped because context is marked as done: ${JSON.stringify(
+          message
+        )}`
+      );
       return;
     }
 
