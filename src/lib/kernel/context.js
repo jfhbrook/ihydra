@@ -32,38 +32,9 @@
  *
  */
 
-/* window console */
-/* window stream */
-/* window util */
-
-// const console = require("console");
+const { EventEmitter } = require("events");
 const { Transform } = require("stream");
 const util = require("util");
-const { Console } = require("console");
-
-class StdioStream extends Transform {
-  constructor(server, id, name, options) {
-    super(options);
-    this._server = server;
-    this.id = id;
-    this._name = name;
-  }
-
-  _transform(data, encoding, callback) {
-    const response = {
-      id: this.id,
-      stdout: data.toString()
-    };
-
-    this._server.debug(
-      `Written to ${this._name}: \`${JSON.stringify(response)}\``
-    );
-
-    this._server.channel.send(response);
-    this.push(data);
-    callback();
-  }
-}
 
 const createDisplay = require("./display");
 
@@ -76,16 +47,10 @@ class Context {
 
     this.logger.debug(`Creating context #${id || "<initial>"}`);
 
-    this.stdout = new StdioStream(server, this.id, "stdout");
-    this.stderr = new StdioStream(server, this.id, "stderr");
-    this.console = new Console(this.stdout, this.stderr);
-
-    this._capturedStdout = null;
-    this._capturedStderr = null;
-    this._capturedConsole = null;
-
     this._async = false;
     this._done = false;
+
+    this._consoleReleaseHooks = [];
 
     // `$$` provides an interface for users to access the execution context
     this.$$ = Object.create(null);
@@ -289,24 +254,31 @@ class Context {
   captureGlobalContext() {
     this.logger.debug(`Capturing global context #${this.id || "<initial>"}`);
 
-    this._capturedStdout = process.stdout;
-    this._capturedStderr = process.stderr;
-    this._capturedConsole = console;
+    this._consoleReleaseHooks = [];
 
-    // TODO: Do I really wanna bleed these straight through like this?
-    this.stdout.pipe(this._capturedStdout);
-    this.stderr.pipe(this._capturedStderr);
+    ["info", "log", "warn", "error"].forEach(level => {
+      const captured = console[level];
 
-    this.console.Console = this._capturedConsole.Console;
+      console[level] = (...args) => {
+        const response = {
+          id: this.id
+        };
 
-    delete process.stdout;
-    process.stdout = this.stdout;
+        if (["info", "log"].includes(level)) {
+          response.stdout = util.format(...args);
+        } else {
+          response.stderr = util.format(...args);
+        }
 
-    delete process.stderr;
-    process.stderr = this.stderr;
+        this.channel.send(response);
 
-    delete window.console;
-    window.console = this.console;
+        captured(...args);
+      };
+
+      this._consoleReleaseHooks.push(() => {
+        console[level] = captured;
+      });
+    });
 
     delete window.$$;
     window.$$ = this.$$;
@@ -377,28 +349,8 @@ class Context {
   releaseGlobalContext() {
     this.logger.debug(`Releasing global context #${this.id || "<initial>"}`);
 
-    if (process.stdout === this.stdout) {
-      this.logger.debug("Releasing process.stdout");
-      this.stdout.unpipe();
-      delete process.stdout;
-      process.stdout = this._capturedStdout;
-      this._capturedStdout = null;
-    }
-
-    if (process.stderr === this.stderr) {
-      this.logger.debug("Releasing process.stderr");
-      this.stderr.unpipe();
-      delete process.stderr;
-      process.stderr = this._capturedStderr;
-      this._capturedStderr = null;
-    }
-
-    if (window.console === this.console) {
-      this.logger.debug("Releasing console");
-      delete window.console;
-      window.console = this._capturedConsole;
-      this._capturedConsole = null;
-    }
+    this._consoleReleaseHooks.forEach(hook => hook());
+    this._consoleReleaseHooks = [];
   }
 }
 

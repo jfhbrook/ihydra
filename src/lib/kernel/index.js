@@ -124,7 +124,7 @@ class Server {
         throw new Error(`NEL: Unhandled action: ${action}`);
       }
     } catch (error) {
-      this.context.$$.sendError(error);
+      context.$$.sendError(error);
     }
 
     context.releaseGlobalContext();

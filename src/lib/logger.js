@@ -100,14 +100,11 @@ function formatEvent(event) {
   return message;
 }
 
-// The kernel pulls shenangans with global state so we keep our own handle
-const _console = console;
-
 function consoleObserver(event) {
   formatEvent(event)
     .split("\n")
     .forEach(l => {
-      _console.log(`${event.level} - ${event.namespace} - ${l}`);
+      process.stdout.write(`${event.level} - ${event.namespace} - ${l}`);
     });
 }
 
