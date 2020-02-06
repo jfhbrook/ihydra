@@ -157,12 +157,12 @@ class Server {
   onRunRequest(code, context) {
     const result = run(code);
 
-    this.logger.debug(`Ran \`${code}\` with result ${result}`);
+    this.logger.debug(`Ran ${JSON.stringify(code)} with result ${result}`);
 
     // If a result has already been sent, do not send this result.
     if (context._done) {
       this.logger.warning(
-        `Finished running \`${code}\` but its context is already marked as done!`
+        `Finished running ${JSON.stringify(code)} but its context is already marked as done!`
       );
       return;
     }
@@ -178,7 +178,7 @@ class Server {
     // TODO: Can we ensure that async is always on?
     if (context._async) {
       this.logger.warning(
-        `Context for \`${code}\` is marked as async but the result is a non-promise!`
+        `Context for ${JSON.stringify(code)} is marked as async but the result is a non-promise!`
       );
       return;
     }

@@ -104,7 +104,7 @@ function consoleObserver(event) {
   formatEvent(event)
     .split("\n")
     .forEach(l => {
-      process.stdout.write(`${event.level} - ${event.namespace} - ${l}`);
+      process.stdout.write(`${event.level} - ${event.namespace} - ${l}\n`);
     });
 }
 

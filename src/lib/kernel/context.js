@@ -42,6 +42,7 @@ class Context {
   constructor(server, id) {
     this.channel = server.channel;
     this.request = server.requester;
+    this.request = server.requester;
     this.logger = server.logger;
     this.id = id;
 
@@ -265,9 +266,9 @@ class Context {
         };
 
         if (["info", "log"].includes(level)) {
-          response.stdout = util.format(...args);
+          response.stdout = `${util.format(...args)}\n`;
         } else {
-          response.stderr = util.format(...args);
+          response.stderr = `${util.format(...args)}\n`;
         }
 
         this.channel.send(response);
