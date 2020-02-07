@@ -96,6 +96,10 @@ function formatEvent(event) {
     message = message(event);
   }
 
+  if (typeof message !== "string") {
+    message = String(message);
+  }
+
   if (event.error) {
     if (message) {
       message = `${message}\n${event.error.stack}`;
