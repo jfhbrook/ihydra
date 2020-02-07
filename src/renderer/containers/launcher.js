@@ -8,6 +8,7 @@ const Button = require("../components/WizardButton");
 const LoadingScreen = require("../components/LoadingScreen");
 // TODO: Overhaul the "installer config" component, it is currently dumb and wrong
 const InstallerConfig = require("../components/InstallerConfig");
+const JupyterCommandFinder = require("../components/JupyterCommandFinder");
 // TODO: This didn't end up being a "service" really, should this be moved elsewhere?
 const { installKernel } = require("../../services/installer");
 
@@ -42,6 +43,7 @@ function useLauncherState(config) {
     return capturer((err) => {
       let config = cloneConfig(cfg);
       config.error = err;
+      console.log(err);
       config.logger.error(err);
       setState({status, config});
     });
@@ -65,7 +67,7 @@ function useLauncherState(config) {
   });
 
   const loadJupyterInfo = whichIfError(async () => {
-    const config = await cfg.loadJupyterInfo();
+    const config = await (await cfg.loadVersionInfo()).loadJupyterInfo();
     setState({ status: "ready", config });
   });
 
@@ -112,7 +114,7 @@ function useLauncherState(config) {
       // TODO: Launch jupyter notebook
     },
     exit() {
-      ipcRenderer.send('bail');
+      ipcRenderer.send("bail");
     }
   };
 }
@@ -139,16 +141,15 @@ function Launcher({ config }) {
       // TODO: Need to be able to try searching again
       // TODO: Need exit button
       return (
-        <div>
-          <h1>which jupyter?</h1>
-          <h2>TODO: file picker widget here</h2>
-          <Button onClick={trySearching}>detect jupyter automatically</Button>
-          <Button onClick={tryRegistering}>use this command</Button>
-          <Button onClick={exit}>exit</Button>
-        </div>
+        <JupyterCommandFinder
+          config={config}
+          trySearching={trySearching}
+          tryRegistering={tryRegistering}
+          exit={exit}
+        />
       );
     case "registering":
-      return <LoadingScreen message="registering..." />
+      return <LoadingScreen message="registering..." />;
     case "ready":
       // TODO: Need to be able to go back to the "which" panel
       // TODO: Need to be able to click a launcher
