@@ -1,9 +1,4 @@
-canvas {
+#hydra-canvas {
   width: 100%;
   height: 100%;
-}
-
-/* TODO: This shouldn't live in the component */
-body {
-  margin: 0px;
 }

@@ -26,5 +26,5 @@ module.exports = ({ config, onLoad }) => {
     onLoad(hydra);
   });
 
-  return <canvas ref={canvasRef} />;
+  return <canvas id="hydra-canvas" ref={canvasRef} />;
 };
