@@ -51,7 +51,6 @@ class AppLoader extends BaseLoader {
 }
 
 class ComponentLoader extends BaseLoader {
-  // TODO: Pass exit hook to components
   async run(dehydrated) {
     let config = hydrateConfig(dehydrated);
     const logger = new Logger(`ihydra.renderer.containers.${config.action}`);
