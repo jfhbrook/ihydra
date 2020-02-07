@@ -109,7 +109,11 @@ function consoleObserver(event) {
 }
 
 function mainThreadObserver(event) {
-  ipcRenderer.send("log-message", event);
+  const unstructured = {...event};
+  if (event.error) {
+    unstructured.error = {message: event.error.message, stack: String(event.error.stack)};
+  }
+  ipcRenderer.send("log-message", unstructured);
 }
 
 function rendererThreadAdopter(logger) {

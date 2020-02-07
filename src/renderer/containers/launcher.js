@@ -48,19 +48,26 @@ function useLauncherState(config) {
     let c;
     try {
       c = cfg.loadVersionInfo();
-      c = await cfg.searchForJupyter();
+      c = await c.searchForJupyter();
+      c = await c.loadJupyterInfo();
     } catch (err) {
       c = cloneConfig(cfg);
       c.error = err;
+      console.log(err);
+      config.logger.error(err);
       setState({ status: "confused", config: c });
       return;
     }
+
+    console.log(c);
 
     try {
       c.ensureSupportedJupyterVersion();
     } catch (err) {
       c.error = err;
+      config.logger.error(err);
       setState({ status: "confused", config: c });
+      return;
     }
 
     setState({ status: "registering", config: c });
