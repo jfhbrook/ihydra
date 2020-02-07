@@ -2,6 +2,8 @@ const Hydra = require('hydra-synth')
 const React = require("react");
 const { useEffect, useRef } = React;
 
+const hydraCss = require("./hydra.css");
+
 const Server = require("../../lib/kernel");
 
 // TODO: This should have loading screen logic kinda like the launcher
