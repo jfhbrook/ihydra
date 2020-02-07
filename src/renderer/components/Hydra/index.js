@@ -1,16 +1,14 @@
+const debounce = require('debounce');
 const Hydra = require('hydra-synth')
 const React = require("react");
 const { useEffect, useRef } = React;
 
 const hydraCss = require("./index.css");
 
-const Server = require("../../../lib/kernel");
-
 // TODO: This should have loading screen logic kinda like the launcher
-module.exports = ({ config }) => {
+module.exports = ({ config, onLoad }) => {
   const canvasRef = useRef();
   const hydraRef = useRef();
-  const serverRef = useRef();
 
   useEffect(() => {
     config.logger.debug('Setting up Hydra...');
@@ -19,10 +17,13 @@ module.exports = ({ config }) => {
     const hydra = new Hydra({ canvas });
     hydraRef.current = hydra;
 
-    const server = new Server(config);
-    serverRef.current = server;
+    const resizeHydra = debounce(() => hydra.resize(window.innerWidth, window.innerHeight), 100);
 
-    server.listen();
+    resizeHydra();
+
+    window.addEventListener('resize', resizeHydra);
+
+    onLoad(hydra);
   });
 
   return <canvas ref={canvasRef} />;
