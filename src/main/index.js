@@ -42,15 +42,7 @@ const { AppLoader } = require("../lib/loader");
 
 const loader = new AppLoader();
 
-loader.register("kernel", async cfg => {
-  // TODO: Move this out of this handler and into the window code
-  const config = await (
-    await cfg.loadVersionInfo().loadKernelInfoReply()
-  ).loadConnectionInfo();
-
-  return await kernel(config);
-});
-
+loader.register("kernel", kernel);
 loader.register("launcher", launcher);
 
 // TODO: Replace this with an explicit decorated handler

@@ -34,7 +34,6 @@
 
 const { EventEmitter } = require("events");
 const path = require("path");
-const { spawn } = require("child_process");
 const vm = require("vm");
 
 const { app, ipcMain } = require("electron");
@@ -44,7 +43,11 @@ const { Session } = require("nel");
 
 const { createWindow } = require("../../lib/window");
 
-module.exports = async function kernel(config) {
+module.exports = async function kernel(cfg) {
+  const config = await (
+    await cfg.loadVersionInfo().loadKernelInfoReply()
+  ).loadConnectionInfo();
+
   const logger = config.logger.child("ihydra.main.apps.kernel");
 
   return new Promise((resolve, reject) => {
