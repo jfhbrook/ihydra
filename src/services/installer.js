@@ -7,7 +7,8 @@ const { exec } = require("../lib/process");
 
 function quote(xs) {
   if (process.platform !== "win32") {
-    return shellQuote(xs);
+    // shell-quote quotes the curlies, which actually breaks the templating
+    return shellQuote(xs).replace('\\{', '{').replace('\\}', '}');
   }
 
   // I cheese this really hard here, doing the bare minimum to make

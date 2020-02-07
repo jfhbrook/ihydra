@@ -74,7 +74,8 @@
         "lint": "eslint ./src/**/*.js",
         "test:ihydrakernel": "electron-mocha test/ihydrakernel.js",
         "test": "npm run lint && npm run test:ihydrakernel",
-        "compile": "electron-rebuild && electron-webpack",
+        "rebuild": "electron-rebuild",
+        "compile": "npm run rebuild && electron-webpack",
         "dist": "npm run compile && electron-builder"
     },
     "build": {
