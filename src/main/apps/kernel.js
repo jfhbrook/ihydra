@@ -95,7 +95,9 @@ module.exports = async function kernel(cfg) {
     const kernel = new Kernel(config);
 
     // WORKAROUND: Fixes https://github.com/n-riesco/ijavascript/issues/97
-    kernel.handlers.is_complete_request = function is_complete_request(request) {
+    kernel.handlers.is_complete_request = function is_complete_request(
+      request
+    ) {
       request.respond(this.iopubSocket, "status", {
         execution_state: "busy"
       });
