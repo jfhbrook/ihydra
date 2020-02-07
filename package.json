@@ -73,6 +73,7 @@
     "engineStrict": true,
     "scripts": {
         "dev": "electron-webpack dev",
+        "kernel": "jupyter lab --debug",
         "format": "eslint ./src/**/*.js --fix",
         "lint": "eslint ./src/**/*.js",
         "test:ihydrakernel": "electron-mocha test/ihydrakernel.js",
