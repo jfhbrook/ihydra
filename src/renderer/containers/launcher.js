@@ -1,6 +1,6 @@
 const electron = require("electron");
 
-const { app } = electron;
+const { app, ipcRenderer } = electron;
 const React = require("react");
 
 const { useState } = React;
@@ -131,7 +131,7 @@ function useLauncherState(config) {
       // TODO: Launch jupyter notebook
     },
     exit() {
-      // TODO: Write actual exit logic
+      ipcRenderer.send('bail');
     }
   };
 }

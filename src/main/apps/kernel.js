@@ -45,101 +45,88 @@ const { Session } = require("nel");
 const { createWindow } = require("../../lib/window");
 
 module.exports = async function kernel(config) {
-  // TODO: Kernel needs to be able to gracefully exit
-  const exitP = new Promise((resolve, reject) => {});
   const logger = config.logger.child("ihydra.main.apps.kernel");
 
-  function sessionFactory(config) {
-    return new Session({
-      cwd: config.cwd,
-      transpile: config.transpile,
-      serverFactory() {
-        const window = createWindow(config);
+  return new Promise((resolve, reject) => {
+    function sessionFactory(config) {
+      return new Session({
+        cwd: config.cwd,
+        transpile: config.transpile,
+        serverFactory() {
+          const window = createWindow(config);
 
-        const server = Object.assign(new EventEmitter(), {
-          send(payload) {
+          const server = Object.assign(new EventEmitter(), {
+            send(payload) {
+              logger.debug(
+                `Sending a message to the kernel: ${JSON.stringify(payload)}`,
+                { payload }
+              );
+              window.webContents.send("kernel-send-message", payload);
+            },
+
+            kill(signal) {
+              logger.debug(`Received a kill signal: ${signal} - exiting`, {
+                signal
+              });
+              window.close();
+              server.emit("exit", 0, signal);
+              resolve();
+            }
+          });
+
+          ipcMain.on("kernel-receive-message", (event, payload) => {
             logger.debug(
-              `Sending a message to the kernel: ${JSON.stringify(payload)}`,
-              { payload }
+              `Received a message from the kernel: ${JSON.stringify(payload)}`,
+              { ipcEvent: event, payload }
             );
-            window.webContents.send("kernel-send-message", payload);
-          },
+            server.emit("message", payload);
+          });
 
-          kill(signal) {
-            logger.debug(`Sending a kill signal to the kernel: ${signal}`, {
-              signal
-            });
-            window.webContents.send("kernel-send-kill", signal);
-            // TODO: Gracefully exit when this is called
-            // return true if successful, false if not??
-          }
-        });
-
-        ipcMain.on("kernel-receive-message", (event, payload) => {
-          logger.debug(
-            `Received a message from the kernel: ${JSON.stringify(payload)}`,
-            { ipcEvent: event, payload }
-          );
-          server.emit("message", payload);
-        });
-
-        ipcMain.on("kernel-receive-exit", (event, code, signal) => {
-          logger.debug(
-            `Received an exit signal from the kernel: ${code}, ${signal}`,
-            { ipcEvent: event, code, signal }
-          );
-          server.emit("exit", code, signal);
-        });
-
-        return server;
-      }
-    });
-  }
-
-  config.sessionFactory = sessionFactory;
-
-  // TODO: Any good way of knowing when the kernel is "done" ?
-  const kernel = new Kernel(config);
-
-  // WORKAROUND: Fixes https://github.com/n-riesco/ijavascript/issues/97
-  kernel.handlers.is_complete_request = function is_complete_request(request) {
-    request.respond(this.iopubSocket, "status", {
-      execution_state: "busy"
-    });
-
-    let content;
-    try {
-      new vm.Script(request.content.code);
-      content = {
-        status: "complete"
-      };
-    } catch (err) {
-      content = {
-        status: "incomplete",
-        indent: ""
-      };
+          return server;
+        }
+      });
     }
 
-    request.respond(
-      this.shellSocket,
-      "is_complete_reply",
-      content,
-      {},
-      this.protocolVersion
-    );
+    config.sessionFactory = sessionFactory;
 
-    request.respond(this.iopubSocket, "status", {
-      execution_state: "idle"
+    const kernel = new Kernel(config);
+
+    // WORKAROUND: Fixes https://github.com/n-riesco/ijavascript/issues/97
+    kernel.handlers.is_complete_request = function is_complete_request(request) {
+      request.respond(this.iopubSocket, "status", {
+        execution_state: "busy"
+      });
+
+      let content;
+      try {
+        new vm.Script(request.content.code);
+        content = {
+          status: "complete"
+        };
+      } catch (err) {
+        content = {
+          status: "incomplete",
+          indent: ""
+        };
+      }
+
+      request.respond(
+        this.shellSocket,
+        "is_complete_reply",
+        content,
+        {},
+        this.protocolVersion
+      );
+
+      request.respond(this.iopubSocket, "status", {
+        execution_state: "idle"
+      });
+    };
+
+    // Interpret a SIGINT signal as a request to interrupt the kernel
+    process.on("SIGINT", () => {
+      logger.debug("Received a SIGINT; Interrupting kernel");
+      kernel.restart(); // TODO(NR) Implement kernel interruption
     });
-  };
-
-  // Interpret a SIGINT signal as a request to interrupt the kernel
-  process.on("SIGINT", function() {
-    logger.debug(`Received a SIGINT; Interrupting kernel`);
-    kernel.restart(); // TODO(NR) Implement kernel interruption
   });
-
-  // TODO: This is currently forever blocking because it's not wired
-  // up to anything
-  return await exitP;
 };

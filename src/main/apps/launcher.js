@@ -2,7 +2,7 @@ const path = require("path");
 
 const electron = require("electron");
 
-const { app } = electron;
+const { app, ipcMain } = electron;
 const isDev = require("electron-is-dev");
 const window = require("electron-window");
 const { createWindow } = require("../../lib/window");
@@ -32,6 +32,10 @@ function launcher(config) {
       if (launcher === null) {
         launcher = createLauncher();
       }
+    });
+
+    ipcMain.on("bail", () => {
+      app.quit();
     });
 
     if (app.isReady()) {
