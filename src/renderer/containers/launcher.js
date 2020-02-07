@@ -5,6 +5,7 @@ const React = require("react");
 
 const { useState } = React;
 const Button = require("../components/WizardButton");
+const LoadingScreen = require("../components/LoadingScreen");
 // TODO: Overhaul the "installer config" component, it is currently dumb and wrong
 const InstallerConfig = require("../components/InstallerConfig");
 // TODO: This didn't end up being a "service" really, should this be moved elsewhere?
@@ -150,9 +151,9 @@ function Launcher({ config }) {
 
   switch (state.status) {
     case "loading":
-      return <h1>loading...</h1>;
+      return <LoadingScreen message="loading..." />;
     case "searching":
-      return <h1>searching...</h1>;
+      return <LoadingScreen message="searching..." />;
     case "which":
       // TODO: Need to be able to select a jupyter "manually"
       // TODO: Need to be able to try searching again
@@ -167,7 +168,7 @@ function Launcher({ config }) {
         </div>
       );
     case "registering":
-      return <h1>registering...</h1>;
+      return <LoadingScreen message="registering..." />
     case "ready":
       // TODO: Need to be able to go back to the "which" panel
       // TODO: Need to be able to click a launcher
@@ -187,7 +188,7 @@ function Launcher({ config }) {
         </div>
       );
     case "installing":
-      return <h1>installing...</h1>;
+      return <LoadingScreen message="installing..." />;
     case "install_failed":
       return (
         <div>
