@@ -1,27 +1,19 @@
-const Hydra = require('hydra-synth')
 const React = require("react");
-const { useEffect, useRef } = React;
+const { useRef } = React;
+const Hydra = require("../components/Hydra");
 
-const Server = require("../../lib/kernel");
+const Kernel = require("../../lib/kernel");
 
 // TODO: This should have loading screen logic kinda like the launcher
 module.exports = ({ config }) => {
-  const canvasRef = useRef();
-  const hydraRef = useRef();
-  const serverRef = useRef();
+  const kernelRef = useRef();
 
-  useEffect(() => {
-    config.logger.debug('Setting up Hydra...');
-    const canvas = canvasRef.current;
+  function onLoad() {
+    const kernel = new Kernel(config);
+    kernelRef.current = kernel;
 
-    const hydra = new Hydra({ canvas });
-    hydraRef.current = hydra;
+    kernel.listen();
+  };
 
-    const server = new Server(config, canvasRef.current);
-    serverRef.current = server;
-
-    server.listen();
-  });
-
-  return <canvas ref={canvasRef} />;
+  return <Hydra config={config} onLoad={onLoad} />
 };
