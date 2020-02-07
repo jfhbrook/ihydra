@@ -1,4 +1,5 @@
 const React = require("react");
+
 const { useRef } = React;
 const Hydra = require("../components/Hydra");
 
@@ -13,7 +14,7 @@ module.exports = ({ config }) => {
     kernelRef.current = kernel;
 
     kernel.listen();
-  };
+  }
 
-  return <Hydra config={config} onLoad={onLoad} />
+  return <Hydra config={config} onLoad={onLoad} />;
 };

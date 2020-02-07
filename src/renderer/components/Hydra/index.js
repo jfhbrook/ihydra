@@ -1,6 +1,7 @@
-const debounce = require('debounce');
-const Hydra = require('hydra-synth')
+const debounce = require("debounce");
+const Hydra = require("hydra-synth");
 const React = require("react");
+
 const { useEffect, useRef } = React;
 
 const hydraCss = require("./index.css");
@@ -11,17 +12,20 @@ module.exports = ({ config, onLoad }) => {
   const hydraRef = useRef();
 
   useEffect(() => {
-    config.logger.debug('Setting up Hydra...');
+    config.logger.debug("Setting up Hydra...");
     const canvas = canvasRef.current;
 
     const hydra = new Hydra({ canvas });
     hydraRef.current = hydra;
 
-    const resizeHydra = debounce(() => hydra.resize(window.innerWidth, window.innerHeight), 100);
+    const resizeHydra = debounce(
+      () => hydra.resize(window.innerWidth, window.innerHeight),
+      100
+    );
 
     resizeHydra();
 
-    window.addEventListener('resize', resizeHydra);
+    window.addEventListener("resize", resizeHydra);
 
     onLoad(hydra);
   });
