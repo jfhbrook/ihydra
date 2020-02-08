@@ -4,6 +4,8 @@ const isDev = require("electron-is-dev");
 const { quote } = require("shell-quote");
 const which = require("which");
 
+const { noShellError } = require('./errors');
+
 class Argv {
   constructor(argv, root) {
     this.argv = argv;
@@ -118,7 +120,7 @@ class Argv {
       return shell;
     }
 
-    throw new Error("shell not found");
+    throw noShellError("Could not find a supported shell");
   }
 }
 

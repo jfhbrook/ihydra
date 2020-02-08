@@ -7,6 +7,8 @@ const crypto = require("crypto");
 
 const rimraf = require("rimraf");
 
+const {tmpDirError} = require("./errors");
+
 const mkdir = promisify(fs.mkdir);
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -32,7 +34,7 @@ async function makeTmpdir(maxAttempts) {
   }
 
   if (!tmpdir) {
-    throw new Error("did not find a tmpdir");
+    throw tmpDirError("Could not create a temporary directory");
   }
 
   return tmpdir;

@@ -38,6 +38,7 @@ const { EventEmitter } = require("events");
 
 const { ipcRenderer } = require("electron");
 
+const { kernelError } = require("../errors");
 const { Context, defaultMimer } = require("./context");
 const Requester = require("./requester");
 
@@ -121,7 +122,7 @@ class Server {
       } else if (action === "reply") {
         this.onReply(message);
       } else {
-        throw new Error(`NEL: Unhandled action: ${action}`);
+        throw kernelError(`Unhandled kernel action: ${action}`);
       }
     } catch (error) {
       context.$$.sendError(error);

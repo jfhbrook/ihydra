@@ -2,12 +2,13 @@ const path = require("path");
 const shellQuote = require("shell-quote").quote;
 const isDev = require("electron-is-dev");
 
+const { noShellError } = require("../lib/errors");
 const { makeTmpdir, mkdir, writeFile, copy, rmrf } = require("../lib/fs");
 const { exec } = require("../lib/process");
 
 function quote(xs) {
   if (process.platform !== "win32") {
-    // shell-quote quotes the curlies, which actually breaks the templating
+    // shell-quote quotes the curlies, which breaks the templating
     return shellQuote(xs)
       .replace("\\{", "{")
       .replace("\\}", "}");
@@ -58,7 +59,7 @@ async function getKernelCommand(config) {
   } else if (shell === "powershell") {
     shimScript = [shell, "-Command", `cd ${root}; ${command}`];
   } else {
-    throw new Error("dont know how to do this shell");
+    throw noShellError("No supported shell for development install");
   }
 
   return shimScript;

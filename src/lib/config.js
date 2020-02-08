@@ -13,6 +13,7 @@ const Argv = require("./argv");
 const { exec } = require("./process");
 const packageJson = require("../../package.json");
 const { readFile } = require("./fs");
+const { configError, jupyterNotFoundError, jupyterVersionError } = require("./errors");
 
 const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
@@ -183,7 +184,7 @@ function hydrateConfig(old) {
         return config;
       }
 
-      throw new Error("could not find Jupyter");
+      throw jupyterNotFoundError("Could not find an installed copy of Jupyter");
     },
 
     async loadJupyterInfo() {
@@ -192,7 +193,7 @@ function hydrateConfig(old) {
       const command = config.jupyterCommand;
 
       if (!command) {
-        throw new Error("don't know how to run Jupyter");
+        throw configError("Don't know how to run Jupyter to load version info");
       }
 
       const { stdout } = await exec(quote(command.concat(["--version"])));
@@ -228,7 +229,7 @@ function hydrateConfig(old) {
 
     ensureSupportedJupyterVersion() {
       if (getMajorVersion(this.versions.jupyter) < 3) {
-        throw new Error("frontend major version must be >= 3");
+        throw jupyterVersionError("Only versions of Jupyter greater than 3.0 are supported");
       }
     },
 
