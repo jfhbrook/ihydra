@@ -66,7 +66,12 @@ class ComponentLoader extends BaseLoader {
     let config = hydrateConfig(dehydrated);
     const logger = new Logger(`ihydra.renderer.containers.${config.action}`);
 
-    logger.observe(config.debug ? "debug" : "info", consoleObserver);
+    // The kernel does unspeakable things to console.log so we need to be
+    // very careful here
+    // TODO: Double check to make sure this guard is still necessary
+    if (config.action !== "kernel") {
+      logger.observe(config.debug ? "debug" : "info", consoleObserver);
+    }
     logger.observe("debug", mainThreadObserver);
 
     config = config.setLogger(logger);
