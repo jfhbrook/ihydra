@@ -39,17 +39,12 @@ function useLauncherState(config) {
   }
 
   function createErrorHandler(status) {
-    const wrapper = capturer((err, [cfg]) => {
+    return capturer((err) => {
       let config = cloneConfig(cfg);
       config.error = err;
       config.logger.error(err);
       setState({status, config});
     });
-
-    return fn => {
-      const wrapped = wrapper(fn);
-      return () => wrapped(cfg);
-    };
   }
 
   const confusedIfError = createErrorHandler("confused");
@@ -63,18 +58,18 @@ function useLauncherState(config) {
     return setStatus("searching");
   }
 
-  const searchForJupyter = confusedIfError(async cfg => {
+  const searchForJupyter = confusedIfError(async () => {
     const config = await (await cfg.loadVersionInfo().searchForJupyter()).loadJupyterInfo();
     config.ensureSupportedJupyterVersion();
     setState({ status: "registering", config });
   });
 
-  const loadJupyterInfo = whichIfError(async cfg => {
+  const loadJupyterInfo = whichIfError(async () => {
     const config = await cfg.loadJupyterInfo();
     setState({ status: "ready", config });
   });
 
-  const install = failedIfError(async cfg => {
+  const install = failedIfError(async () => {
     await installKernel(cfg);
     setStatus("install_succeeded");
   });
