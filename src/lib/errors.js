@@ -8,12 +8,12 @@ function errorType(code) {
   };
 }
 
-const configError = errorType('ECONFIG');
-const noShellError = errorType('ENOSHELL');
-const jupyterNotFoundError = errorType('ENOJUPYTER');
-const jupyterVersionError = errorType('EJUPYTERVERSION');
-const tmpDirError = errorType('ETMPDIR');
-const kernelError = errorType('EKERNEL');
+const configError = errorType("ECONFIG");
+const noShellError = errorType("ENOSHELL");
+const jupyterNotFoundError = errorType("ENOJUPYTER");
+const jupyterVersionError = errorType("EJUPYTERVERSION");
+const tmpDirError = errorType("ETMPDIR");
+const kernelError = errorType("EKERNEL");
 
 function capturer(errorHandler) {
   return fn => (...args) => {

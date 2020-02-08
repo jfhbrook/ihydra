@@ -4,7 +4,7 @@ const isDev = require("electron-is-dev");
 const { quote } = require("shell-quote");
 const which = require("which");
 
-const { noShellError } = require('./errors');
+const { noShellError } = require("./errors");
 
 class Argv {
   constructor(argv, root) {

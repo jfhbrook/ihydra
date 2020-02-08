@@ -7,7 +7,7 @@ const crypto = require("crypto");
 
 const rimraf = require("rimraf");
 
-const {tmpDirError} = require("./errors");
+const { tmpDirError } = require("./errors");
 
 const mkdir = promisify(fs.mkdir);
 const readFile = promisify(fs.readFile);

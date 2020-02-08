@@ -13,7 +13,11 @@ const Argv = require("./argv");
 const { exec } = require("./process");
 const packageJson = require("../../package.json");
 const { readFile } = require("./fs");
-const { configError, jupyterNotFoundError, jupyterVersionError } = require("./errors");
+const {
+  configError,
+  jupyterNotFoundError,
+  jupyterVersionError
+} = require("./errors");
 
 const root = path.resolve(path.dirname(require.resolve("../../package.json")));
 
@@ -229,7 +233,9 @@ function hydrateConfig(old) {
 
     ensureSupportedJupyterVersion() {
       if (getMajorVersion(this.versions.jupyter) < 3) {
-        throw jupyterVersionError("Only versions of Jupyter greater than 3.0 are supported");
+        throw jupyterVersionError(
+          "Only versions of Jupyter greater than 3.0 are supported"
+        );
       }
     },
 
