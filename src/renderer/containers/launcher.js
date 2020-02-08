@@ -39,37 +39,51 @@ function useLauncherState(config) {
     setState({ ...state, status });
   }
 
-  function createErrorHandler(status) {
-    return capturer((err) => {
-      let config = cloneConfig(cfg);
-      config.error = err;
-      console.log(err);
-      config.logger.error(err);
-      setState({status, config});
-    });
+  function errorHandler(err, cfg, status) {
+    let config = cloneConfig(cfg);
+    config.error = err;
+    config.logger.error(err);
+    setState({status, config});
   }
 
-  const confusedIfError = createErrorHandler("confused");
-  const whichIfError = createErrorHandler("which");
-  const failedIfError = createErrorHandler("install_failed");
+  function setStatusOnError(status) {
+    return capturer(err => handler(err, cfg, status));
+  }
 
-  function checkInitialState() {
-    if (cfg.jupyterCommand) {
-      return setStatus("registering");
+  const confusedIfError = setStatusOnError("confused");
+  const failedIfError = setStatusOnError("install_failed");
+  const retrySearchIfError = capturer(err => {
+    let config = cloneConfig(cfg);
+    cfg.logger.error(err);
+    cfg.logger.warn("Configured Jupyter version appears invalid; Attempting an automatic search");
+    config = cfg.setJupyterCommand(null);
+    setState({status: "searching", config});
+  });
+
+  function init() {
+    const config = cfg.loadVersionInfo();
+    if (config.jupyterCommand) {
+      return setState({ status: "registering", config });
     }
-    return setStatus("searching");
+    return setState({ status: "searching", config });
   }
 
   const searchForJupyter = confusedIfError(async () => {
-    const config = await (await cfg.loadVersionInfo().searchForJupyter()).loadJupyterInfo();
-    config.ensureSupportedJupyterVersion();
+    const config = await cfg.searchForJupyter();
     setState({ status: "registering", config });
   });
 
-  const loadJupyterInfo = whichIfError(async () => {
-    const config = await (await cfg.loadVersionInfo()).loadJupyterInfo();
+  // TODO: Interstitial error state that displays the error
+  const loadJupyterInfo = retrySearchIfError(async () => {
+    const config = await cfg.loadJupyterInfo();
+    config.ensureSupportedJupyterVersion();
     setState({ status: "ready", config });
   });
+
+  function useJupyterCommand(command) {
+    const config = cfg.setJupyterCommand(command);
+    setState({ status: "registering", config});
+  }
 
   const install = failedIfError(async () => {
     await installKernel(cfg);
@@ -78,7 +92,7 @@ function useLauncherState(config) {
 
   switch (status) {
     case "loading":
-      checkInitialState();
+      init();
       break;
     case "searching":
       searchForJupyter();
@@ -96,11 +110,12 @@ function useLauncherState(config) {
   return {
     state,
     trySearching() {
-      setStatus("search");
+      setStatus("searching");
     },
     tryRegistering() {
       setStatus("registering");
     },
+    useJupyterCommand,
     goBackToWhich() {
       setStatus("which");
     },
@@ -124,6 +139,7 @@ function Launcher({ config }) {
     state,
     trySearching,
     tryRegistering,
+    useJupyterCommand,
     goBackToWhich,
     goBackToMain,
     tryInstall,
@@ -142,9 +158,9 @@ function Launcher({ config }) {
       // TODO: Need exit button
       return (
         <JupyterCommandFinder
-          config={config}
+          config={state.config}
           trySearching={trySearching}
-          tryRegistering={tryRegistering}
+          useJupyterCommand={useJupyterCommand}
           exit={exit}
         />
       );

@@ -62,7 +62,6 @@ class Logger extends EventEmitter {
   error(err, metadata = {}) {
     this.log({
       level: "exception",
-      message: err.message,
       error: err,
       namespace: this.namespace,
       ...metadata
@@ -96,15 +95,19 @@ function formatEvent(event) {
     message = message(event);
   }
 
-  if (typeof message !== "string") {
-    message = String(message);
+  if (message && typeof message !== "string") {
+    try {
+      message = JSON.strigify(message);
+    } catch (err) {
+      message = String(message);
+    }
   }
 
   if (event.error) {
-    if (message) {
-      message = `${message}\n${event.error.stack}`;
+    if (!message) {
+      message = String(event.error.stack);
     } else {
-      message = event.error.stack;
+      message = `== FLAGRANT SYSTEM ERROR ==\n${event.error.stack}`;
     }
   }
 

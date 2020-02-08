@@ -191,7 +191,7 @@ function hydrateConfig(old) {
       throw jupyterNotFoundError("Could not find an installed copy of Jupyter");
     },
 
-    async setJupyterCommand(command) {
+    setJupyterCommand(command) {
       const config = cloneConfig(this);
       config.jupyterCommand = command;
       return config;
