@@ -6,11 +6,9 @@ const React = require("react");
 const { useState } = React;
 const Button = require("../components/WizardButton");
 const LoadingScreen = require("../components/LoadingScreen");
-// TODO: Overhaul the "installer config" component, it is currently dumb and wrong
 const InstallerConfig = require("../components/InstallerConfig");
 const JupyterCommandFinder = require("../components/JupyterCommandFinder");
-// TODO: This didn't end up being a "service" really, should this be moved elsewhere?
-const { installKernel } = require("../../services/installer");
+const { installKernel } = require("../../lib/install");
 
 const { capturer } = require("../../lib/errors");
 
@@ -155,9 +153,6 @@ function Launcher({ config }) {
     case "searching":
       return <LoadingScreen message="searching..." />;
     case "which":
-      // TODO: Need to be able to select a jupyter "manually"
-      // TODO: Need to be able to try searching again
-      // TODO: Need exit button
       return (
         <JupyterCommandFinder
           config={state.config}
@@ -169,11 +164,6 @@ function Launcher({ config }) {
     case "registering":
       return <LoadingScreen message="registering..." />;
     case "ready":
-      // TODO: Need to be able to go back to the "which" panel
-      // TODO: Need to be able to click a launcher
-      // TODO: Need to show installer configs
-      // TODO: Need install button
-      // TODO: Need exit button
       return (
         <div>
           <h1>ready</h1>
