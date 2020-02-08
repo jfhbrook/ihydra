@@ -1,6 +1,6 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-const fs = require("fs");
+const { homedir } = require("os");
 const path = require("path");
 
 const commander = require("commander");
@@ -12,7 +12,7 @@ const which = require("which");
 const Argv = require("./argv");
 const { exec } = require("./process");
 const packageJson = require("../../package.json");
-const { readFile } = require("./fs");
+const { access, readFile } = require("./fs");
 const {
   configError,
   jupyterNotFoundError,
@@ -179,12 +179,34 @@ function hydrateConfig(old) {
 
       let command = config.jupyterCommand;
 
-      if (!command) {
-        command = [await which("jupyter")];
+      if (command) {
+        return config;
       }
+
+      command = [await which("jupyter")];
 
       if (command) {
         config.jupyterCommand = command;
+        return config;
+      }
+
+      const maybeCommand = path.join(
+        homedir(),
+        "Anaconda3",
+        "Scripts",
+        process.platform === "win32" ? "jupyter.exe" : "jupyter"
+      );
+
+      let found = true;
+
+      try {
+        await access(maybeCommand);
+      } catch (err) {
+        found = false;
+      }
+
+      if (found) {
+        config.jupyterCommand = [ maybeCommand ];
         return config;
       }
 

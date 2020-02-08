@@ -47,7 +47,7 @@ function useLauncherState(config) {
   }
 
   function setStatusOnError(status) {
-    return capturer(err => handler(err, cfg, status));
+    return capturer(err => errorHandler(err, cfg, status));
   }
 
   const confusedIfError = setStatusOnError("confused");

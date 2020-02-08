@@ -4,7 +4,7 @@ function errorType(code) {
   return message => {
     const err = new Error(message);
     err.code = code;
-    return error;
+    return err;
   };
 }
 

@@ -12,6 +12,7 @@ const { tmpDirError } = require("./errors");
 const mkdir = promisify(fs.mkdir);
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
+const access = promisify(fs.access);
 
 const rmrf = promisify(rimraf);
 
@@ -57,5 +58,6 @@ module.exports = {
   mkdir,
   readFile,
   writeFile,
+  access,
   rmrf
 };
