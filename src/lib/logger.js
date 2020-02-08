@@ -1,6 +1,6 @@
 const { EventEmitter } = require("events");
 
-const { ipcMain, ipcRenderer } = require("electron");
+const { app, ipcMain, ipcRenderer } = require("electron");
 
 const LEVELS = Object.fromEntries(
   ["debug", "info", "warning", "exception"].map((level, severity) => [
@@ -67,6 +67,17 @@ class Logger extends EventEmitter {
       namespace: this.namespace,
       ...metadata
     });
+  }
+
+  fatal(err, metadata = {}) {
+    this.error(err, metadata);
+    this.warn("Fatal error; exiting", { error: err });
+
+    if (app.exit) {
+      app.exit(1);
+    } else {
+      ipcRenderer.send("bail", 1);
+    }
   }
 
   child(namespace) {

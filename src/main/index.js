@@ -46,4 +46,4 @@ loader.register("kernel", kernel);
 loader.register("launcher", launcher);
 
 // TODO: Replace this with an explicit decorated handler
-loader.run(createConfig()).then(console.log, console.log);
+loader.run(createConfig());

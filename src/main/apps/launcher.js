@@ -24,7 +24,7 @@ function launcher(config) {
   return new Promise((resolve, _) => {
     app.on("window-all-closed", () => {
       if (process.platform !== "darwin") {
-        resolve();
+        resolve(0);
       }
     });
 
@@ -34,9 +34,7 @@ function launcher(config) {
       }
     });
 
-    ipcMain.on("bail", () => {
-      app.quit();
-    });
+    ipcMain.on("bail", (event, code) => resolve(code));
 
     if (app.isReady()) {
       launcher = createLauncher();

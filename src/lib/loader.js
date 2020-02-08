@@ -1,13 +1,16 @@
 const React = require("react");
 const { render } = require("react-dom");
 
-const { createConfig, hydrateConfig } = require("../lib/config");
+const { app } = require("electron");
+
+const { createConfig, hydrateConfig } = require("./config");
+const { capturer } = require("./errors");
 const {
   Logger,
   consoleObserver,
   mainThreadObserver,
   rendererThreadAdopter
-} = require("../lib/logger");
+} = require("./logger");
 
 class BaseLoader {
   constructor() {
@@ -46,7 +49,15 @@ class AppLoader extends BaseLoader {
 
     logger.info(`Loading ${config.action}...`);
 
-    return await super.run(config);
+    let res;
+    try {
+      res = await super.run(config);
+    } catch (err) {
+      logger.fatal(err);
+    }
+
+    logger.info("Bye!");
+    app.quit();
   }
 }
 
