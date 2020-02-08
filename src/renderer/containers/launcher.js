@@ -8,7 +8,9 @@ const Button = require("../components/WizardButton");
 const LoadingScreen = require("../components/LoadingScreen");
 const InstallerConfig = require("../components/InstallerConfig");
 const JupyterCommandFinder = require("../components/JupyterCommandFinder");
+const Terminal = require("../components/Terminal");
 const { installKernel } = require("../../lib/install");
+const { spawnJupyter } = require("../../lib/process");
 
 const { capturer } = require("../../lib/errors");
 
@@ -90,6 +92,20 @@ function useLauncherState(config) {
     setStatus("install_succeeded");
   });
 
+  const runJupyter = confusedIfError(async () => {
+    const jupyterProcess = await spawnJupyter(cfg);
+    setState({ status: "running", config: cfg, jupyterProcess });
+  });
+
+  // TODO: Do this *gracefully*!
+  function stopJupyter() {
+    const jupyter = state.jupyterProcess;
+    jupyter.kill();
+    jupyter.on("exit", () => {
+      setState({ status: "ready", config: cfg });
+    });
+  }
+
   switch (status) {
     case "loading":
       init();
@@ -103,6 +119,8 @@ function useLauncherState(config) {
     case "installing":
       install();
       break;
+    case "launching":
+      runJupyter();
     default:
       break;
   }
@@ -126,8 +144,9 @@ function useLauncherState(config) {
       setStatus("installing");
     },
     launchJupyter() {
-      // TODO: Launch jupyter notebook
+      setStatus("launching");
     },
+    stopJupyter,
     exit() {
       ipcRenderer.send("bail");
     }
@@ -144,6 +163,7 @@ function Launcher({ config }) {
     goBackToMain,
     tryInstall,
     launchJupyter,
+    stopJupyter,
     exit
   } = useLauncherState(config);
 
@@ -178,6 +198,15 @@ function Launcher({ config }) {
       );
     case "installing":
       return <LoadingScreen message="installing..." />;
+    case "launching":
+      return <LoadingScreen message="launching..." />;
+    case "running":
+      return (
+        <div>
+          <Terminal process={state.jupyterProcess} />
+          <Button onClick={stopJupyter}>Stop Jupyter</Button>
+        </div>
+      );
     case "install_failed":
       return (
         <div>

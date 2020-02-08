@@ -5,7 +5,8 @@ const XTerm = require("xterm").Terminal;
 
 require("xterm/css/xterm.css");
 
-module.exports = function Terminal({ stdout, stderr }) {
+module.exports = function Terminal({ process }) {
+  const { stdout, stderr } = process;
   const divRef = useRef();
   const termRef = useRef();
 
