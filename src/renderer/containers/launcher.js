@@ -40,10 +40,10 @@ function useLauncherState(config) {
   }
 
   function errorHandler(err, cfg, status) {
-    let config = cloneConfig(cfg);
+    const config = cloneConfig(cfg);
     config.error = err;
     config.logger.error(err);
-    setState({status, config});
+    setState({ status, config });
   }
 
   function setStatusOnError(status) {
@@ -55,9 +55,11 @@ function useLauncherState(config) {
   const retrySearchIfError = capturer(err => {
     let config = cloneConfig(cfg);
     cfg.logger.error(err);
-    cfg.logger.warn("Configured Jupyter version appears invalid; Attempting an automatic search");
+    cfg.logger.warn(
+      "Configured Jupyter version appears invalid; Attempting an automatic search"
+    );
     config = cfg.setJupyterCommand(null);
-    setState({status: "searching", config});
+    setState({ status: "searching", config });
   });
 
   function init() {
@@ -82,7 +84,7 @@ function useLauncherState(config) {
 
   function useJupyterCommand(command) {
     const config = cfg.setJupyterCommand(command);
-    setState({ status: "registering", config});
+    setState({ status: "registering", config });
   }
 
   const install = failedIfError(async () => {
