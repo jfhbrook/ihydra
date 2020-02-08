@@ -11,6 +11,8 @@ const InstallerConfig = require("../components/InstallerConfig");
 // TODO: This didn't end up being a "service" really, should this be moved elsewhere?
 const { installKernel } = require("../../services/installer");
 
+const { capturer } = require("../../lib/errors");
+
 // TODO: Move props to lib/config and make good instead of bad :)
 const configProp = require("../config").prop;
 const { cloneConfig } = require("../../lib/config");
@@ -36,6 +38,24 @@ function useLauncherState(config) {
     setState({ ...state, status });
   }
 
+  function createErrorHandler(status) {
+    const wrapper = capturer((err, [cfg]) => {
+      let config = cloneConfig(cfg);
+      config.error = err;
+      config.logger.error(err);
+      setState({status, config});
+    });
+
+    return fn => {
+      const wrapped = wrapper(fn);
+      return () => wrapped(cfg);
+    };
+  }
+
+  const confusedIfError = createErrorHandler("confused");
+  const whichIfError = createErrorHandler("which");
+  const failedIfError = createErrorHandler("install_failed");
+
   function checkInitialState() {
     if (cfg.jupyterCommand) {
       return setStatus("registering");
@@ -43,63 +63,21 @@ function useLauncherState(config) {
     return setStatus("searching");
   }
 
-  // TODO: DRY this try/catch pattern out w/ a "capture" helper of some kind
-  async function searchForJupyter() {
-    let c;
-    try {
-      c = cfg.loadVersionInfo();
-      c = await c.searchForJupyter();
-      c = await c.loadJupyterInfo();
-    } catch (err) {
-      c = cloneConfig(cfg);
-      c.error = err;
-      console.log(err);
-      config.logger.error(err);
-      setState({ status: "confused", config: c });
-      return;
-    }
+  const searchForJupyter = confusedIfError(async cfg => {
+    const config = await (await cfg.loadVersionInfo().searchForJupyter()).loadJupyterInfo();
+    config.ensureSupportedJupyterVersion();
+    setState({ status: "registering", config });
+  });
 
-    console.log(c);
+  const loadJupyterInfo = whichIfError(async cfg => {
+    const config = await cfg.loadJupyterInfo();
+    setState({ status: "ready", config });
+  });
 
-    try {
-      c.ensureSupportedJupyterVersion();
-    } catch (err) {
-      c.error = err;
-      config.logger.error(err);
-      setState({ status: "confused", config: c });
-      return;
-    }
-
-    setState({ status: "registering", config: c });
-  }
-
-  async function loadJupyterInfo() {
-    let c;
-    try {
-      c = await cfg.loadJupyterInfo();
-    } catch (err) {
-      c = cloneConfig(cfg);
-      c.error = err;
-      setState({ status: "which", config: c });
-      return;
-    }
-    setState({ status: "ready", config: c });
-  }
-
-  async function install() {
-    let c = cfg;
-    try {
-      await installKernel(cfg);
-    } catch (err) {
-      cfg.logger.exception(err);
-      c = cloneConfig(cfg);
-      c.error = err;
-      setState({ status: "install_failed", config: c });
-      return;
-    }
-
+  const install = failedIfError(async cfg => {
+    await installKernel(cfg);
     setStatus("install_succeeded");
-  }
+  });
 
   switch (status) {
     case "loading":

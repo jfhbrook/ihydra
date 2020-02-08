@@ -39,6 +39,7 @@ const { EventEmitter } = require("events");
 const { ipcRenderer } = require("electron");
 
 const { kernelError } = require("../errors");
+const { isPromise } = require("../promise");
 const { Context, defaultMimer } = require("./context");
 const Requester = require("./requester");
 
@@ -187,13 +188,6 @@ class Server {
     // If no result has been sent yet and async mode has not been enabled,
     // send this result.
     context.$$.sendResult(result);
-
-    function isPromise(output) {
-      if (!global.Promise || typeof global.Promise !== "function") {
-        return false;
-      }
-      return output instanceof global.Promise;
-    }
   }
 }
 

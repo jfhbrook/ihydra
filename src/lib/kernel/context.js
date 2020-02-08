@@ -36,6 +36,8 @@ const { EventEmitter } = require("events");
 const { Transform } = require("stream");
 const util = require("util");
 
+const { isPromise } = require("../promise");
+
 const createDisplay = require("./display");
 
 class Context {
@@ -73,10 +75,6 @@ class Context {
             }
       );
     };
-
-    function isPromise(output) {
-      return output && output.then && typeof output.then === "function";
-    }
 
     const resolvePromise = outputHandler => {
       return async (output, keepAlive) => {
