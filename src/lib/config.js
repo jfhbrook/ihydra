@@ -183,12 +183,17 @@ function hydrateConfig(old) {
         return config;
       }
 
+      config.logger.info("Looking for Jupyter on the PATH...");
+
       command = [await which("jupyter")];
 
       if (command) {
+        config.logger.info("Found Jupyter on the PATH");
         config.jupyterCommand = command;
         return config;
       }
+
+      config.logger.info("Searching for Jupyter in an Anaconda install...");
 
       const maybeCommand = path.join(
         homedir(),
@@ -206,7 +211,8 @@ function hydrateConfig(old) {
       }
 
       if (found) {
-        config.jupyterCommand = [ maybeCommand ];
+        config.logger.info("Found Jupyter in an Anaconda install");
+        config.jupyterCommand = [maybeCommand];
         return config;
       }
 
