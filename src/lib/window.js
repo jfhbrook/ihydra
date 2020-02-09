@@ -8,6 +8,7 @@ const { dehydrateConfig } = require("./config");
 
 function createWindow(config, callback) {
   const win = window.createWindow({
+    title: "IHydra",
     webPreferences: { nodeIntegration: true }
   });
 

@@ -40,6 +40,7 @@
         "react-dom": "^16.12.0",
         "rimraf": "^3.0.0",
         "shell-quote": "^1.7.2",
+        "split2": "^3.1.1",
         "styled-components": "^5.0.1",
         "which": "^2.0.2",
         "xterm": "^4.4.0"
