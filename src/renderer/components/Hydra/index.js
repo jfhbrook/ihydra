@@ -28,6 +28,10 @@ module.exports = ({ config, onLoad }) => {
     window.addEventListener("resize", resizeHydra);
 
     onLoad(hydra);
+
+    return () => {
+      window.removeEventListener("resize", resizeHydra);
+    };
   });
 
   return <canvas id="hydra-canvas" ref={canvasRef} />;

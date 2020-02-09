@@ -1,4 +1,5 @@
 const debounce = require("debounce");
+const { FitAddon } = require("xterm-addon-fit");
 const React = require("react");
 
 const { useEffect, useRef } = React;
@@ -15,9 +16,14 @@ module.exports = function Terminal({ process }) {
     const div = divRef.current;
     const term = new XTerm();
 
+    const fitter = new FitAddon();
+    term.loadAddon(fitter);
+
     termRef.current = term;
 
     term.open(div);
+
+    const resizeTerminal = debounce(() => fitter.fit(), 100);
 
     function onData(buf) {
       term.write(buf.toString());
@@ -28,9 +34,14 @@ module.exports = function Terminal({ process }) {
     stdout.on("data", onData);
     stderr.on("data", onData);
 
+    resizeTerminal();
+
+    window.addEventListener("resize", resizeTerminal);
+
     return () => {
       stdout.removeListener("data", onData);
       stderr.removeListener("data", onData);
+      window.removeEventListener("resize", resizeTerminal);
     };
   });
 
