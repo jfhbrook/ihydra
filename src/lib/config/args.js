@@ -1,10 +1,14 @@
+/* eslint no-param-reassign: ["error", { "props": false }] */
+
 const path = require("path");
 
 const isDev = require("electron-is-dev");
-const { quote } = require("shell-quote");
-const which = require("which");
+const commander = require("commander");
 
-const { noShellError } = require("./errors");
+const {
+  noShellError
+} = require("../errors");
+
 
 class Argv {
   constructor(argv, root) {
@@ -124,4 +128,114 @@ class Argv {
   }
 }
 
-module.exports = Argv;
+function kernelCommand(parser) {
+  let action;
+  let protocolVersion;
+  let connectionFile;
+  let sessionWorkingDir;
+  let debug;
+
+  parser
+    .command("kernel <connection_file>")
+    .option(
+      "--protocol <version>",
+      "Set the Jupyter protocol version (format: Major[.minor[.patch]]])",
+      "5.1"
+    )
+    .option(
+      "--session-working-dir <dir>",
+      "The working directory for this kernel session",
+      process.cwd()
+    )
+    .action((f, opts) => {
+      action = "kernel";
+      protocolVersion = opts.protocol;
+      connectionFile = f;
+      sessionWorkingDir = opts.sessionWorkingDir;
+      debug = opts.debug;
+    });
+
+  return config => {
+    if (action === "kernel") {
+      return {
+        ...config,
+        action,
+        protocolVersion,
+        connectionFile,
+        sessionWorkingDir,
+        debug: isDev || debug
+      };
+    }
+    return config;
+  };
+}
+
+function launcherCommand(parser) {
+  let action;
+  let debug;
+
+  // We use a catch-all to direct anything that isn't either
+  // the root or "launcher"
+  parser.command("*").action((opts, args) => {
+    debug = opts.debug;
+    action = args[0];
+  });
+
+  return config => {
+    if (
+      (!action && config.action === "default") ||
+      config.action === "launcher"
+    ) {
+      return {
+        ...config,
+        action: "launcher",
+        name: isDev ? "ihydra-dev" : "ihydra",
+        displayName: isDev ? "IHydra (development)" : "IHydra",
+        localInstall: true,
+        debug: isDev || debug
+      };
+    }
+
+    if (config.action !== "default") {
+      return config;
+    }
+
+    return { ...config, action };
+  };
+}
+
+const argsMixin = {
+  parseArgs(argv) {
+    let config = { ...this };
+    config.argv = new Argv(argv, this.paths.root);
+
+    const hooks = [];
+
+    const parser = new commander.Command();
+
+    function attachCommand(command) {
+      hooks.push(command(parser));
+    }
+
+    parser.version(require('../../../package.json')).version;
+
+    parser.option("--debug", "Log debug messages");
+
+    attachCommand(kernelCommand);
+    attachCommand(launcherCommand);
+
+    const parsed = parser.parse(config.argv.commanderArgv);
+
+    hooks.forEach(hook => (config = hook(config)));
+
+    return config;
+  }
+};
+
+function hydrateArgs(config) {
+  if (config.argv) {
+    config.argv = new Argv(config.argv.argv, config.argv.root);
+  }
+}
+
+module.exports = { argsMixin, hydrateArgs };
