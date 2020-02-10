@@ -52,6 +52,7 @@ function useLauncherState(config) {
 
   const confusedIfError = setStatusOnError("confused");
   const failedIfError = setStatusOnError("install_failed");
+
   const retrySearchIfError = capturer(err => {
     let config = cloneConfig(cfg);
     cfg.logger.error(err);
@@ -76,6 +77,7 @@ function useLauncherState(config) {
   });
 
   // TODO: Interstitial error state that displays the error
+  // and allows us to bail
   const loadJupyterInfo = retrySearchIfError(async () => {
     const config = await cfg.loadJupyterInfo();
     config.ensureSupportedJupyterVersion();
