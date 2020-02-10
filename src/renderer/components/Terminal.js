@@ -1,6 +1,7 @@
 const debounce = require("debounce");
 const { FitAddon } = require("xterm-addon-fit");
 const React = require("react");
+const PropTypes = require("prop-types");
 
 const { useEffect, useRef } = React;
 const XTerm = require("xterm").Terminal;
@@ -46,4 +47,12 @@ module.exports = function Terminal({ process }) {
   });
 
   return <div ref={divRef} />;
+};
+
+module.exports.propTypes = {
+  action: PropTypes.shape({
+    stdout: PropTypes.object.isRequired,
+    stderr: PropTypes.object.isRequired,
+    scrollback: PropTypes.arrayOf(PropTypes.string).isRequired
+  })
 };

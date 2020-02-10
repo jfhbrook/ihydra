@@ -4,6 +4,8 @@ const { app, ipcRenderer } = electron;
 const React = require("react");
 
 const { useState } = React;
+const PropTypes = require("prop-types");
+
 const Button = require("../components/WizardButton");
 const LoadingScreen = require("../components/LoadingScreen");
 const InstallerConfig = require("../components/InstallerConfig");
@@ -15,7 +17,6 @@ const { spawnJupyter } = require("../../lib/process");
 const { capturer } = require("../../lib/errors");
 
 // TODO: Move props to lib/config and make good instead of bad :)
-const configProp = require("../config").prop;
 const { cloneConfig } = require("../../lib/config");
 
 function useLauncherState(config) {
@@ -229,7 +230,10 @@ function Launcher({ config }) {
 }
 
 Launcher.propTypes = {
-  config: configProp.isRequired
+  config: PropTypes.shape({
+    action: PropTypes.oneOf(['launcher']).isRequired,
+    logger: PropTypes.object.isRequired
+  }).isRequired
 };
 
 module.exports = Launcher;

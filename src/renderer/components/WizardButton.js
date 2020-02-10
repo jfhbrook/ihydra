@@ -1,4 +1,5 @@
 const React = require("react");
+const PropTypes = require("prop-types");
 const Button = require("@material-ui/core/Button").default;
 
 module.exports = function WizardButton({ onClick, children }) {
@@ -7,4 +8,9 @@ module.exports = function WizardButton({ onClick, children }) {
       {children}
     </Button>
   );
+};
+
+module.exports.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  children: PropTypes.node.isRequired
 };

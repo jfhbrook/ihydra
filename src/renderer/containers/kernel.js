@@ -1,11 +1,10 @@
 const React = require("react");
-
 const { useRef } = React;
+const PropTypes = require("prop-types");
 const Hydra = require("../components/Hydra");
 
 const Kernel = require("../../lib/kernel");
 
-// TODO: This should have loading screen logic kinda like the launcher
 module.exports = ({ config }) => {
   const kernelRef = useRef();
 
@@ -17,4 +16,11 @@ module.exports = ({ config }) => {
   }
 
   return <Hydra config={config} onLoad={onLoad} />;
+};
+
+module.exports.propTypes = {
+  config: PropTypes.shape({
+    action: PropTypes.oneOf(['kernel']).isRequired,
+    logger: PropTypes.object.isRequired
+  }).isRequired
 };
