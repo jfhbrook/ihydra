@@ -1,4 +1,5 @@
 const React = require("react");
+
 const { useRef } = React;
 const PropTypes = require("prop-types");
 const Hydra = require("../components/Hydra");
@@ -20,7 +21,7 @@ module.exports = ({ config }) => {
 
 module.exports.propTypes = {
   config: PropTypes.shape({
-    action: PropTypes.oneOf(['kernel']).isRequired,
+    action: PropTypes.oneOf(["kernel"]).isRequired,
     logger: PropTypes.object.isRequired
   }).isRequired
 };

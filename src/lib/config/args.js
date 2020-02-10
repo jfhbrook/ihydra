@@ -5,10 +5,7 @@ const path = require("path");
 const isDev = require("electron-is-dev");
 const commander = require("commander");
 
-const {
-  noShellError
-} = require("../errors");
-
+const { noShellError } = require("../errors");
 
 class Argv {
   constructor(argv, root) {
@@ -217,7 +214,7 @@ const argsMixin = {
       hooks.push(command(parser));
     }
 
-    parser.version(require('../../../package.json')).version;
+    parser.version(require("../../../package.json")).version;
 
     parser.option("--debug", "Log debug messages");
 

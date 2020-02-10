@@ -3,7 +3,7 @@ const { readFile } = require("../fs");
 
 const kernelMixin = {
   async loadConnectionFile() {
-    const config = { ... this};
+    const config = { ...this };
 
     config.connection = JSON.parse(await readFile(config.connectionFile));
 
@@ -11,7 +11,7 @@ const kernelMixin = {
   },
 
   async loadKernelInfoReply() {
-    let config = { ... this};
+    let config = { ...this };
 
     if (getMajorVersion(config.protocolVersion) <= 4) {
       config.kernelInfoReply = {
@@ -47,7 +47,7 @@ https://github.com/jfhbrook/ihydra
   },
 
   async loadConnectionInfo() {
-    const config = {... this};
+    const config = { ...this };
     config.connection = JSON.parse(await readFile(this.connectionFile));
     return config;
   }

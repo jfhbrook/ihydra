@@ -22,7 +22,9 @@ const { versionsMixin } = require("./versions");
 const { jupyterMixin } = require("./jupyter");
 const { kernelMixin } = require("./kernel");
 
-const root = path.resolve(path.dirname(require.resolve("../../../package.json")));
+const root = path.resolve(
+  path.dirname(require.resolve("../../../package.json"))
+);
 
 const { Logger, consoleObserver } = require("../logger");
 
@@ -44,7 +46,9 @@ function hydrateConfig(old) {
     }
   };
 
-  [ argsMixin, versionsMixin, jupyterMixin, kernelMixin ].forEach(mixin => Object.assign(config, mixin));
+  [argsMixin, versionsMixin, jupyterMixin, kernelMixin].forEach(mixin =>
+    Object.assign(config, mixin)
+  );
 
   if (old.logger.namespace) {
     config.logger = new Logger(old.logger.namespace);

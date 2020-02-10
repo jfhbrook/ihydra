@@ -1,6 +1,5 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-
 const { quote } = require("shell-quote");
 const which = require("which");
 
@@ -13,7 +12,7 @@ const {
 
 const { getMajorVersion, getVersionTuple } = require("./versions");
 
-const { exec } = require('../process');
+const { exec } = require("../process");
 
 const jupyterMixin = {
   async searchForJupyter() {

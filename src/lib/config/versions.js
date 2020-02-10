@@ -14,7 +14,6 @@ function getVersionTuple(fullVersion) {
   return fullVersion.split(".").map(v => parseInt(v, 10));
 }
 
-
 const versionsMixin = {
   loadVersionInfo() {
     const config = { ...this };
