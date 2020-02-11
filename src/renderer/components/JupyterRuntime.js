@@ -1,21 +1,20 @@
-const React = require("react");
-const PropTypes = require("prop-types");
-const { processProp } = require("../../lib/process");
+import PropTypes from "prop-types";
+import React from "react";
+import { prop as processProp } from "../../lib/process";
 
-const Terminal = require("./Terminal");
+import Terminal from "./Terminal";
+import Button from "./WizardButton";
 
-const Button = require("./WizardButton");
-
-module.exports = function JupyterRuntime({ process, stopJupyter }) {
+export default function JupyterRuntime({ process, stopJupyter }) {
   return (
     <>
       <Terminal process={process} />
       <Button onClick={stopJupyter}>Stop Jupyter</Button>
     </>
   );
-};
+}
 
-module.exports.propTypes = {
+JupyterRuntime.propTypes = {
   process: processProp.isRequired,
   stopJupyter: PropTypes.func.isRequired
 };

@@ -1,11 +1,10 @@
-const path = require("path");
+import * as path from "path";
 
-const isDev = require("electron-is-dev");
-const window = require("electron-window");
+import isDev from "electron-is-dev";
+import window from "electron-window";
+import { dehydrateConfig } from "./config";
 
-const { dehydrateConfig } = require("./config");
-
-function createWindow(config, callback) {
+export default function createWindow(config, callback) {
   const win = window.createWindow({
     title: "IHydra",
     webPreferences: { nodeIntegration: true }
@@ -35,5 +34,3 @@ function createWindow(config, callback) {
 
   return win;
 }
-
-module.exports = { createWindow };

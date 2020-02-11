@@ -32,16 +32,16 @@
  *
  */
 
-const util = require("util");
-const vm = require("vm");
-const { EventEmitter } = require("events");
+import { EventEmitter } from "events";
+import * as util from "util";
+import * as vm from "vm";
 
-const { ipcRenderer } = require("electron");
+import { ipcRenderer } from "electron";
 
-const { kernelError } = require("../errors");
-const { isPromise } = require("../promise");
-const { Context, defaultMimer } = require("./context");
-const Requester = require("./requester");
+import Context, { defaultMimer } from "./context";
+import Requester from "./requester";
+import { kernelError } from "../errors";
+import isPromise from "../is-promise";
 
 function getAllPropertyNames(object) {
   const propertyList = [];
@@ -179,7 +179,7 @@ function run(code) {
   return vm.runInThisContext(code);
 }
 
-class Server {
+export default class Server {
   constructor(config) {
     const logger = config.logger.child("ihydra.lib.kernel.Server");
     const channel = Object.assign(new EventEmitter(), {
@@ -335,5 +335,3 @@ class Server {
     context.$$.sendResult(result);
   }
 }
-
-module.exports = Server;

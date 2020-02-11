@@ -1,12 +1,11 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-const isDev = require("electron-is-dev");
-const shellQuote = require("shell-quote").quote;
+import isDev from "electron-is-dev";
+import { quote as shellQuote } from "shell-quote";
 
-const { readFile } = require("../fs");
-const { noShellError } = require("../errors");
-
-const { getMajorVersion, getVersionTuple } = require("./versions");
+import { getMajorVersion, getVersionTuple } from "./versions";
+import { noShellError } from "../errors";
+import { readFile } from "../fs";
 
 function quote(xs) {
   if (process.platform !== "win32") {
@@ -122,6 +121,4 @@ https://github.com/jfhbrook/ihydra
   }
 };
 
-module.exports = {
-  kernelMixin
-};
+export default kernelMixin;

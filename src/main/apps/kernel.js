@@ -32,16 +32,16 @@
  *
  */
 
-const { EventEmitter } = require("events");
-const vm = require("vm");
+import { EventEmitter } from "events";
+import * as vm from "vm";
 
-const { ipcMain } = require("electron");
-const Kernel = require("jp-kernel");
-const { Session } = require("nel");
+import { ipcMain } from "electron";
+import Kernel from "jp-kernel";
+import { Session } from "nel";
 
-const { createWindow } = require("../../lib/window");
+import createWindow from "../../lib/window";
 
-module.exports = async function kernel(cfg) {
+export default async function kernel(cfg) {
   const config = await (
     await cfg.loadVersionInfo().loadKernelInfoReply()
   ).loadConnectionInfo();
@@ -132,4 +132,4 @@ module.exports = async function kernel(cfg) {
       krnl.restart(); // TODO(NR) Implement kernel interruption
     });
   });
-};
+}

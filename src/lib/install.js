@@ -1,9 +1,9 @@
-const path = require("path");
+import * as path from "path";
 
-const { makeTmpdir, mkdir, writeFile, copy, rmrf } = require("../lib/fs");
-const { exec } = require("../lib/process");
+import { copy, mkdir, makeTmpdir, rmrf, writeFile } from "./fs";
+import { exec } from "./process";
 
-async function installKernel(config) {
+export default async function installKernel(config) {
   const logger = config.logger.child("ihydra.lib.install");
 
   logger.info("Creating temporary directory...");
@@ -56,7 +56,3 @@ async function installKernel(config) {
 
   logger.info("Done.");
 }
-
-module.exports = {
-  installKernel
-};

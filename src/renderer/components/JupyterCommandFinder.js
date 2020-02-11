@@ -1,18 +1,16 @@
-const path = require("path");
-const { homedir } = require("os");
+import * as path from "path";
+import { homedir } from "os";
 
-const { remote } = require("electron");
+import { remote } from "electron";
+import PropTypes from "prop-types";
+import React, { useState } from "react";
+import { quote } from "shell-quote";
 
-const { quote } = require("shell-quote");
+import Button from "./WizardButton";
 
 const { dialog } = remote;
-const React = require("react");
 
-const { useState } = React;
-
-const Button = require("./WizardButton");
-
-module.exports = function JupyterCommandFinder({
+export default function JupyterCommandFinder({
   config,
   trySearching,
   useJupyterCommand,
@@ -48,4 +46,11 @@ module.exports = function JupyterCommandFinder({
       <Button onClick={exit}>exit</Button>
     </>
   );
+}
+
+JupyterCommandFinder.propTypes = {
+  config: PropTypes.object.isRequired,
+  trySearching: PropTypes.func.isRequired,
+  useJupyterCommand: PropTypes.func.isRequired,
+  exit: PropTypes.func.isRequired
 };

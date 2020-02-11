@@ -1,15 +1,12 @@
-const childProcess = require("child_process");
+import { exec as processExec, spawn } from "child_process";
+import { promisify } from "util";
 
-const { spawn } = childProcess;
-const { promisify } = require("util");
-const split2 = require("split2");
+import isDev from "electron-is-dev";
+import PropTypes from "prop-types";
+import split2 from "split2";
 
-const { PropTypes } = require("prop-types");
-
-const isDev = require("electron-is-dev");
-
-const exec = promisify((cmd, callback) => {
-  childProcess.exec(cmd, (err, stdout, stderr) => {
+export const exec = promisify((cmd, callback) => {
+  processExec(cmd, (err, stdout, stderr) => {
     if (err) {
       callback(err);
     } else {
@@ -20,7 +17,7 @@ const exec = promisify((cmd, callback) => {
 
 const MAX_BUFFER = 500;
 
-function spawnJupyter(config) {
+export function spawnJupyter(config) {
   let argv = config.jupyterCommand;
   const command = argv.shift();
 
@@ -46,10 +43,7 @@ function spawnJupyter(config) {
   return child;
 }
 
-exports.exec = exec;
-exports.spawnJupyter = spawnJupyter;
-
-exports.processProp = PropTypes.shape({
+export const prop = PropTypes.shape({
   stdout: PropTypes.shape({
     on: PropTypes.func.isRequired,
     removeListener: PropTypes.func.isRequired

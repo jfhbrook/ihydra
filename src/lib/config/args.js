@@ -1,14 +1,13 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-const path = require("path");
+import path from "path";
 
-const isDev = require("electron-is-dev");
-const commander = require("commander");
-const which = require("which");
+import commander from "commander";
+import isDev from "electron-is-dev";
+import which from "which";
 
-const { noShellError } = require("../errors");
-
-const { version: packageVersion } = require("../../../package.json");
+import { noShellError } from "../errors";
+import { version as packageVersion } from "../../../package.json";
 
 class Argv {
   constructor(argv, root) {
@@ -237,10 +236,10 @@ const argsMixin = {
   }
 };
 
-function hydrateArgs(config) {
+export default argsMixin;
+
+export function hydrateArgs(config) {
   if (config.argv) {
     config.argv = new Argv(config.argv.argv, config.argv.root);
   }
 }
-
-module.exports = { argsMixin, hydrateArgs };

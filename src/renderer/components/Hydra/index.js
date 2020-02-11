@@ -1,13 +1,12 @@
-const debounce = require("debounce");
-const Hydra = require("hydra-synth");
-const React = require("react");
-const { PropTypes } = require("prop-types");
+import debounce from "debounce";
+import HydraSynth from "hydra-synth";
+import PropTypes from "prop-types";
+import React, { useEffect, useRef } from "react";
 
-const { useEffect, useRef } = React;
+// eslint-disable-next-line no-unused-vars
+import css from "./index.css";
 
-require("./index.css");
-
-module.exports = ({ config, onLoad }) => {
+export default function Hydra({ config, onLoad }) {
   const canvasRef = useRef();
   const hydraRef = useRef();
 
@@ -15,7 +14,7 @@ module.exports = ({ config, onLoad }) => {
     config.logger.debug("Setting up Hydra...");
     const canvas = canvasRef.current;
 
-    const hydra = new Hydra({ canvas });
+    const hydra = new HydraSynth({ canvas });
     hydraRef.current = hydra;
 
     const resizeHydra = debounce(
@@ -35,9 +34,9 @@ module.exports = ({ config, onLoad }) => {
   });
 
   return <canvas id="hydra-canvas" ref={canvasRef} />;
-};
+}
 
-module.exports.propTypes = {
+Hydra.propTypes = {
   config: PropTypes.shape({}).isRequired,
   onLoad: PropTypes.func.isRequired
 };

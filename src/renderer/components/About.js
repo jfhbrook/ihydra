@@ -1,11 +1,11 @@
-const React = require("react");
+import React from "react";
 
-module.exports = function About() {
+export default function About() {
   return (
     <>
       <h1>About IHydra</h1>
     </>
   );
-};
+}
 
-module.exports.propTypes = {};
+About.propTypes = {};

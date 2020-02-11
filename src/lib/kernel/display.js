@@ -33,7 +33,7 @@
  */
 
 // eslint-disable-next-line camelcase
-module.exports = function createDisplay(ipc, context_id, display_id) {
+export default function createDisplay(ipc, context_id, display_id) {
   // eslint-disable-line no-unused-vars
   let send;
 
@@ -106,4 +106,4 @@ module.exports = function createDisplay(ipc, context_id, display_id) {
       });
     }
   };
-};
+}

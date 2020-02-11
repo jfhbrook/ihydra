@@ -1,23 +1,19 @@
-const electron = require("electron");
+import { ipcRenderer } from "electron";
+import PropTypes from "prop-types";
+import React, { useState } from "react";
 
-const { ipcRenderer } = electron;
-const React = require("react");
+import About from "../components/About";
+import Alert from "../components/Alert";
+import Button from "../components/WizardButton";
+import JupyterCommandFinder from "../components/JupyterCommandFinder";
+import JupyterRuntime from "../components/JupyterRuntime";
+import LoadingScreen from "../components/LoadingScreen";
+import MainMenu from "../components/MainMenu";
+import StackTrace from "../components/StackTrace";
 
-const { useState } = React;
-const PropTypes = require("prop-types");
-
-const About = require("../components/About");
-const Button = require("../components/WizardButton");
-const LoadingScreen = require("../components/LoadingScreen");
-const JupyterCommandFinder = require("../components/JupyterCommandFinder");
-const MainMenu = require("../components/MainMenu");
-const JupyterRuntime = require("../components/JupyterRuntime");
-const Alert = require("../components/Alert");
-const StackTrace = require("../components/StackTrace");
-const { installKernel } = require("../../lib/install");
-const { spawnJupyter } = require("../../lib/process");
-
-const { capturer } = require("../../lib/errors");
+import { capturer } from "../../lib/errors";
+import installKernel from "../../lib/install";
+import { spawnJupyter } from "../../lib/process";
 
 function useLauncherState(config) {
   const [state, rawSetState] = useState({
@@ -153,7 +149,7 @@ function useLauncherState(config) {
   };
 }
 
-function Launcher({ config }) {
+export default function Launcher({ config }) {
   const {
     state,
     trySearching,
@@ -245,5 +241,3 @@ Launcher.propTypes = {
     logger: PropTypes.object.isRequired
   }).isRequired
 };
-
-module.exports = Launcher;

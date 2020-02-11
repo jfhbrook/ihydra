@@ -1,9 +1,9 @@
-const React = require("react");
-const PropTypes = require("prop-types");
+import PropTypes from "prop-types";
+import React from "react";
 
-const Button = require("./WizardButton");
+import Button from "./WizardButton";
 
-module.exports = function Alert({ hed, dek, buttons }) {
+export default function Alert({ hed, dek, buttons }) {
   return (
     <>
       <h1>{hed}</h1>
@@ -15,12 +15,12 @@ module.exports = function Alert({ hed, dek, buttons }) {
       ))}
     </>
   );
-};
+}
 
-module.exports.propTypes = {
+Alert.propTypes = {
   hed: PropTypes.string.isRequired,
   dek: PropTypes.string,
   buttons: PropTypes.objectOf(PropTypes.func).isRequired
 };
 
-module.exports.defaultProps = { dek: "" };
+Alert.defaultProps = { dek: "" };

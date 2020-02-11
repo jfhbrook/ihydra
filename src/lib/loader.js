@@ -1,16 +1,15 @@
 /* eslint max-classes-per-file: "off" */
-const React = require("react");
-const { render } = require("react-dom");
+import React from "react";
+import { render } from "react-dom";
 
-const { app } = require("electron");
+import { app } from "electron";
 
-const { createConfig, hydrateConfig } = require("./config");
-const {
-  Logger,
+import { createConfig, hydrateConfig } from "./config";
+import Logger, {
   consoleObserver,
   mainThreadObserver,
   rendererThreadAdopter
-} = require("./logger");
+} from "./logger";
 
 class BaseLoader {
   constructor() {
@@ -36,7 +35,7 @@ class BaseLoader {
   }
 }
 
-class AppLoader extends BaseLoader {
+export class AppLoader extends BaseLoader {
   async run() {
     let config = createConfig().parseArgs(process.argv);
     const logger = new Logger(`ihydra.main.${config.action}`);
@@ -59,7 +58,7 @@ class AppLoader extends BaseLoader {
   }
 }
 
-class ComponentLoader extends BaseLoader {
+export class ComponentLoader extends BaseLoader {
   async run(dehydrated) {
     let config = hydrateConfig(dehydrated);
     const logger = new Logger(`ihydra.renderer.containers.${config.action}`);
@@ -81,5 +80,3 @@ class ComponentLoader extends BaseLoader {
     render(<Component config={config} />, document.getElementById("app"));
   }
 }
-
-module.exports = { AppLoader, ComponentLoader };

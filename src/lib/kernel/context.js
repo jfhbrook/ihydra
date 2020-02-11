@@ -36,11 +36,10 @@
 /* eslint no-empty: "off" */
 /* eslint no-console: "off" */
 
-const util = require("util");
+import * as util from "util";
 
-const { isPromise } = require("../promise");
-
-const createDisplay = require("./display");
+import createDisplay from "./display";
+import isPromise from "../is-promise";
 
 function formatError(error) {
   return {
@@ -50,7 +49,7 @@ function formatError(error) {
   };
 }
 
-function defaultMimer(result) {
+export function defaultMimer(result) {
   // eslint-disable-line complexity
   if (typeof result === "undefined") {
     return {
@@ -113,7 +112,7 @@ function toMime(result) {
   return mimer(result);
 }
 
-class Context {
+export default class Context {
   constructor(server, id) {
     this.channel = server.channel;
     this.request = server.requester;
@@ -428,5 +427,3 @@ class Context {
     this._consoleReleaseHooks = [];
   }
 }
-
-module.exports = { Context, defaultMimer };

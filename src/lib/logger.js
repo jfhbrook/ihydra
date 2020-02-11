@@ -1,16 +1,16 @@
-const { EventEmitter } = require("events");
-const { inspect } = require("util");
+import { EventEmitter } from "events";
+import { inspect } from "util";
 
-const { app, ipcMain, ipcRenderer } = require("electron");
+import { app, ipcMain, ipcRenderer } from "electron";
 
-const LEVELS = Object.fromEntries(
+export const LEVELS = Object.fromEntries(
   ["debug", "info", "warning", "exception"].map((level, severity) => [
     level,
     severity
   ])
 );
 
-class Logger extends EventEmitter {
+export default class Logger extends EventEmitter {
   constructor(namespace) {
     super();
     this.namespace = namespace;
@@ -89,7 +89,7 @@ class Logger extends EventEmitter {
   }
 }
 
-function formatEvent(event) {
+export function formatEvent(event) {
   let { message } = event;
 
   if (typeof message === "function") {
@@ -123,7 +123,7 @@ function formatEvent(event) {
   return message;
 }
 
-function consoleObserver(event) {
+export function consoleObserver(event) {
   formatEvent(event)
     .split("\n")
     .forEach(l => {
@@ -132,7 +132,7 @@ function consoleObserver(event) {
     });
 }
 
-function mainThreadObserver(event) {
+export function mainThreadObserver(event) {
   const unstructured = { ...event };
   if (event.error) {
     unstructured.error = {
@@ -143,19 +143,10 @@ function mainThreadObserver(event) {
   ipcRenderer.send("log-message", unstructured);
 }
 
-function rendererThreadAdopter(logger) {
+export function rendererThreadAdopter(logger) {
   ipcMain.on("log-message", (event, payload) => {
     logger.log({ ipcEvent: event, ...payload });
   });
 
   return logger;
 }
-
-module.exports = {
-  LEVELS,
-  Logger,
-  formatEvent,
-  consoleObserver,
-  mainThreadObserver,
-  rendererThreadAdopter
-};

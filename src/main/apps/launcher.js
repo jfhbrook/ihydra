@@ -1,9 +1,7 @@
-const electron = require("electron");
+import { app, ipcMain } from "electron";
+import createWindow from "../../lib/window";
 
-const { app, ipcMain } = electron;
-const { createWindow } = require("../../lib/window");
-
-function launcher(config) {
+export default function launcher(config) {
   let launcherWindow = null;
 
   function createLauncher(callback) {
@@ -41,5 +39,3 @@ function launcher(config) {
     }
   });
 }
-
-module.exports = launcher;

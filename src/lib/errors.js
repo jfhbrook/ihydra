@@ -1,6 +1,6 @@
-const { isPromise } = require("./promise");
+import isPromise from "./is-promise";
 
-function errorType(code) {
+export function errorType(code) {
   return message => {
     const err = new Error(message);
     err.code = code;
@@ -8,14 +8,14 @@ function errorType(code) {
   };
 }
 
-const configError = errorType("ECONFIG");
-const noShellError = errorType("ENOSHELL");
-const jupyterNotFoundError = errorType("ENOJUPYTER");
-const jupyterVersionError = errorType("EJUPYTERVERSION");
-const tmpDirError = errorType("ETMPDIR");
-const kernelError = errorType("EKERNEL");
+export const configError = errorType("ECONFIG");
+export const noShellError = errorType("ENOSHELL");
+export const jupyterNotFoundError = errorType("ENOJUPYTER");
+export const jupyterVersionError = errorType("EJUPYTERVERSION");
+export const tmpDirError = errorType("ETMPDIR");
+export const kernelError = errorType("EKERNEL");
 
-function capturer(errorHandler) {
+export function capturer(errorHandler) {
   return fn => (...args) => {
     let res;
     try {
@@ -31,14 +31,3 @@ function capturer(errorHandler) {
     return res;
   };
 }
-
-exports.errorType = errorType;
-
-exports.configError = configError;
-exports.noShellError = noShellError;
-exports.jupyterNotFoundError = jupyterNotFoundError;
-exports.jupyterVersionError = jupyterVersionError;
-exports.tmpDirError = tmpDirError;
-exports.kernelError = kernelError;
-
-exports.capturer = capturer;

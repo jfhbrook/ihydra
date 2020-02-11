@@ -32,7 +32,7 @@
  *
  */
 
-class Requester {
+export default class Requester {
   constructor() {
     // id for next request
     this.id = 0;
@@ -97,5 +97,3 @@ class Requester {
     }
   }
 }
-
-module.exports = Requester;

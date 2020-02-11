@@ -1,22 +1,22 @@
-const { promisify } = require("util");
-const fs = require("fs");
-const stream = require("stream");
-const path = require("path");
-const os = require("os");
-const crypto = require("crypto");
+import * as crypto from "crypto";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import * as stream from "stream";
+import { promisify } from "util";
 
-const rimraf = require("rimraf");
+import rimraf from "rimraf";
 
-const { tmpDirError } = require("./errors");
+import { tmpDirError } from "./errors";
 
-const mkdir = promisify(fs.mkdir);
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
-const access = promisify(fs.access);
+export const mkdir = promisify(fs.mkdir);
+export const readFile = promisify(fs.readFile);
+export const writeFile = promisify(fs.writeFile);
+export const access = promisify(fs.access);
 
-const rmrf = promisify(rimraf);
+export const rmrf = promisify(rimraf);
 
-async function makeTmpdir(maxAttempts) {
+export async function makeTmpdir(maxAttempts) {
   const max = maxAttempts || 10;
   let attempts = 0;
 
@@ -42,9 +42,9 @@ async function makeTmpdir(maxAttempts) {
   return tmpdir;
 }
 
-const finished = promisify(stream.finished);
+export const finished = promisify(stream.finished);
 
-async function copy(src, dst) {
+export async function copy(src, dst) {
   const readStream = fs.createReadStream(src);
   const writeStream = fs.createWriteStream(dst);
 
@@ -52,13 +52,3 @@ async function copy(src, dst) {
 
   await finished(readStream);
 }
-
-module.exports = {
-  makeTmpdir,
-  copy,
-  mkdir,
-  readFile,
-  writeFile,
-  access,
-  rmrf
-};

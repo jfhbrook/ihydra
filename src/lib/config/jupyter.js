@@ -1,23 +1,19 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-const { quote } = require("shell-quote");
-const which = require("which");
+import * as path from "path";
+import { homedir } from "os";
 
-const path = require("path");
+import { quote } from "shell-quote";
+import which from "which";
 
-const { homedir } = require("os");
-
-const { access } = require("../fs");
-
-const {
+import {
   configError,
   jupyterNotFoundError,
   jupyterVersionError
-} = require("../errors");
-
-const { getMajorVersion } = require("./versions");
-
-const { exec } = require("../process");
+} from "../errors";
+import { exec } from "../process";
+import { access } from "../fs";
+import { getMajorVersion } from "./versions";
 
 const jupyterMixin = {
   async searchForJupyter() {
@@ -120,4 +116,4 @@ const jupyterMixin = {
   }
 };
 
-module.exports = { jupyterMixin };
+export default jupyterMixin;
