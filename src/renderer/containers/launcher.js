@@ -44,12 +44,12 @@ function useLauncherState(config) {
     setState({ ...state, status });
   }
 
-  function errorHandler(error, config, status) {
+  function errorHandler(error, status) {
     setState({ status, config: cfg, tab, error });
   }
 
   function setStatusOnError(status) {
-    return capturer(err => errorHandler(err, cfg, status));
+    return capturer(err => errorHandler(err, status));
   }
 
   const confusedIfError = setStatusOnError("confused");
