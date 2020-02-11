@@ -5,7 +5,6 @@ import { Tabs, TabList, Tab, TabPanel } from "react-tabs";
 
 import About from "../components/About";
 import Alert from "../components/Alert";
-import Button from "../components/WizardButton";
 import JupyterCommandFinder from "../components/JupyterCommandFinder";
 import JupyterRuntime from "../components/JupyterRuntime";
 import LoadingScreen from "../components/LoadingScreen";
@@ -19,12 +18,10 @@ import { spawnJupyter } from "../../lib/process";
 function useLauncherState(config) {
   const [state, rawSetState] = useState({
     status: "loading",
-    tab: "launcher",
     config
   });
   const currentStatus = state.status;
   const cfg = state.config;
-  const { tab } = state;
 
   function setState(newState) {
     if (newState.status !== currentStatus) {
@@ -51,9 +48,9 @@ function useLauncherState(config) {
   function init() {
     const newConfig = cfg.loadVersionInfo();
     if (newConfig.jupyterCommand) {
-      return setState({ status: "registering", config: newConfig, tab });
+      return setState({ status: "registering", config: newConfig });
     }
-    return setState({ status: "searching", config: newConfig, tab });
+    return setState({ status: "searching", config: newConfig });
   }
 
   const searchForJupyter = confusedIfError(async () => {
@@ -70,7 +67,7 @@ function useLauncherState(config) {
 
   function useJupyterCommand(command) {
     const newConfig = cfg.setJupyterCommand(command);
-    setState({ status: "registering", config: newConfig, tab });
+    setState({ status: "registering", config: newConfig });
   }
 
   const installFailedIfError = setStatusOnError("install_failed");
@@ -81,14 +78,14 @@ function useLauncherState(config) {
 
   const runJupyter = confusedIfError(async () => {
     const jupyterProcess = await spawnJupyter(cfg);
-    setState({ status: "running", config: cfg, tab, jupyterProcess });
+    setState({ status: "running", config: cfg, jupyterProcess });
   });
 
   function stopJupyter() {
     const jupyter = state.jupyterProcess;
     jupyter.kill();
     jupyter.on("exit", () => {
-      setState({ status: "ready", config: cfg, tab });
+      setState({ status: "ready", config: cfg });
     });
   }
 
@@ -112,10 +109,6 @@ function useLauncherState(config) {
       break;
   }
 
-  function setTab(newTab) {
-    setState({ ...state, tab: newTab });
-  }
-
   return {
     state,
     trySearching() {
@@ -135,12 +128,6 @@ function useLauncherState(config) {
       setStatus("launching");
     },
     stopJupyter,
-    helpTab() {
-      setTab("help");
-    },
-    launcherTab() {
-      setTab("launcher");
-    },
     startOver() {
       setStatus("loading");
     },
@@ -160,11 +147,14 @@ export default function Launcher({ config }) {
     tryInstall,
     launchJupyter,
     stopJupyter,
-    helpTab,
-    launcherTab,
     startOver,
     exit
   } = useLauncherState(config);
+
+  function route(routes) {
+    return routes[state.status]();
+  }
+
   return (
     <Tabs>
       <TabList>
@@ -172,7 +162,7 @@ export default function Launcher({ config }) {
         <Tab>About</Tab>
       </TabList>
       <TabPanel>
-        {{
+        {route({
           loading: () => <LoadingScreen message="Loading..." />,
           searching: () => <LoadingScreen message="Searching for Jupyter..." />,
           which: () => (
@@ -228,7 +218,7 @@ export default function Launcher({ config }) {
           confused: () => (
             <StackTrace error={state.error} retry={startOver} fail={exit} />
           )
-        }[state.status]()}
+        })}
       </TabPanel>
       <TabPanel>
         <About />
