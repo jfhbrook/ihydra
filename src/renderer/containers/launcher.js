@@ -44,17 +44,11 @@ function useLauncherState(config) {
     setState({ ...state, status });
   }
 
-  function errorHandler(error, status) {
-    setState({ status, config: cfg, tab, error });
-  }
-
   function setStatusOnError(status) {
-    return capturer(err => errorHandler(err, status));
+    return capturer(error => setState({ ...state, status, error }));
   }
 
   const confusedIfError = setStatusOnError("confused");
-  const failedIfError = setStatusOnError("install_failed");
-  const invalidJupyterIfError = setStatusOnError("registration_failed");
 
   function init() {
     const config = cfg.loadVersionInfo();
@@ -66,13 +60,14 @@ function useLauncherState(config) {
 
   const searchForJupyter = confusedIfError(async () => {
     const config = await cfg.setJupyterCommand(null).searchForJupyter();
-    setState({ status: "registering", config, tab });
+    setState({ ...state, status: "registering", config });
   });
 
-  const loadJupyterInfo = invalidJupyterIfError(async () => {
+  const registrationFailedIfError = setStatusOnError("registration_failed");
+  const loadJupyterInfo = registrationFailedIfError(async () => {
     const config = await (await cfg.loadJupyterInfo()).getKernelCommand();
     config.ensureSupportedJupyterVersion();
-    setState({ status: "ready", config, tab });
+    setState({ ...state, status: "ready", config });
   });
 
   function useJupyterCommand(command) {
@@ -80,7 +75,8 @@ function useLauncherState(config) {
     setState({ status: "registering", config, tab });
   }
 
-  const install = failedIfError(async () => {
+  const installFailedIfError = setStatusOnError("install_failed");
+  const install = installFailedIfError(async () => {
     await installKernel(cfg);
     setStatus("install_succeeded");
   });
@@ -90,7 +86,6 @@ function useLauncherState(config) {
     setState({ status: "running", config: cfg, tab, jupyterProcess });
   });
 
-  // TODO: Do this *gracefully*!
   function stopJupyter() {
     const jupyter = state.jupyterProcess;
     jupyter.kill();
