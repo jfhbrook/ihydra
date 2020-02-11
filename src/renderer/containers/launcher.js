@@ -53,17 +53,7 @@ function useLauncherState(config) {
 
   const confusedIfError = setStatusOnError("confused");
   const failedIfError = setStatusOnError("install_failed");
-  const invalidJupyterIfError = setStatusOnError("registering_failed");
-
-  const retrySearchIfError = capturer(err => {
-    let config = cloneConfig(cfg);
-    cfg.logger.error(err);
-    cfg.logger.warn(
-      "Configured Jupyter version appears invalid; Attempting an automatic search"
-    );
-    config = cfg.setJupyterCommand(null);
-    setState({ status: "searching", config, tab });
-  });
+  const invalidJupyterIfError = setStatusOnError("registration_failed");
 
   function init() {
     const config = cfg.loadVersionInfo();
@@ -74,13 +64,13 @@ function useLauncherState(config) {
   }
 
   const searchForJupyter = confusedIfError(async () => {
-    const config = await cfg.searchForJupyter();
+    const config = await cfg.setJupyterCommand(null).searchForJupyter();
     setState({ status: "registering", config, tab });
   });
 
   // TODO: Interstitial error state that displays the error
   // and allows us to bail
-  const loadJupyterInfo = retrySearchIfError(async () => {
+  const loadJupyterInfo = invalidJupyterIfError(async () => {
     const config = await (await cfg.loadJupyterInfo()).getKernelCommand();
     config.ensureSupportedJupyterVersion();
     setState({ status: "ready", config, tab });
@@ -204,6 +194,16 @@ function Launcher({ config }) {
         );
       case "registering":
         return <LoadingScreen message="Gathering Information on Jupyter..." />;
+      case "registration_failed":
+        return (
+          <Alert
+            hed="Having Trouble Registering Jupyter"
+            buttons={{
+              "Search Automatically": trySearching,
+              "Find Manually": goBackToWhich
+            }}
+          />
+        );
       case "ready":
         return (
           <MainMenu
