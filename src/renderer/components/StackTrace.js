@@ -1,9 +1,9 @@
-const React = require("react");
-const PropTypes = require("prop-types");
+import PropTypes from "prop-types";
+import React from "react";
 
-const Button = require("./WizardButton");
+import Button from "./WizardButton";
 
-module.exports = function StackTrace({ error, retry, fail }) {
+export default function StackTrace({ error, retry, fail }) {
   return (
     <>
       <h1>FLAGRANT SYSTEM ERROR</h1>
@@ -14,9 +14,9 @@ module.exports = function StackTrace({ error, retry, fail }) {
       <Button onClick={fail}>Exit</Button>
     </>
   );
-};
+}
 
-module.exports.propTypes = {
+StackTrace.propTypes = {
   error: PropTypes.instanceOf(Error).isRequired,
   retry: PropTypes.func.isRequired,
   fail: PropTypes.func.isRequired

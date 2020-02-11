@@ -1,18 +1,19 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-const { quote } = require("shell-quote");
-const which = require("which");
+import * as path from "path";
+import { homedir } from "os";
 
-const { readFile } = require("../fs");
-const {
+import { quote } from "shell-quote";
+import which from "which";
+
+import {
   configError,
   jupyterNotFoundError,
   jupyterVersionError
-} = require("../errors");
-
-const { getMajorVersion, getVersionTuple } = require("./versions");
-
-const { exec } = require("../process");
+} from "../errors";
+import { exec } from "../process";
+import { access } from "../fs";
+import { getMajorVersion } from "./versions";
 
 const jupyterMixin = {
   async searchForJupyter() {
@@ -95,7 +96,7 @@ const jupyterMixin = {
         majorVersion = getMajorVersion(version);
       } else {
         // Failed to parse the output of "jupyter --version"
-        console.warn("Warning: Unable to parse Jupyter version:", stdout);
+        config.logger.warn("Unable to parse Jupyter version:", stdout);
         version = "unknown";
         majorVersion = Infinity;
       }
@@ -115,4 +116,4 @@ const jupyterMixin = {
   }
 };
 
-module.exports = { jupyterMixin };
+export default jupyterMixin;

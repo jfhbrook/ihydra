@@ -1,12 +1,13 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-const path = require("path");
+import path from "path";
 
-const isDev = require("electron-is-dev");
-const commander = require("commander");
-const which = require("which");
+import commander from "commander";
+import isDev from "electron-is-dev";
+import which from "which";
 
-const { noShellError } = require("../errors");
+import { noShellError } from "../errors";
+import { version as packageVersion } from "../../../package.json";
 
 class Argv {
   constructor(argv, root) {
@@ -76,7 +77,7 @@ class Argv {
       prefix = [await which("electron-webpack"), "dev"];
     } else {
       // In production, we should be able to run the command naively
-      prefix = this.argv[0];
+      [prefix] = this.argv;
     }
 
     this.cachedKernelPrefix = prefix;
@@ -102,17 +103,19 @@ class Argv {
       while (i < shells.length) {
         try {
           const shell = shells[i];
+          // eslint-disable-next-line no-await-in-loop
           const resolved = await which(shells[i]);
           if (resolved) {
             yield shell;
           }
         } catch (err) {
           if (err.code === "ENOENT") {
+            // eslint-disable-next-line no-continue
             continue;
           }
           throw err;
         } finally {
-          i++;
+          i += 1;
         }
       }
     }
@@ -176,7 +179,7 @@ function launcherCommand(parser) {
   // the root or "launcher"
   parser.command("*").action((opts, args) => {
     debug = opts.debug;
-    action = args[0];
+    [action] = args;
   });
 
   return config => {
@@ -215,25 +218,28 @@ const argsMixin = {
       hooks.push(command(parser));
     }
 
-    parser.version(require("../../../package.json")).version;
+    // eslint-disable-next-line no-unused-expressions
+    parser.version(packageVersion);
 
     parser.option("--debug", "Log debug messages");
 
     attachCommand(kernelCommand);
     attachCommand(launcherCommand);
 
-    const parsed = parser.parse(config.argv.commanderArgv);
+    parser.parse(config.argv.commanderArgv);
 
-    hooks.forEach(hook => (config = hook(config)));
+    hooks.forEach(hook => {
+      config = hook(config);
+    });
 
     return config;
   }
 };
 
-function hydrateArgs(config) {
+export default argsMixin;
+
+export function hydrateArgs(config) {
   if (config.argv) {
     config.argv = new Argv(config.argv.argv, config.argv.root);
   }
 }
-
-module.exports = { argsMixin, hydrateArgs };

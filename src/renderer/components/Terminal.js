@@ -1,14 +1,13 @@
-const debounce = require("debounce");
-const { FitAddon } = require("xterm-addon-fit");
-const React = require("react");
-const PropTypes = require("prop-types");
+import debounce from "debounce";
+import { FitAddon } from "xterm-addon-fit";
+import React, { useEffect, useRef } from "react";
+import { Terminal as XTerm } from "xterm";
 
-const { useEffect, useRef } = React;
-const XTerm = require("xterm").Terminal;
+// eslint-disable-next-line no-unused-vars
+import css from "xterm/css/xterm.css";
+import { prop as processProp } from "../../lib/process";
 
-require("xterm/css/xterm.css");
-
-module.exports = function Terminal({ process }) {
+export default function Terminal({ process }) {
   const { stdout, stderr, scrollback } = process;
   const divRef = useRef();
   const termRef = useRef();
@@ -47,12 +46,8 @@ module.exports = function Terminal({ process }) {
   });
 
   return <div ref={divRef} />;
-};
+}
 
-module.exports.propTypes = {
-  action: PropTypes.shape({
-    stdout: PropTypes.object.isRequired,
-    stderr: PropTypes.object.isRequired,
-    scrollback: PropTypes.arrayOf(PropTypes.string).isRequired
-  })
+Terminal.propTypes = {
+  process: processProp.isRequired
 };

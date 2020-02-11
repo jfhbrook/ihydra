@@ -1,10 +1,10 @@
-const React = require("react");
-const PropTypes = require("prop-types");
+import React from "react";
+import PropTypes from "prop-types";
 
-module.exports = function LoadingScreen({ message }) {
+export default function LoadingScreen({ message }) {
   return <h1>{message}</h1>;
-};
+}
 
-module.exports.propTypes = {
-  message: PropTypes.string
+LoadingScreen.propTypes = {
+  message: PropTypes.string.isRequired
 };

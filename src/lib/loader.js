@@ -1,16 +1,15 @@
-const React = require("react");
-const { render } = require("react-dom");
+/* eslint max-classes-per-file: "off" */
+import React from "react";
+import { render } from "react-dom";
 
-const { app } = require("electron");
+import { app } from "electron";
 
-const { createConfig, hydrateConfig } = require("./config");
-const { capturer } = require("./errors");
-const {
-  Logger,
+import { createConfig, hydrateConfig } from "./config";
+import Logger, {
   consoleObserver,
   mainThreadObserver,
   rendererThreadAdopter
-} = require("./logger");
+} from "./logger";
 
 class BaseLoader {
   constructor() {
@@ -23,7 +22,6 @@ class BaseLoader {
 
   getHandler(config) {
     const { action } = config;
-    let handler;
 
     if (this.handlers.has(action)) {
       return this.handlers.get(action);
@@ -33,11 +31,11 @@ class BaseLoader {
 
   async run(config) {
     const handler = this.getHandler(config);
-    return await handler(config);
+    return handler(config);
   }
 }
 
-class AppLoader extends BaseLoader {
+export class AppLoader extends BaseLoader {
   async run() {
     let config = createConfig().parseArgs(process.argv);
     const logger = new Logger(`ihydra.main.${config.action}`);
@@ -49,9 +47,8 @@ class AppLoader extends BaseLoader {
 
     logger.info(`Loading ${config.action}...`);
 
-    let res;
     try {
-      res = await super.run(config);
+      await super.run(config);
     } catch (err) {
       logger.fatal(err);
     }
@@ -61,7 +58,7 @@ class AppLoader extends BaseLoader {
   }
 }
 
-class ComponentLoader extends BaseLoader {
+export class ComponentLoader extends BaseLoader {
   async run(dehydrated) {
     let config = hydrateConfig(dehydrated);
     const logger = new Logger(`ihydra.renderer.containers.${config.action}`);
@@ -83,5 +80,3 @@ class ComponentLoader extends BaseLoader {
     render(<Component config={config} />, document.getElementById("app"));
   }
 }
-
-module.exports = { AppLoader, ComponentLoader };

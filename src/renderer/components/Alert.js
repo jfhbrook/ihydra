@@ -1,24 +1,26 @@
-const React = require("react");
-const PropTypes = require("prop-types");
+import PropTypes from "prop-types";
+import React from "react";
 
-const Button = require("./WizardButton");
+import Button from "./WizardButton";
 
-module.exports = function Alert({ hed, dek, buttons }) {
+export default function Alert({ hed, dek, buttons }) {
   return (
     <>
       <h1>{hed}</h1>
       {dek ? <h2>{dek}</h2> : ""}
-      {Object.entries(buttons).map(([label, hook], i) => (
-        <Button key={i} onClick={hook}>
+      {Object.entries(buttons).map(([label, hook]) => (
+        <Button key={label} onClick={hook}>
           {label}
         </Button>
       ))}
     </>
   );
-};
+}
 
-module.exports.propTypes = {
+Alert.propTypes = {
   hed: PropTypes.string.isRequired,
   dek: PropTypes.string,
-  buttons: PropTypes.objectOf(PropTypes.func)
+  buttons: PropTypes.objectOf(PropTypes.func).isRequired
 };
+
+Alert.defaultProps = { dek: "" };

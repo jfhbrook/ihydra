@@ -1,6 +1,8 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
+/* eslint global-require: "off" */
+/* eslint import/no-extraneous-dependencies: "off" */
 
-function getMajorVersion(fullVersion) {
+export function getMajorVersion(fullVersion) {
   // Cheesing it a little here. This should check if the version
   // matches some regexp or other - but in this codebase "unknown"
   // is used as a sentinel value so it's fine
@@ -10,7 +12,7 @@ function getMajorVersion(fullVersion) {
   return parseInt(fullVersion.split(".")[0], 10);
 }
 
-function getVersionTuple(fullVersion) {
+export function getVersionTuple(fullVersion) {
   return fullVersion.split(".").map(v => parseInt(v, 10));
 }
 
@@ -34,4 +36,4 @@ const versionsMixin = {
   }
 };
 
-module.exports = { getMajorVersion, getVersionTuple, versionsMixin };
+export default versionsMixin;

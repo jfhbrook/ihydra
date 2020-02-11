@@ -32,9 +32,7 @@
  *
  */
 
-/* global Promise */
-
-class Requester {
+export default class Requester {
   constructor() {
     // id for next request
     this.id = 0;
@@ -54,13 +52,15 @@ class Requester {
 
   // send a request
   send(context, request, callback) {
-    const id = this.id++;
+    const { id } = this;
+    this.id += 1;
 
     if (callback) {
       this.callbacks[id] = callback;
     }
 
     const promise = new Promise((resolve, reject) => {
+      // eslint-disable-next-line no-prototype-builtins
       if (!this.responses.hasOwnProperty(id)) {
         this.resolves[id] = resolve;
         this.rejects[id] = reject;
@@ -97,5 +97,3 @@ class Requester {
     }
   }
 }
-
-module.exports = Requester;

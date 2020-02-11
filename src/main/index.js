@@ -31,19 +31,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-const { app } = require("electron");
+import kernel from "./apps/kernel";
+import launcher from "./apps/launcher";
 
-const launcher = require("./apps/launcher");
-const kernel = require("./apps/kernel");
-
-const { createConfig } = require("../lib/config");
-
-const { AppLoader } = require("../lib/loader");
+import { AppLoader } from "../lib/loader";
+import { createConfig } from "../lib/config";
 
 const loader = new AppLoader();
 
 loader.register("kernel", kernel);
 loader.register("launcher", launcher);
 
-// TODO: Replace this with an explicit decorated handler
 loader.run(createConfig());

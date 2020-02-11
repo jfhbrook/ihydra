@@ -1,13 +1,12 @@
-const debounce = require("debounce");
-const Hydra = require("hydra-synth");
-const React = require("react");
+import debounce from "debounce";
+import HydraSynth from "hydra-synth";
+import PropTypes from "prop-types";
+import React, { useEffect, useRef } from "react";
 
-const { useEffect, useRef } = React;
+// eslint-disable-next-line no-unused-vars
+import css from "./index.css";
 
-const hydraCss = require("./index.css");
-
-// TODO: This should have loading screen logic kinda like the launcher
-module.exports = ({ config, onLoad }) => {
+export default function Hydra({ config, onLoad }) {
   const canvasRef = useRef();
   const hydraRef = useRef();
 
@@ -15,7 +14,7 @@ module.exports = ({ config, onLoad }) => {
     config.logger.debug("Setting up Hydra...");
     const canvas = canvasRef.current;
 
-    const hydra = new Hydra({ canvas });
+    const hydra = new HydraSynth({ canvas });
     hydraRef.current = hydra;
 
     const resizeHydra = debounce(
@@ -35,4 +34,9 @@ module.exports = ({ config, onLoad }) => {
   });
 
   return <canvas id="hydra-canvas" ref={canvasRef} />;
+}
+
+Hydra.propTypes = {
+  config: PropTypes.shape({}).isRequired,
+  onLoad: PropTypes.func.isRequired
 };

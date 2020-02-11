@@ -1,20 +1,14 @@
-const path = require("path");
+import { app, ipcMain } from "electron";
+import createWindow from "../../lib/window";
 
-const electron = require("electron");
-
-const { app, ipcMain } = electron;
-const isDev = require("electron-is-dev");
-const window = require("electron-window");
-const { createWindow } = require("../../lib/window");
-
-function launcher(config) {
-  let launcher = null;
+export default function launcher(config) {
+  let launcherWindow = null;
 
   function createLauncher(callback) {
     const panel = createWindow(config, callback);
 
     panel.on("closed", () => {
-      launcher = null;
+      launcherWindow = null;
     });
 
     return panel;
@@ -29,21 +23,19 @@ function launcher(config) {
     });
 
     app.on("activate", () => {
-      if (launcher === null) {
-        launcher = createLauncher();
+      if (launcherWindow === null) {
+        launcherWindow = createLauncher();
       }
     });
 
     ipcMain.on("bail", (event, code) => resolve(code));
 
     if (app.isReady()) {
-      launcher = createLauncher();
+      launcherWindow = createLauncher();
     } else {
       app.on("ready", () => {
-        launcher = createLauncher();
+        launcherWindow = createLauncher();
       });
     }
   });
 }
-
-module.exports = launcher;

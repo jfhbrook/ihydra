@@ -1,10 +1,10 @@
-const React = require("react");
-const PropTypes = require("prop-types");
+import PropTypes from "prop-types";
+import React from "react";
 
-const InstallerConfig = require("./InstallerConfig");
-const Button = require("./WizardButton");
+import InstallerConfig from "./InstallerConfig";
+import Button from "./WizardButton";
 
-module.exports = function MainMenu({
+export default function MainMenu({
   config,
   tryInstall,
   goBackToWhich,
@@ -21,10 +21,9 @@ module.exports = function MainMenu({
       <Button onClick={exit}>Exit</Button>
     </>
   );
-};
+}
 
-module.exports.propTypes = {
-  config: PropTypes.object.isRequired,
+MainMenu.propTypes = {
   tryInstall: PropTypes.func.isRequired,
   goBackToWhich: PropTypes.func.isRequired,
   launchJupyter: PropTypes.func.isRequired,

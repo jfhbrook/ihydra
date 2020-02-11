@@ -32,31 +32,29 @@
  *
  */
 
-const { EventEmitter } = require("events");
-const path = require("path");
-const vm = require("vm");
+import { EventEmitter } from "events";
+import * as vm from "vm";
 
-const { app, ipcMain } = require("electron");
-const dbug = require("debug");
-const Kernel = require("jp-kernel");
-const { Session } = require("nel");
+import { ipcMain } from "electron";
+import Kernel from "jp-kernel";
+import { Session } from "nel";
 
-const { createWindow } = require("../../lib/window");
+import createWindow from "../../lib/window";
 
-module.exports = async function kernel(cfg) {
+export default async function kernel(cfg) {
   const config = await (
     await cfg.loadVersionInfo().loadKernelInfoReply()
   ).loadConnectionInfo();
 
   const logger = config.logger.child("ihydra.main.apps.kernel");
 
-  return new Promise((resolve, reject) => {
-    function sessionFactory(config) {
+  return new Promise((resolve, _) => {
+    function sessionFactory(sessionConfig) {
       return new Session({
-        cwd: config.cwd,
-        transpile: config.transpile,
+        cwd: sessionConfig.cwd,
+        transpile: sessionConfig.transpile,
         serverFactory() {
-          const window = createWindow(config);
+          const window = createWindow(sessionConfig);
 
           const server = Object.assign(new EventEmitter(), {
             send(payload) {
@@ -92,18 +90,18 @@ module.exports = async function kernel(cfg) {
 
     config.sessionFactory = sessionFactory;
 
-    const kernel = new Kernel(config);
+    const krnl = new Kernel(config);
 
     // WORKAROUND: Fixes https://github.com/n-riesco/ijavascript/issues/97
-    kernel.handlers.is_complete_request = function is_complete_request(
-      request
-    ) {
+    // eslint-disable-next-line camelcase
+    krnl.handlers.is_complete_request = function is_complete_request(request) {
       request.respond(this.iopubSocket, "status", {
         execution_state: "busy"
       });
 
       let content;
       try {
+        // eslint-disable-next-line no-new
         new vm.Script(request.content.code);
         content = {
           status: "complete"
@@ -131,7 +129,7 @@ module.exports = async function kernel(cfg) {
     // Interpret a SIGINT signal as a request to interrupt the kernel
     process.on("SIGINT", () => {
       logger.debug("Received a SIGINT; Interrupting kernel");
-      kernel.restart(); // TODO(NR) Implement kernel interruption
+      krnl.restart(); // TODO(NR) Implement kernel interruption
     });
   });
-};
+}

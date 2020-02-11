@@ -1,9 +1,10 @@
-const { ComponentLoader } = require("../lib/loader");
+import { ComponentLoader } from "../lib/loader";
 
-const globalCss = require("./index.css");
+// eslint-disable-next-line no-unused-vars
+import css from "./index.css";
 
-const Launcher = require("./containers/launcher");
-const Kernel = require("./containers/kernel");
+import Launcher from "./containers/launcher";
+import Kernel from "./containers/kernel";
 
 const loader = new ComponentLoader();
 

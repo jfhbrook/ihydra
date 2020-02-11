@@ -1,25 +1,19 @@
-const electron = require("electron");
+import { ipcRenderer } from "electron";
+import PropTypes from "prop-types";
+import React, { useState } from "react";
 
-const { app, ipcRenderer } = electron;
-const React = require("react");
+import About from "../components/About";
+import Alert from "../components/Alert";
+import Button from "../components/WizardButton";
+import JupyterCommandFinder from "../components/JupyterCommandFinder";
+import JupyterRuntime from "../components/JupyterRuntime";
+import LoadingScreen from "../components/LoadingScreen";
+import MainMenu from "../components/MainMenu";
+import StackTrace from "../components/StackTrace";
 
-const { useState } = React;
-const PropTypes = require("prop-types");
-
-const About = require("../components/About");
-const Button = require("../components/WizardButton");
-const LoadingScreen = require("../components/LoadingScreen");
-const JupyterCommandFinder = require("../components/JupyterCommandFinder");
-const MainMenu = require("../components/MainMenu");
-const JupyterRuntime = require("../components/JupyterRuntime");
-const Alert = require("../components/Alert");
-const StackTrace = require("../components/StackTrace");
-const { installKernel } = require("../../lib/install");
-const { spawnJupyter } = require("../../lib/process");
-
-const { capturer } = require("../../lib/errors");
-
-const { cloneConfig } = require("../../lib/config");
+import { capturer } from "../../lib/errors";
+import installKernel from "../../lib/install";
+import { spawnJupyter } from "../../lib/process";
 
 function useLauncherState(config) {
   const [state, rawSetState] = useState({
@@ -27,14 +21,14 @@ function useLauncherState(config) {
     tab: "launcher",
     config
   });
-  const { status } = state;
+  const currentStatus = state.status;
   const cfg = state.config;
   const { tab } = state;
 
   function setState(newState) {
-    if (newState.status !== status) {
+    if (newState.status !== currentStatus) {
       cfg.logger.debug(
-        `Launcher status change: ${status} -> ${newState.status}`
+        `Launcher status change: ${currentStatus} -> ${newState.status}`
       );
     }
     rawSetState(newState);
@@ -45,34 +39,37 @@ function useLauncherState(config) {
   }
 
   function setStatusOnError(status) {
-    return capturer(error => setState({ ...state, status, error }));
+    return capturer(error => {
+      cfg.logger.error(error);
+      setState({ ...state, status, error });
+    });
   }
 
   const confusedIfError = setStatusOnError("confused");
 
   function init() {
-    const config = cfg.loadVersionInfo();
-    if (config.jupyterCommand) {
-      return setState({ status: "registering", config, tab });
+    const newConfig = cfg.loadVersionInfo();
+    if (newConfig.jupyterCommand) {
+      return setState({ status: "registering", config: newConfig, tab });
     }
-    return setState({ status: "searching", config, tab });
+    return setState({ status: "searching", config: newConfig, tab });
   }
 
   const searchForJupyter = confusedIfError(async () => {
-    const config = await cfg.setJupyterCommand(null).searchForJupyter();
-    setState({ ...state, status: "registering", config });
+    const newConfig = await cfg.setJupyterCommand(null).searchForJupyter();
+    setState({ ...state, status: "registering", config: newConfig });
   });
 
   const registrationFailedIfError = setStatusOnError("registration_failed");
   const loadJupyterInfo = registrationFailedIfError(async () => {
-    const config = await (await cfg.loadJupyterInfo()).getKernelCommand();
-    config.ensureSupportedJupyterVersion();
-    setState({ ...state, status: "ready", config });
+    const newConfig = await (await cfg.loadJupyterInfo()).getKernelCommand();
+    newConfig.ensureSupportedJupyterVersion();
+    setState({ ...state, status: "ready", config: newConfig });
   });
 
   function useJupyterCommand(command) {
-    const config = cfg.setJupyterCommand(command);
-    setState({ status: "registering", config, tab });
+    const newConfig = cfg.setJupyterCommand(command);
+    setState({ status: "registering", config: newConfig, tab });
   }
 
   const installFailedIfError = setStatusOnError("install_failed");
@@ -94,7 +91,7 @@ function useLauncherState(config) {
     });
   }
 
-  switch (status) {
+  switch (currentStatus) {
     case "loading":
       init();
       break;
@@ -109,21 +106,19 @@ function useLauncherState(config) {
       break;
     case "launching":
       runJupyter();
+      break;
     default:
       break;
   }
 
-  function setTab(tab) {
-    setState({ ...state, tab });
+  function setTab(newTab) {
+    setState({ ...state, tab: newTab });
   }
 
   return {
     state,
     trySearching() {
       setStatus("searching");
-    },
-    tryRegistering() {
-      setStatus("registering");
     },
     useJupyterCommand,
     goBackToWhich() {
@@ -154,11 +149,10 @@ function useLauncherState(config) {
   };
 }
 
-function Launcher({ config }) {
+export default function Launcher({ config }) {
   const {
     state,
     trySearching,
-    tryRegistering,
     useJupyterCommand,
     goBackToWhich,
     goBackToMain,
@@ -247,5 +241,3 @@ Launcher.propTypes = {
     logger: PropTypes.object.isRequired
   }).isRequired
 };
-
-module.exports = Launcher;
