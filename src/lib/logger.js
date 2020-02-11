@@ -1,4 +1,5 @@
 const { EventEmitter } = require("events");
+const { inspect } = require("util");
 
 const { app, ipcMain, ipcRenderer } = require("electron");
 
@@ -21,9 +22,9 @@ class Logger extends EventEmitter {
 
   observe(level, observer) {
     const minimum = LEVELS[level];
-    Object.entries(LEVELS).forEach(([level, severity]) => {
+    Object.entries(LEVELS).forEach(([lvl, severity]) => {
       if (severity >= minimum) {
-        this.on(level, observer);
+        this.on(lvl, observer);
       }
     });
   }
@@ -97,7 +98,7 @@ function formatEvent(event) {
 
   if (message && typeof message !== "string") {
     try {
-      message = JSON.strigify(message);
+      message = inspect(message);
     } catch (err) {
       message = String(message);
     }
@@ -112,7 +113,11 @@ function formatEvent(event) {
   }
 
   if (!message) {
-    message = JSON.stringify(event);
+    try {
+      message = inspect(event);
+    } catch (err) {
+      message = "???";
+    }
   }
 
   return message;
@@ -122,6 +127,7 @@ function consoleObserver(event) {
   formatEvent(event)
     .split("\n")
     .forEach(l => {
+      // eslint-disable-next-line no-console
       console.log(`${event.level} - ${event.namespace} - ${l}\n`);
     });
 }

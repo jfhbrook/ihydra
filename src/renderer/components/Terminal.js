@@ -1,10 +1,11 @@
 const debounce = require("debounce");
 const { FitAddon } = require("xterm-addon-fit");
 const React = require("react");
-const PropTypes = require("prop-types");
 
 const { useEffect, useRef } = React;
 const XTerm = require("xterm").Terminal;
+
+const { processProp } = require("../../lib/process");
 
 require("xterm/css/xterm.css");
 
@@ -50,9 +51,5 @@ module.exports = function Terminal({ process }) {
 };
 
 module.exports.propTypes = {
-  action: PropTypes.shape({
-    stdout: PropTypes.object.isRequired,
-    stderr: PropTypes.object.isRequired,
-    scrollback: PropTypes.arrayOf(PropTypes.string).isRequired
-  })
+  process: processProp.isRequired
 };

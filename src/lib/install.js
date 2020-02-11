@@ -47,6 +47,9 @@ async function installKernel(config) {
 
   const { stdout, stderr } = await exec(cmd);
 
+  logger.debug(stdout);
+  logger.debug(stderr);
+
   logger.info("Cleaning up temporary directory...");
 
   await Promise.all([specDir, tmpdir].map(d => rmrf(d)));

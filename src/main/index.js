@@ -31,8 +31,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-const { app } = require("electron");
-
 const launcher = require("./apps/launcher");
 const kernel = require("./apps/kernel");
 

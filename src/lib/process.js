@@ -4,6 +4,8 @@ const { spawn } = childProcess;
 const { promisify } = require("util");
 const split2 = require("split2");
 
+const { PropTypes } = require("prop-types");
+
 const isDev = require("electron-is-dev");
 
 const exec = promisify((cmd, callback) => {
@@ -16,7 +18,7 @@ const exec = promisify((cmd, callback) => {
   });
 });
 
-MAX_BUFFER = 500;
+const MAX_BUFFER = 500;
 
 function spawnJupyter(config) {
   let argv = config.jupyterCommand;
@@ -46,3 +48,15 @@ function spawnJupyter(config) {
 
 exports.exec = exec;
 exports.spawnJupyter = spawnJupyter;
+
+exports.processProp = PropTypes.shape({
+  stdout: PropTypes.shape({
+    on: PropTypes.func.isRequired,
+    removeListener: PropTypes.func.isRequired
+  }),
+  stderr: PropTypes.shape({
+    on: PropTypes.func.isRequired,
+    removeListener: PropTypes.func.isRequired
+  }).isRequired,
+  scrollback: PropTypes.arrayOf(PropTypes.string).isRequired
+});

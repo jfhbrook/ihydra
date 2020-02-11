@@ -1,6 +1,6 @@
 const { ComponentLoader } = require("../lib/loader");
 
-const globalCss = require("./index.css");
+require("./index.css");
 
 const Launcher = require("./containers/launcher");
 const Kernel = require("./containers/kernel");

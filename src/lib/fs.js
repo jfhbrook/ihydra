@@ -21,14 +21,15 @@ async function makeTmpdir(maxAttempts) {
   let attempts = 0;
 
   let tmpdir;
-  while (!tmpdir) {
-    attempts++;
+  while (!tmpdir && attempts < max) {
+    attempts += 1;
     try {
       tmpdir = path.join(os.tmpdir(), crypto.randomBytes(16).toString("hex"));
+      // eslint-disable-next-line no-await-in-loop
       await mkdir(tmpdir);
     } catch (err) {
       if (attempts >= maxAttempts) {
-        throw e;
+        throw err;
       }
       tmpdir = null;
     }

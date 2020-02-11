@@ -3,14 +3,19 @@
 const { quote } = require("shell-quote");
 const which = require("which");
 
-const { readFile } = require("../fs");
+const path = require("path");
+
+const { homedir } = require("os");
+
+const { access } = require("../fs");
+
 const {
   configError,
   jupyterNotFoundError,
   jupyterVersionError
 } = require("../errors");
 
-const { getMajorVersion, getVersionTuple } = require("./versions");
+const { getMajorVersion } = require("./versions");
 
 const { exec } = require("../process");
 
@@ -95,7 +100,7 @@ const jupyterMixin = {
         majorVersion = getMajorVersion(version);
       } else {
         // Failed to parse the output of "jupyter --version"
-        console.warn("Warning: Unable to parse Jupyter version:", stdout);
+        config.logger.warn("Unable to parse Jupyter version:", stdout);
         version = "unknown";
         majorVersion = Infinity;
       }

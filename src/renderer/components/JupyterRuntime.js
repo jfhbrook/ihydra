@@ -1,5 +1,6 @@
 const React = require("react");
 const PropTypes = require("prop-types");
+const { processProp } = require("../../lib/process");
 
 const Terminal = require("./Terminal");
 
@@ -15,10 +16,6 @@ module.exports = function JupyterRuntime({ process, stopJupyter }) {
 };
 
 module.exports.propTypes = {
-  process: PropTypes.shape({
-    stdout: PropTypes.object.isRequired,
-    stderr: PropTypes.object.isRequired,
-    scrollback: PropTypes.arrayOf(PropTypes.string).isRequired
-  }),
+  process: processProp.isRequired,
   stopJupyter: PropTypes.func.isRequired
 };

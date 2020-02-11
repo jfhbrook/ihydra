@@ -6,6 +6,8 @@ const shellQuote = require("shell-quote").quote;
 const { readFile } = require("../fs");
 const { noShellError } = require("../errors");
 
+const { getMajorVersion, getVersionTuple } = require("./versions");
+
 function quote(xs) {
   if (process.platform !== "win32") {
     // shell-quote quotes the curlies, which breaks the templating
@@ -54,7 +56,7 @@ const kernelMixin = {
       config.kernelInfoReply = {
         language: "javascript",
         language_version: getVersionTuple(process.versions.node),
-        protocol_version: getVersionTuple(protocolVersion)
+        protocol_version: getVersionTuple(config.protocolVersion)
       };
     } else {
       config = config.loadVersionInfo();

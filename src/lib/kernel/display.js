@@ -32,13 +32,14 @@
  *
  */
 
+// eslint-disable-next-line camelcase
 module.exports = function createDisplay(ipc, context_id, display_id) {
   // eslint-disable-line no-unused-vars
   let send;
 
   if (arguments.length < 3) {
     // case: without a display_id
-    send = function send(mime) {
+    send = mime => {
       ipc.send({
         id: context_id,
         display: {
@@ -48,7 +49,7 @@ module.exports = function createDisplay(ipc, context_id, display_id) {
     };
   } else {
     // case: with a display_id
-    send = function send(mime) {
+    send = mime => {
       ipc.send({
         id: context_id,
         display: {

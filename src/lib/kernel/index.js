@@ -43,158 +43,6 @@ const { isPromise } = require("../promise");
 const { Context, defaultMimer } = require("./context");
 const Requester = require("./requester");
 
-class Server {
-  constructor(config) {
-    const logger = config.logger.child("ihydra.lib.kernel.Server");
-    const channel = Object.assign(new EventEmitter(), {
-      send(payload) {
-        logger.debug(
-          `Sending payload to main thread: ${JSON.stringify(payload)}`,
-          { payload }
-        );
-        ipcRenderer.send("kernel-receive-message", payload);
-      }
-    });
-
-    this.logger = logger;
-    this.channel = channel;
-  }
-
-  listen() {
-    ipcRenderer.on("kernel-send-message", (event, payload) =>
-      this.onMessage(payload)
-    );
-    this.channel.on("uncaughtException", (event, err) =>
-      this.onUncaughtException(err)
-    );
-
-    // Create instance to send requests
-    const requester = new Requester();
-
-    this.requester = requester;
-
-    // Capture the initial context
-    // (id left undefined to indicate this is the initial context)
-    const initialContext = new Context(this);
-
-    this.initialContext = initialContext;
-
-    Object.defineProperty(global, "$$defaultMimer$$", {
-      value: defaultMimer,
-      configurable: false,
-      writable: false,
-      enumerable: false
-    });
-
-    this.logger.info("Kernel is online");
-    this.channel.send({
-      status: "online"
-    });
-  }
-
-  onUncaughtException(error) {
-    this.logger.exception(error);
-    this.logger.debug(`Sending error to main thread: ${error.message}`);
-    this.channel.send({
-      stderr: error.stack.toString()
-    });
-  }
-
-  onMessage(message) {
-    this.logger.debug(
-      `Received a message from main thread: ${JSON.stringify(message)}`
-    );
-
-    const action = message[0];
-    const code = message[1];
-    const id = message[2];
-
-    this.initialContext.releaseGlobalContext();
-    const context = new Context(this, id);
-    context.captureGlobalContext();
-
-    try {
-      if (action === "getAllPropertyNames") {
-        this.onNameRequest(code, context);
-      } else if (action === "inspect") {
-        this.onInspectRequest(code, context);
-      } else if (action === "run") {
-        this.onRunRequest(code, context);
-      } else if (action === "reply") {
-        this.onReply(message);
-      } else {
-        throw kernelError(`Unhandled kernel action: ${action}`);
-      }
-    } catch (error) {
-      context.$$.sendError(error);
-    }
-
-    context.releaseGlobalContext();
-    this.initialContext.captureGlobalContext();
-    this.initialContext._done = false;
-  }
-
-  onReply(message) {
-    const reply = message[1];
-    const id = message[3];
-    this.requester.receive(id, reply);
-  }
-
-  onNameRequest(code, context) {
-    context.send({
-      id: context.id,
-      names: getAllPropertyNames(run(code)),
-      end: true
-    });
-  }
-
-  onInspectRequest(code, context) {
-    context.send({
-      id: context.id,
-      inspection: inspect(run(code)),
-      end: true
-    });
-  }
-
-  onRunRequest(code, context) {
-    const result = run(code);
-
-    this.logger.debug(`Ran ${JSON.stringify(code)} with result ${result}`);
-
-    // If a result has already been sent, do not send this result.
-    if (context._done) {
-      this.logger.warning(
-        `Finished running ${JSON.stringify(
-          code
-        )} but its context is already marked as done!`
-      );
-      return;
-    }
-
-    // If the result is a Promise, send the result fulfilled by the promise
-    if (isPromise(result)) {
-      context.$$.sendResult(result);
-      return;
-    }
-
-    // If async mode has been enabled (and the result is not a Promise),
-    // do not send this result.
-    // TODO: Can we ensure that async is always on?
-    if (context._async) {
-      this.logger.warning(
-        `Context for ${JSON.stringify(
-          code
-        )} is marked as async but the result is a non-promise!`
-      );
-      return;
-    }
-
-    // If no result has been sent yet and async mode has not been enabled,
-    // send this result.
-    context.$$.sendResult(result);
-  }
-}
-
 function getAllPropertyNames(object) {
   const propertyList = [];
 
@@ -291,6 +139,28 @@ function inspect(object) {
     };
   }
 
+  function toString(obj) {
+    try {
+      return util.inspect(obj.valueOf());
+    } catch (e) {
+      return util.inspect(obj);
+    }
+  }
+
+  function getConstructorList(obj) {
+    const constructorList = [];
+
+    for (
+      let prototype = Object.getPrototypeOf(obj);
+      prototype && prototype.constructor;
+      prototype = Object.getPrototypeOf(prototype)
+    ) {
+      constructorList.push(prototype.constructor.name);
+    }
+
+    return constructorList;
+  }
+
   const constructorList = getConstructorList(object);
   const result = {
     string: toString(object),
@@ -303,32 +173,167 @@ function inspect(object) {
   }
 
   return result;
-
-  function toString(object) {
-    try {
-      return util.inspect(object.valueOf());
-    } catch (e) {
-      return util.inspect(object);
-    }
-  }
-
-  function getConstructorList(object) {
-    const constructorList = [];
-
-    for (
-      let prototype = Object.getPrototypeOf(object);
-      prototype && prototype.constructor;
-      prototype = Object.getPrototypeOf(prototype)
-    ) {
-      constructorList.push(prototype.constructor.name);
-    }
-
-    return constructorList;
-  }
 }
 
 function run(code) {
   return vm.runInThisContext(code);
+}
+
+class Server {
+  constructor(config) {
+    const logger = config.logger.child("ihydra.lib.kernel.Server");
+    const channel = Object.assign(new EventEmitter(), {
+      send(payload) {
+        logger.debug(
+          `Sending payload to main thread: ${JSON.stringify(payload)}`,
+          { payload }
+        );
+        ipcRenderer.send("kernel-receive-message", payload);
+      }
+    });
+
+    this.logger = logger;
+    this.channel = channel;
+  }
+
+  listen() {
+    ipcRenderer.on("kernel-send-message", (event, payload) =>
+      this.onMessage(payload)
+    );
+    this.channel.on("uncaughtException", (event, err) =>
+      this.onUncaughtException(err)
+    );
+
+    // Create instance to send requests
+    const requester = new Requester();
+
+    this.requester = requester;
+
+    // Capture the initial context
+    // (id left undefined to indicate this is the initial context)
+    const initialContext = new Context(this);
+
+    this.initialContext = initialContext;
+
+    Object.defineProperty(global, "$$defaultMimer$$", {
+      value: defaultMimer,
+      configurable: false,
+      writable: false,
+      enumerable: false
+    });
+
+    this.logger.info("Kernel is online");
+    this.channel.send({
+      status: "online"
+    });
+  }
+
+  onUncaughtException(error) {
+    this.logger.exception(error);
+    this.logger.debug(`Sending error to main thread: ${error.message}`);
+    this.channel.send({
+      stderr: error.stack.toString()
+    });
+  }
+
+  onMessage(message) {
+    this.logger.debug(
+      `Received a message from main thread: ${JSON.stringify(message)}`
+    );
+
+    const action = message[0];
+    const code = message[1];
+    const id = message[2];
+
+    this.initialContext.releaseGlobalContext();
+    const context = new Context(this, id);
+    context.captureGlobalContext();
+
+    try {
+      if (action === "getAllPropertyNames") {
+        this.onNameRequest(code, context);
+      } else if (action === "inspect") {
+        this.onInspectRequest(code, context);
+      } else if (action === "run") {
+        this.onRunRequest(code, context);
+      } else if (action === "reply") {
+        this.onReply(message);
+      } else {
+        throw kernelError(`Unhandled kernel action: ${action}`);
+      }
+    } catch (error) {
+      context.$$.sendError(error);
+    }
+
+    context.releaseGlobalContext();
+    this.initialContext.captureGlobalContext();
+    // eslint-disable-next-line no-underscore-dangle
+    this.initialContext._done = false;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  onReply(message) {
+    const reply = message[1];
+    const id = message[3];
+    this.requester.receive(id, reply);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  onNameRequest(code, context) {
+    context.send({
+      id: context.id,
+      names: getAllPropertyNames(run(code)),
+      end: true
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  onInspectRequest(code, context) {
+    context.send({
+      id: context.id,
+      inspection: inspect(run(code)),
+      end: true
+    });
+  }
+
+  onRunRequest(code, context) {
+    const result = run(code);
+
+    this.logger.debug(`Ran ${JSON.stringify(code)} with result ${result}`);
+
+    // If a result has already been sent, do not send this result.
+    // eslint-disable-next-line no-underscore-dangle
+    if (context._done) {
+      this.logger.warning(
+        `Finished running ${JSON.stringify(
+          code
+        )} but its context is already marked as done!`
+      );
+      return;
+    }
+
+    // If the result is a Promise, send the result fulfilled by the promise
+    if (isPromise(result)) {
+      context.$$.sendResult(result);
+      return;
+    }
+
+    // If async mode has been enabled (and the result is not a Promise),
+    // do not send this result.
+    // eslint-disable-next-line no-underscore-dangle
+    if (context._async) {
+      this.logger.warning(
+        `Context for ${JSON.stringify(
+          code
+        )} is marked as async but the result is a non-promise!`
+      );
+      return;
+    }
+
+    // If no result has been sent yet and async mode has not been enabled,
+    // send this result.
+    context.$$.sendResult(result);
+  }
 }
 
 module.exports = Server;

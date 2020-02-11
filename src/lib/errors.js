@@ -34,6 +34,7 @@ function capturer(errorHandler) {
 
 exports.errorType = errorType;
 
+exports.configError = configError;
 exports.noShellError = noShellError;
 exports.jupyterNotFoundError = jupyterNotFoundError;
 exports.jupyterVersionError = jupyterVersionError;

@@ -6,5 +6,5 @@ module.exports = function LoadingScreen({ message }) {
 };
 
 module.exports.propTypes = {
-  message: PropTypes.string
+  message: PropTypes.string.isRequired
 };

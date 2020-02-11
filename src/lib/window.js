@@ -1,6 +1,5 @@
 const path = require("path");
 
-const { app } = require("electron");
 const isDev = require("electron-is-dev");
 const window = require("electron-window");
 

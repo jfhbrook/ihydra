@@ -1,10 +1,10 @@
+/* eslint max-classes-per-file: "off" */
 const React = require("react");
 const { render } = require("react-dom");
 
 const { app } = require("electron");
 
 const { createConfig, hydrateConfig } = require("./config");
-const { capturer } = require("./errors");
 const {
   Logger,
   consoleObserver,
@@ -23,7 +23,6 @@ class BaseLoader {
 
   getHandler(config) {
     const { action } = config;
-    let handler;
 
     if (this.handlers.has(action)) {
       return this.handlers.get(action);
@@ -33,7 +32,7 @@ class BaseLoader {
 
   async run(config) {
     const handler = this.getHandler(config);
-    return await handler(config);
+    return handler(config);
   }
 }
 
@@ -49,9 +48,8 @@ class AppLoader extends BaseLoader {
 
     logger.info(`Loading ${config.action}...`);
 
-    let res;
     try {
-      res = await super.run(config);
+      await super.run(config);
     } catch (err) {
       logger.fatal(err);
     }

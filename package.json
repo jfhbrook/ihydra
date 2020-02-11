@@ -30,6 +30,7 @@
         "@material-ui/core": "^4.9.0",
         "app-root-path": "^3.0.0",
         "commander": "^4.1.0",
+        "debounce": "^1.2.0",
         "electron-is-dev": "^1.1.0",
         "electron-window": "^0.8.1",
         "hydra-synth": "^1.0.27",

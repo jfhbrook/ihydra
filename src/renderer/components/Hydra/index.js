@@ -1,12 +1,12 @@
 const debounce = require("debounce");
 const Hydra = require("hydra-synth");
 const React = require("react");
+const { PropTypes } = require("prop-types");
 
 const { useEffect, useRef } = React;
 
-const hydraCss = require("./index.css");
+require("./index.css");
 
-// TODO: This should have loading screen logic kinda like the launcher
 module.exports = ({ config, onLoad }) => {
   const canvasRef = useRef();
   const hydraRef = useRef();
@@ -35,4 +35,9 @@ module.exports = ({ config, onLoad }) => {
   });
 
   return <canvas id="hydra-canvas" ref={canvasRef} />;
+};
+
+module.exports.propTypes = {
+  config: PropTypes.shape({}).isRequired,
+  onLoad: PropTypes.func.isRequired
 };

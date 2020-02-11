@@ -1,21 +1,6 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-const { homedir } = require("os");
 const path = require("path");
-
-const commander = require("commander");
-
-const isDev = require("electron-is-dev");
-const { quote } = require("shell-quote");
-const which = require("which");
-
-const { exec } = require("../process");
-const { access, readFile } = require("../fs");
-const {
-  configError,
-  jupyterNotFoundError,
-  jupyterVersionError
-} = require("../errors");
 
 const { argsMixin, hydrateArgs } = require("./args");
 const { versionsMixin } = require("./versions");
@@ -38,11 +23,11 @@ function hydrateConfig(old) {
   const config = {
     ...old,
     setLogger(logger) {
-      const config = cloneConfig(this);
+      const cfg = cloneConfig(this);
 
-      config.logger = logger;
+      cfg.logger = logger;
 
-      return config;
+      return cfg;
     }
   };
 

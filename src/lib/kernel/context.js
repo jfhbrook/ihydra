@@ -32,13 +32,86 @@
  *
  */
 
-const { EventEmitter } = require("events");
-const { Transform } = require("stream");
+/* eslint no-underscore-dangle: "off" */
+/* eslint no-empty: "off" */
+/* eslint no-console: "off" */
+
 const util = require("util");
 
 const { isPromise } = require("../promise");
 
 const createDisplay = require("./display");
+
+function formatError(error) {
+  return {
+    ename: error && error.name ? error.name : typeof error,
+    evalue: error && error.message ? error.message : util.inspect(error),
+    traceback: error && error.stack ? error.stack.split("\n") : ""
+  };
+}
+
+function defaultMimer(result) {
+  // eslint-disable-line complexity
+  if (typeof result === "undefined") {
+    return {
+      "text/plain": "undefined"
+    };
+  }
+
+  if (result === null) {
+    return {
+      "text/plain": "null"
+    };
+  }
+
+  let mime;
+  if (result._toMime) {
+    try {
+      mime = result._toMime();
+    } catch (error) {}
+  }
+  if (typeof mime !== "object") {
+    mime = {};
+  }
+
+  if (!("text/plain" in mime)) {
+    try {
+      mime["text/plain"] = util.inspect(result);
+    } catch (error) {}
+  }
+
+  if (result._toHtml && !("text/html" in mime)) {
+    try {
+      mime["text/html"] = result._toHtml();
+    } catch (error) {}
+  }
+
+  if (result._toSvg && !("image/svg+xml" in mime)) {
+    try {
+      mime["image/svg+xml"] = result._toSvg();
+    } catch (error) {}
+  }
+
+  if (result._toPng && !("image/png" in mime)) {
+    try {
+      mime["image/png"] = result._toPng();
+    } catch (error) {}
+  }
+
+  if (result._toJpeg && !("image/jpeg" in mime)) {
+    try {
+      mime["image/jpeg"] = result._toJpeg();
+    } catch (error) {}
+  }
+
+  return mime;
+}
+
+function toMime(result) {
+  const mimer =
+    typeof window.$$mimer$$ === "function" ? window.$$mimer$$ : defaultMimer;
+  return mimer(result);
+}
 
 class Context {
   constructor(server, id) {
@@ -209,16 +282,17 @@ class Context {
 
       const promise = this.requester.send(this, inputRequest, inputCallback);
       if (promise) {
-        return promise.then(function(reply) {
+        return promise.then(reply => {
           return reply.input;
         });
       }
+      return promise;
     };
 
-    this.$$.display = id => {
+    this.$$.display = displayId => {
       return arguments.length === 0
         ? createDisplay(this.channel, this.id)
-        : createDisplay(this.channel, this.id, id);
+        : createDisplay(this.channel, this.id, displayId);
     };
 
     this.$$.clear = options => {
@@ -231,6 +305,7 @@ class Context {
   }
 
   send(message) {
+    // eslint-disable-next-line no-param-reassign
     message.id = this.id;
 
     if (this._done) {
@@ -323,18 +398,19 @@ class Context {
 
     delete window.$$async$$;
     Object.defineProperty(window, "$$async$$", {
-      get: function() {
+      get: () => {
         return this._async;
-      }.bind(this),
-      set: function(value) {
+      },
+      set: value => {
         this._async = !!value;
-      }.bind(this),
+      },
       configurable: true,
       enumerable: false
     });
 
     window.$$done$$ = this.$$.done.bind(this);
 
+    // eslint-disable-next-line no-prototype-builtins
     if (!window.hasOwnProperty("$$defaultMimer$$")) {
       Object.defineProperty(window, "$$defaultMimer$$", {
         value: defaultMimer,
@@ -351,77 +427,6 @@ class Context {
     this._consoleReleaseHooks.forEach(hook => hook());
     this._consoleReleaseHooks = [];
   }
-}
-
-function formatError(error) {
-  return {
-    ename: error && error.name ? error.name : typeof error,
-    evalue: error && error.message ? error.message : util.inspect(error),
-    traceback: error && error.stack ? error.stack.split("\n") : ""
-  };
-}
-
-function toMime(result) {
-  const mimer =
-    typeof window.$$mimer$$ === "function" ? window.$$mimer$$ : defaultMimer;
-  return mimer(result);
-}
-
-function defaultMimer(result) {
-  // eslint-disable-line complexity
-  if (typeof result === "undefined") {
-    return {
-      "text/plain": "undefined"
-    };
-  }
-
-  if (result === null) {
-    return {
-      "text/plain": "null"
-    };
-  }
-
-  let mime;
-  if (result._toMime) {
-    try {
-      mime = result._toMime();
-    } catch (error) {}
-  }
-  if (typeof mime !== "object") {
-    mime = {};
-  }
-
-  if (!("text/plain" in mime)) {
-    try {
-      mime["text/plain"] = util.inspect(result);
-    } catch (error) {}
-  }
-
-  if (result._toHtml && !("text/html" in mime)) {
-    try {
-      mime["text/html"] = result._toHtml();
-    } catch (error) {}
-  }
-
-  if (result._toSvg && !("image/svg+xml" in mime)) {
-    try {
-      mime["image/svg+xml"] = result._toSvg();
-    } catch (error) {}
-  }
-
-  if (result._toPng && !("image/png" in mime)) {
-    try {
-      mime["image/png"] = result._toPng();
-    } catch (error) {}
-  }
-
-  if (result._toJpeg && !("image/jpeg" in mime)) {
-    try {
-      mime["image/jpeg"] = result._toJpeg();
-    } catch (error) {}
-  }
-
-  return mime;
 }
 
 module.exports = { Context, defaultMimer };

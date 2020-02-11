@@ -24,7 +24,6 @@ module.exports = function MainMenu({
 };
 
 module.exports.propTypes = {
-  config: PropTypes.object.isRequired,
   tryInstall: PropTypes.func.isRequired,
   goBackToWhich: PropTypes.func.isRequired,
   launchJupyter: PropTypes.func.isRequired,

@@ -1,4 +1,6 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
+/* eslint global-require: "off" */
+/* eslint import/no-extraneous-dependencies: "off" */
 
 function getMajorVersion(fullVersion) {
   // Cheesing it a little here. This should check if the version

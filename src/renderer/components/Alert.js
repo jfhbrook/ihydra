@@ -8,8 +8,8 @@ module.exports = function Alert({ hed, dek, buttons }) {
     <>
       <h1>{hed}</h1>
       {dek ? <h2>{dek}</h2> : ""}
-      {Object.entries(buttons).map(([label, hook], i) => (
-        <Button key={i} onClick={hook}>
+      {Object.entries(buttons).map(([label, hook]) => (
+        <Button key={label} onClick={hook}>
           {label}
         </Button>
       ))}
@@ -20,5 +20,7 @@ module.exports = function Alert({ hed, dek, buttons }) {
 module.exports.propTypes = {
   hed: PropTypes.string.isRequired,
   dek: PropTypes.string,
-  buttons: PropTypes.objectOf(PropTypes.func)
+  buttons: PropTypes.objectOf(PropTypes.func).isRequired
 };
+
+module.exports.defaultProps = { dek: "" };
