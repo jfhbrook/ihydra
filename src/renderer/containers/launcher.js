@@ -172,9 +172,6 @@ export default function Launcher({ config }) {
         <Tab>About</Tab>
       </TabList>
       <TabPanel>
-        <About />
-      </TabPanel>
-      <TabPanel>
         {{
           loading: () => <LoadingScreen message="Loading..." />,
           searching: () => <LoadingScreen message="Searching for Jupyter..." />,
@@ -232,6 +229,9 @@ export default function Launcher({ config }) {
             <StackTrace error={state.error} retry={startOver} fail={exit} />
           )
         }[state.status]()}
+      </TabPanel>
+      <TabPanel>
+        <About />
       </TabPanel>
     </Tabs>
   );
