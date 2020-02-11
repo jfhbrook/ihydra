@@ -7,6 +7,7 @@ const { useState } = React;
 const PropTypes = require("prop-types");
 
 const About = require("../components/About");
+const Button = require("../components/WizardButton");
 const LoadingScreen = require("../components/LoadingScreen");
 const JupyterCommandFinder = require("../components/JupyterCommandFinder");
 const MainMenu = require("../components/MainMenu");
@@ -242,14 +243,6 @@ function Launcher({ config }) {
             )
           }[state.status]())
       }[state.tab]()}
-    </div>
-  );
-
-  return (
-    <div>
-      <Button onClick={launcherTab}>Launcher</Button>
-      <Button onClick={helpTab}>About</Button>
-      {tabs[state.tab]()}
     </div>
   );
 }
