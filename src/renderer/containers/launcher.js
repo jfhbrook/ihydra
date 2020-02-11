@@ -69,8 +69,6 @@ function useLauncherState(config) {
     setState({ status: "registering", config, tab });
   });
 
-  // TODO: Interstitial error state that displays the error
-  // and allows us to bail
   const loadJupyterInfo = invalidJupyterIfError(async () => {
     const config = await (await cfg.loadJupyterInfo()).getKernelCommand();
     config.ensureSupportedJupyterVersion();
@@ -205,7 +203,8 @@ function Launcher({ config }) {
                 hed="Having Trouble Registering Jupyter"
                 buttons={{
                   "Search Automatically": trySearching,
-                  "Find Manually": goBackToWhich
+                  "Find Manually": goBackToWhich,
+                  Exit: exit
                 }}
               />
             ),
