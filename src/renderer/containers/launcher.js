@@ -1,6 +1,7 @@
 import { ipcRenderer } from "electron";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
+import { Tabs, TabList, Tab, TabPanel } from "react-tabs";
 
 import About from "../components/About";
 import Alert from "../components/Alert";
@@ -165,73 +166,74 @@ export default function Launcher({ config }) {
     exit
   } = useLauncherState(config);
   return (
-    <div>
-      <Button onClick={launcherTab}>Launcher</Button>
-      <Button onClick={helpTab}>About</Button>
-      {{
-        help: () => <About />,
-        launcher: () =>
-          ({
-            loading: () => <LoadingScreen message="Loading..." />,
-            searching: () => (
-              <LoadingScreen message="Searching for Jupyter..." />
-            ),
-            which: () => (
-              <JupyterCommandFinder
-                config={state.config}
-                trySearching={trySearching}
-                useJupyterCommand={useJupyterCommand}
-                exit={exit}
-              />
-            ),
-            registering: () => (
-              <LoadingScreen message="Gathering Information on Jupyter..." />
-            ),
-            registration_failed: () => (
-              <Alert
-                hed="Having Trouble Registering Jupyter"
-                buttons={{
-                  "Search Automatically": trySearching,
-                  "Find Manually": goBackToWhich,
-                  Exit: exit
-                }}
-              />
-            ),
-            ready: () => (
-              <MainMenu
-                config={state.config}
-                tryInstall={tryInstall}
-                goBackToWhich={goBackToWhich}
-                launchJupyter={launchJupyter}
-                exit={exit}
-              />
-            ),
-            installing: () => <LoadingScreen message="Installing IHydra..." />,
-            launching: () => <LoadingScreen message="Launching Jupyter..." />,
-            running: () => (
-              <JupyterRuntime
-                process={state.jupyterProcess}
-                stopJupyter={stopJupyter}
-              />
-            ),
-            install_failed: () => (
-              <Alert
-                hed="Install Failed"
-                buttons={{ "Back to Main Menu": goBackToMain }}
-              />
-            ),
-            install_succeeded: () => (
-              <Alert
-                hed="Install Succeeded"
-                buttons={{ "Cool Beans!": goBackToMain }}
-              />
-            ),
-            confused: () => (
-              <StackTrace error={state.error} retry={startOver} fail={exit} />
-            )
-          }[state.status]())
-      }[state.tab]()}
-    </div>
+    <Tabs>
+      <TabList>
+        <Tab>Launcher</Tab>
+        <Tab>About</Tab>
+      </TabList>
+      <TabPanel>
+        <About />
+      </TabPanel>
+      <TabPanel>
+        {{
+          loading: () => <LoadingScreen message="Loading..." />,
+          searching: () => <LoadingScreen message="Searching for Jupyter..." />,
+          which: () => (
+            <JupyterCommandFinder
+              config={state.config}
+              trySearching={trySearching}
+              useJupyterCommand={useJupyterCommand}
+              exit={exit}
+            />
+          ),
+          registering: () => (
+            <LoadingScreen message="Gathering Information on Jupyter..." />
+          ),
+          registration_failed: () => (
+            <Alert
+              hed="Having Trouble Registering Jupyter"
+              buttons={{
+                "Search Automatically": trySearching,
+                "Find Manually": goBackToWhich,
+                Exit: exit
+              }}
+            />
+          ),
+          ready: () => (
+            <MainMenu
+              config={state.config}
+              tryInstall={tryInstall}
+              goBackToWhich={goBackToWhich}
+              launchJupyter={launchJupyter}
+              exit={exit}
+            />
+          ),
+          installing: () => <LoadingScreen message="Installing IHydra..." />,
+          launching: () => <LoadingScreen message="Launching Jupyter..." />,
+          running: () => (
+            <JupyterRuntime
+              process={state.jupyterProcess}
+              stopJupyter={stopJupyter}
+            />
+          ),
+          install_failed: () => (
+            <Alert
+              hed="Install Failed"
+              buttons={{ "Back to Main Menu": goBackToMain }}
+            />
+          ),
+          install_succeeded: () => (
+            <Alert
+              hed="Install Succeeded"
+              buttons={{ "Cool Beans!": goBackToMain }}
+            />
+          ),
+          confused: () => (
+            <StackTrace error={state.error} retry={startOver} fail={exit} />
+          )
+        }[state.status]()}
+      </TabPanel>
+    </Tabs>
   );
 }
 
