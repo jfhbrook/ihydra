@@ -4,6 +4,7 @@ const path = require("path");
 
 const isDev = require("electron-is-dev");
 const commander = require("commander");
+const which = require("which");
 
 const { noShellError } = require("../errors");
 

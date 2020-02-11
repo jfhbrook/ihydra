@@ -8,15 +8,16 @@ const PropTypes = require("prop-types");
 
 const Button = require("../components/WizardButton");
 const LoadingScreen = require("../components/LoadingScreen");
-const InstallerConfig = require("../components/InstallerConfig");
 const JupyterCommandFinder = require("../components/JupyterCommandFinder");
-const Terminal = require("../components/Terminal");
+const MainMenu = require("../components/MainMenu");
+const JupyterRuntime = require("../components/JupyterRuntime");
+const Alert = require("../components/Alert");
+const StackTrace = require("../components/StackTrace");
 const { installKernel } = require("../../lib/install");
 const { spawnJupyter } = require("../../lib/process");
 
 const { capturer } = require("../../lib/errors");
 
-// TODO: Move props to lib/config and make good instead of bad :)
 const { cloneConfig } = require("../../lib/config");
 
 function useLauncherState(config) {
@@ -42,11 +43,8 @@ function useLauncherState(config) {
     setState({ ...state, status });
   }
 
-  function errorHandler(err, cfg, status) {
-    const config = cloneConfig(cfg);
-    config.error = err;
-    config.logger.error(err);
-    setState({ status, config, tab });
+  function errorHandler(error, config, status) {
+    setState({ status, config: cfg, tab, error });
   }
 
   function setStatusOnError(status) {
@@ -55,6 +53,7 @@ function useLauncherState(config) {
 
   const confusedIfError = setStatusOnError("confused");
   const failedIfError = setStatusOnError("install_failed");
+  const invalidJupyterIfError = setStatusOnError("registering_failed");
 
   const retrySearchIfError = capturer(err => {
     let config = cloneConfig(cfg);
@@ -82,7 +81,7 @@ function useLauncherState(config) {
   // TODO: Interstitial error state that displays the error
   // and allows us to bail
   const loadJupyterInfo = retrySearchIfError(async () => {
-    const config = await cfg.loadJupyterInfo();
+    const config = await (await cfg.loadJupyterInfo()).getKernelCommand();
     config.ensureSupportedJupyterVersion();
     setState({ status: "ready", config, tab });
   });
@@ -162,6 +161,9 @@ function useLauncherState(config) {
     launcherTab() {
       setTab("launcher");
     },
+    startOver() {
+      setStatus("loading");
+    },
     exit() {
       ipcRenderer.send("bail");
     }
@@ -181,15 +183,16 @@ function Launcher({ config }) {
     stopJupyter,
     helpTab,
     launcherTab,
+    startOver,
     exit
   } = useLauncherState(config);
 
   function launcherUI() {
     switch (state.status) {
       case "loading":
-        return <LoadingScreen message="loading..." />;
+        return <LoadingScreen message="Loading..." />;
       case "searching":
-        return <LoadingScreen message="searching..." />;
+        return <LoadingScreen message="Searching for Jupyter..." />;
       case "which":
         return (
           <JupyterCommandFinder
@@ -200,47 +203,44 @@ function Launcher({ config }) {
           />
         );
       case "registering":
-        return <LoadingScreen message="registering..." />;
+        return <LoadingScreen message="Gathering Information on Jupyter..." />;
       case "ready":
         return (
-          <div>
-            <h1>ready</h1>
-            <InstallerConfig config={state.config} />
-            <Button onClick={tryInstall}>install</Button>
-            <Button onClick={goBackToWhich}>
-              set command for starting jupyter
-            </Button>
-            <Button onClick={launchJupyter}>LAUNCH JUPYTER</Button>
-            <Button onClick={exit}>exit</Button>
-          </div>
+          <MainMenu
+            config={state.config}
+            tryInstall={tryInstall}
+            goBackToWhich={goBackToWhich}
+            launchJupyter={launchJupyter}
+            exit={exit}
+          />
         );
       case "installing":
-        return <LoadingScreen message="installing..." />;
+        return <LoadingScreen message="Installing IHydra..." />;
       case "launching":
-        return <LoadingScreen message="launching..." />;
+        return <LoadingScreen message="Launching Jupyter..." />;
       case "running":
         return (
-          <div>
-            <Terminal process={state.jupyterProcess} />
-            <Button onClick={stopJupyter}>Stop Jupyter</Button>
-          </div>
+          <JupyterRuntime
+            process={state.jupyterProcess}
+            stopJupyter={stopJupyter}
+          />
         );
       case "install_failed":
         return (
-          <div>
-            <h1>install failed!</h1>
-            <Button onClick={goBackToMain}>ugh crap</Button>
-          </div>
+          <Alert
+            hed="Install Failed"
+            buttons={{ "Back to Main Menu": goBackToMain }}
+          />
         );
       case "install_succeeded":
         return (
-          <div>
-            <h1>install succeeded!</h1>
-            <Button onClick={goBackToMain}>cool beans!</Button>
-          </div>
+          <Alert
+            hed="Install Succeeded"
+            buttons={{ "Cool Beans!": goBackToMain }}
+          />
         );
       default:
-        return <h1>confused!</h1>;
+        return <StackTrace error={state.error} retry={startOver} fail={exit} />;
     }
   }
 
