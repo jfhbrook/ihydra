@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { quote } from "shell-quote";
 
-import Button from "./WizardButton";
+import Button from "./Button";
 
 const { dialog } = remote;
 

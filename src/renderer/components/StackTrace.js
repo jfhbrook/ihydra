@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 
-import Button from "./WizardButton";
+import Button from "./Button";
 
 export default function StackTrace({ error, retry, fail }) {
   return (

@@ -3,7 +3,7 @@ import React from "react";
 import { prop as processProp } from "../../lib/process";
 
 import Terminal from "./Terminal";
-import Button from "./WizardButton";
+import Button from "./Button";
 
 export default function JupyterRuntime({ process, stopJupyter }) {
   return (

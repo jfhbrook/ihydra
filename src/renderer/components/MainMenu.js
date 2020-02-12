@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import InstallerConfig from "./InstallerConfig";
-import Button from "./WizardButton";
+import Button from "./Button";
 
 export default function MainMenu({
   config,
