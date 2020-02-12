@@ -1,5 +1,55 @@
+@font-face {
+  font-family: Chivo;
+  src: url(/fonts/Chivo/Chivo-Regular.ttf);
+}
+
+@font-face {
+  font-family: Chivo;
+  font-weight: bold;
+  src: url(/fonts/Chivo/Chivo-Bold.ttf);
+}
+
+@font-face {
+  font-family: Chivo;
+  font-weight: bold;
+  font-style: italic;
+  src: url(/fonts/Chivo/Chivo-BoldItalic.ttf);
+}
+
+@font-face {
+  font-family: Chivo;
+  font-style: italic;
+  src: url(/fonts/Chivo/Chivo-Italic.ttf);
+}
+
+@font-face {
+  font-family: Source Code Pro;
+  src: url(/fonts/Source_Code_Pro/SourceCodePro-Regular.ttf);
+}
+
+@font-face {
+  font-family: Source Code Pro;
+  font-weight: bold;
+  src: url(/fonts/Source_Code_Pro/SourceCodePro-Bold.ttf);
+}
+
+@font-face {
+  font-family: Source Code Pro;
+  font-weight: bold;
+  font-style: italic;
+  src: url(/fonts/Source_Code_Pro/SourceCodePro-BoldItalic.ttf);
+}
+
+@font-face {
+  font-family: Source Code Pro;
+  font-style: italic;
+  src: url(/fonts/Source_Code_Pro/SourceCodePro-Italic.ttf);
+}
+
+
 body {
   color: #fff;
   background-color: #000;
   margin: 0px;
+  font-family: Chivo;
 }

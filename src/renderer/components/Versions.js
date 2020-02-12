@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 
 import Button from "./Button";
+import Code from "./Code";
 
 export default function Versions({ versions }) {
   const [isOpen, setOpen] = useState(false);
@@ -42,8 +43,8 @@ export default function Versions({ versions }) {
           {viewModel.map(([k, v]) => {
             return (
               <tr key={k}>
-                <td>{k}</td>
-                <td>{v}</td>
+                <td><Code>{k}</Code></td>
+                <td><Code>{v}</Code></td>
               </tr>
             );
           })}

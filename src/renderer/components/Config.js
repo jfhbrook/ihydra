@@ -6,7 +6,7 @@ import Versions from "./Versions";
 
 export default function Config({ config }) {
   const viewModel = [
-    ["Kernel Display Name", () => <Command command={config.displayName} />],
+    ["Kernel Display Name", config.diplayName],
     ["Kernel Internal Name", config.name],
     ["Kernel Command", () => <Command command={config.kernelCommand} />],
     [
