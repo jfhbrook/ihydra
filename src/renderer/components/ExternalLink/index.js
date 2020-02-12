@@ -1,8 +1,10 @@
 import PropTypes from "prop-types";
 import React from "react";
 
+import css from "./index.css";
+
 export default function ExternalLink({ href, children }) {
-  return <a href={href}>{children}</a>;
+  return <a className={css.link} href={href}>{children}</a>;
 }
 
 ExternalLink.propTypes = {

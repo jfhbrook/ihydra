@@ -1,14 +1,18 @@
 import React from "react";
 
-import Code from "./Code";
-import Divider from "./Divider";
-import Heart from "./Heart";
-import Link from "./ExternalLink";
-import Keypress from "./Keypress";
+import Author from "../Author";
+import Code from "../Code";
+import Divider from "../Divider";
+import Emph from "../Emph";
+import Heart from "../Heart";
+import Link from "../ExternalLink";
+import Keypress from "../Keypress";
+
+import css from "./index.css";
 
 export default function About() {
   return (
-    <div>
+    <div className={css.about}>
       <h1>IHydra</h1>
       <h2>A Jupyter kernel for live coding visuals</h2>
       <Divider />
@@ -55,9 +59,9 @@ export default function About() {
       <p>To Get Started:</p>
       <ol>
         <li>
-          Install <strong>Python 3.7</strong> and <strong>Jupyter</strong>. If
-          you don&lsquo;t already do development with Python, the easiest -
-          <strong>and recommended</strong> - way to install both is to{" "}
+          Install <Emph>Python 3.7</Emph> and <Emph>Jupyter</Emph>. If
+          you don&lsquo;t already do development with Python, the easiest -{" "}
+          <Emph>and recommended</Emph> - way to install both is to{" "}
           <Link href="https://www.anaconda.com/distribution/#download-section">
             install Anaconda
           </Link>
@@ -84,11 +88,11 @@ export default function About() {
       </ol>
       <p>
         IHydra was hacked together by{" "}
-        <Link href="https://twitter.com/jfhbrook">Josh Holbrook</Link>. Hydra
+        <Author href="https://twitter.com/jfhbrook">Josh Holbrook</Author>. Hydra
         itself was written by{" "}
-        <Link href="https://twitter.com/_ojack_">Olivia Jack</Link>. The IHydra
+        <Author href="https://twitter.com/_ojack_">Olivia Jack</Author>. The IHydra
         codebase is forked from IJavascript, which was written by{" "}
-        <Link href="https://github.com/n-riesco">Nicolas Riesco</Link> and other
+        <Author href="https://github.com/n-riesco">Nicolas Riesco</Author> and other
         contributors.
       </p>
       <p>

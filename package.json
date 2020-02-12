@@ -92,5 +92,10 @@
         "mac": {
             "category": "public.app-category.graphics-design"
         }
+    },
+    "electronWebpack": {
+        "renderer": {
+            "webpackConfig": "webpack.renderer.js"
+        }
     }
 }
