@@ -1,7 +1,6 @@
 import { ipcRenderer } from "electron";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { Tabs, TabList, Tab, TabPanel } from "react-tabs";
 
 import About from "../components/About";
 import Alert from "../components/Alert";
@@ -9,6 +8,7 @@ import JupyterCommandFinder from "../components/JupyterCommandFinder";
 import JupyterRuntime from "../components/JupyterRuntime";
 import LoadingScreen from "../components/LoadingScreen";
 import MainMenu from "../components/MainMenu";
+import { Tabs, TabList, Tab, TabPanel } from "../components/Tabs";
 import StackTrace from "../components/StackTrace";
 
 import { capturer } from "../../lib/errors";
