@@ -1,9 +1,11 @@
 import PropTypes from "prop-types";
 import React from "react";
 
+import css from "./index.css";
+
 export default function Button({ onClick, children }) {
   return (
-    <button type="button" onClick={onClick}>
+    <button className={css.button} type="button" onClick={onClick}>
       {children}
     </button>
   );
