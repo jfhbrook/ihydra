@@ -3,9 +3,8 @@ import { FitAddon } from "xterm-addon-fit";
 import React, { useEffect, useRef } from "react";
 import { Terminal as XTerm } from "xterm";
 
-// eslint-disable-next-line no-unused-vars
-import css from "xterm/css/xterm.css";
-import { prop as processProp } from "../../common/process";
+import css from "./index.css";
+import { prop as processProp } from "../../../common/process";
 
 export default function Terminal({ process }) {
   const { stdout, stderr, scrollback } = process;
@@ -14,7 +13,7 @@ export default function Terminal({ process }) {
 
   useEffect(() => {
     const div = divRef.current;
-    const term = new XTerm();
+    const term = new XTerm({fontFamily: "Source Code Pro"});
 
     const fitter = new FitAddon();
     term.loadAddon(fitter);
@@ -45,7 +44,7 @@ export default function Terminal({ process }) {
     };
   });
 
-  return <div ref={divRef} />;
+  return <div className={css.xterm} ref={divRef} />;
 }
 
 Terminal.propTypes = {
