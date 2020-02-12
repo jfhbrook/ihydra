@@ -24,7 +24,9 @@ export default function About() {
           {" "}
           WebGL
         </Link>
-        . It's an <Link href="https://www.electronjs.org/">Electron</Link>{" "}
+        . It&lsquo;s an <Link href="https://www.electronjs.org/">
+          Electron
+        </Link>{" "}
         application written in <Link href="https://reactjs.org/">React</Link>{" "}
         and with libraries the{" "}
         <Link href="https://github.com/n-riesco/ijavascript">IJavascript</Link>{" "}
@@ -47,14 +49,14 @@ export default function About() {
         </Link>
         . However, Jupyter is written to allow for arbitrary backends, meaning
         that we can use Jupyter to drive hydra. This means that we can take
-        advantage of all of the Jupyter notebook's features while live coding
-        with hydra!
+        advantage of all of the Jupyter notebook&lsquo;s features while live
+        coding with hydra!
       </p>
       <p>To Get Started:</p>
       <ol>
         <li>
           Install <strong>Python 3.7</strong> and <strong>Jupyter</strong>. If
-          you don't already do development with Python, the easiest -
+          you don&lsquo;t already do development with Python, the easiest -
           <strong>and recommended</strong> - way to install both is to{" "}
           <Link href="https://www.anaconda.com/distribution/#download-section">
             install Anaconda
@@ -63,17 +65,17 @@ export default function About() {
           that includes Jupyter.
         </li>
         <li>
-          Start the launcher and click "Install IHydra" to install IHydra to
-          Jupyter's user-local kernels.
+          Start the launcher and click &ldquo;Install IHydra&ldquo; to install
+          IHydra to Jupyter&lsquos user-local kernels.
         </li>
         <li>
           Start Jupyter. You can either run <Code>jupyter notebook</Code> in a
-          Python-enabled terminal, or more simply click the "Launch Jupyter"
-          button in this launcher.
+          Python-enabled terminal, or more simply click the &ldquo;Launch
+          Jupyter&ldquo; button in this launcher.
         </li>
         <li>
-          Create a new notebook and choose the "IHydra" kernel. You should see a
-          new window pop up.
+          Create a new notebook and choose the &ldquo;IHydra&ldquo; kernel. You
+          should see a new window pop up.
         </li>
         <li>
           Type hydra commands into a cell and press{" "}
@@ -98,14 +100,15 @@ export default function About() {
         <Link href="https://github.com/jfhbrook/ihydra">GitHub</Link>.
       </p>
       <p>
-        If you're trying to use IHydra and get stuck, feel free to{" "}
+        If you&lsquo;re trying to use IHydra and get stuck, feel free to{" "}
         <Link href="https://twitter.com/jfhbrook">contact Josh on Twitter</Link>{" "}
         - as of this writing, his DMs are open - or via{" "}
         <Link href="https://github.com/jfhbrook/ihydra/issues">
           GitHub Issues
         </Link>
         . Keep in mind that IHydra is ultimately a hack project. Josh will do
-        what he can but can't guarantee regular upkeep. You have been warned.
+        what he can but can&squo;t guarantee regular upkeep. You have been
+        warned.
       </p>
       <p>
         Cheers! <Heart />
