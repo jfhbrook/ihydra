@@ -34,8 +34,8 @@
 import kernel from "./apps/kernel";
 import launcher from "./apps/launcher";
 
-import { AppLoader } from "../lib/loader";
-import { createConfig } from "../lib/config";
+import { AppLoader } from "../common/loader";
+import { createConfig } from "../common/config";
 
 const loader = new AppLoader();
 

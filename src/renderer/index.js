@@ -1,4 +1,4 @@
-import { ComponentLoader } from "../lib/loader";
+import { ComponentLoader } from "../common/loader";
 
 import "./index.css";
 

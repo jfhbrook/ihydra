@@ -1,5 +1,5 @@
 import { app, ipcMain } from "electron";
-import createWindow from "../../lib/window";
+import createWindow from "../../common/window";
 
 export default function launcher(config) {
   let launcherWindow = null;

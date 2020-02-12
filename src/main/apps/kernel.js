@@ -39,7 +39,7 @@ import { ipcMain } from "electron";
 import Kernel from "jp-kernel";
 import { Session } from "nel";
 
-import createWindow from "../../lib/window";
+import createWindow from "../../common/window";
 
 export default async function kernel(cfg) {
   const config = await (

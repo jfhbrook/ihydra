@@ -4,7 +4,7 @@ import { copy, mkdir, makeTmpdir, rmrf, writeFile } from "./fs";
 import { exec } from "./process";
 
 export default async function installKernel(config) {
-  const logger = config.logger.child("ihydra.lib.install");
+  const logger = config.logger.child("ihydra.common.install");
 
   logger.info("Creating temporary directory...");
   const tmpdir = await makeTmpdir();

@@ -5,7 +5,7 @@ import { Terminal as XTerm } from "xterm";
 
 // eslint-disable-next-line no-unused-vars
 import css from "xterm/css/xterm.css";
-import { prop as processProp } from "../../lib/process";
+import { prop as processProp } from "../../common/process";
 
 export default function Terminal({ process }) {
   const { stdout, stderr, scrollback } = process;

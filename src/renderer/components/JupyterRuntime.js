@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import React from "react";
-import { prop as processProp } from "../../lib/process";
+import { prop as processProp } from "../../common/process";
 
 import Terminal from "./Terminal";
 import Button from "./Button";

@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import Code from "./Code";
-import quote from "../../lib/quote";
+import quote from "../../common/quote";
 
 export default function Command({ command }) {
   let stringified;

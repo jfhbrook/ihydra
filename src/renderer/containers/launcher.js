@@ -11,9 +11,9 @@ import MainMenu from "../components/MainMenu";
 import { Tabs, TabList, Tab, TabPanel } from "../components/Tabs";
 import StackTrace from "../components/StackTrace";
 
-import { capturer } from "../../lib/errors";
-import installKernel from "../../lib/install";
-import { spawnJupyter } from "../../lib/process";
+import { capturer } from "../../common/errors";
+import installKernel from "../../common/install";
+import { spawnJupyter } from "../../common/process";
 
 function useLauncherState(config) {
   const [state, rawSetState] = useState({

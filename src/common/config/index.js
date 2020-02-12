@@ -51,7 +51,7 @@ export function dehydrateConfig(old) {
 }
 
 export function createDehydratedConfig() {
-  const logger = new Logger("ihydra.lib.config");
+  const logger = new Logger("ihydra.common.config");
 
   logger.observe("warning", consoleObserver);
 
