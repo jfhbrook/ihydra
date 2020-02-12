@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 
-import InstallerConfig from "./InstallerConfig";
+import Config from "./Config";
 import Button from "./Button";
 
 export default function MainMenu({
@@ -14,7 +14,7 @@ export default function MainMenu({
   return (
     <>
       <h1>IHydra Launcher</h1>
-      <InstallerConfig config={config} />
+      <Config config={config} />
       <Button onClick={tryInstall}>Install IHydra</Button>
       <Button onClick={goBackToWhich}>Find Jupyter</Button>
       <Button onClick={launchJupyter}>Launch Jupyter</Button>
