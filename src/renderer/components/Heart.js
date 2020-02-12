@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function Heart() {
-  return <span>{"<3"}</span>;
+  return <strong>{"<3"}</strong>;
 }
 
 Heart.propTypes = {};
