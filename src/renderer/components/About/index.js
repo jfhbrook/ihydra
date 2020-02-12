@@ -32,7 +32,7 @@ export default function About() {
           Electron
         </Link>{" "}
         application written in <Link href="https://reactjs.org/">React</Link>{" "}
-        and with libraries the{" "}
+        and with libraries and code from the{" "}
         <Link href="https://github.com/n-riesco/ijavascript">IJavascript</Link>{" "}
         project.
       </p>
