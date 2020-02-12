@@ -8,7 +8,7 @@ import Keypress from "./Keypress";
 
 export default function About() {
   return (
-    <>
+    <div>
       <h1>IHydra</h1>
       <h2>A Jupyter kernel for live coding visuals</h2>
       <Divider />
@@ -113,7 +113,7 @@ export default function About() {
       <p>
         Cheers! <Heart />
       </p>
-    </>
+    </div>
   );
 }
 
