@@ -59,8 +59,8 @@ export default function About() {
       <p>To Get Started:</p>
       <ol>
         <li>
-          Install <Emph>Python 3.7</Emph> and <Emph>Jupyter</Emph>. If
-          you don&lsquo;t already do development with Python, the easiest -{" "}
+          Install <Emph>Python 3.7</Emph> and <Emph>Jupyter</Emph>. If you
+          don&lsquo;t already do development with Python, the easiest -{" "}
           <Emph>and recommended</Emph> - way to install both is to{" "}
           <Link href="https://www.anaconda.com/distribution/#download-section">
             install Anaconda
@@ -88,12 +88,12 @@ export default function About() {
       </ol>
       <p>
         IHydra was hacked together by{" "}
-        <Author href="https://twitter.com/jfhbrook">Josh Holbrook</Author>. Hydra
-        itself was written by{" "}
-        <Author href="https://twitter.com/_ojack_">Olivia Jack</Author>. The IHydra
-        codebase is forked from IJavascript, which was written by{" "}
-        <Author href="https://github.com/n-riesco">Nicolas Riesco</Author> and other
-        contributors.
+        <Author href="https://twitter.com/jfhbrook">Josh Holbrook</Author>.
+        Hydra itself was written by{" "}
+        <Author href="https://twitter.com/_ojack_">Olivia Jack</Author>. The
+        IHydra codebase is forked from IJavascript, which was written by{" "}
+        <Author href="https://github.com/n-riesco">Nicolas Riesco</Author> and
+        other contributors.
       </p>
       <p>
         Like IJavascript, this project uses a{" "}

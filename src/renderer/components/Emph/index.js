@@ -3,7 +3,7 @@ import React from "react";
 
 import css from "./index.css";
 
-export default function Emph({children}) {
+export default function Emph({ children }) {
   return <strong className={css.emph}>{children}</strong>;
 }
 
