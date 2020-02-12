@@ -13,7 +13,7 @@ export default function Terminal({ process }) {
 
   useEffect(() => {
     const div = divRef.current;
-    const term = new XTerm({fontFamily: "Source Code Pro"});
+    const term = new XTerm({ fontFamily: "Source Code Pro" });
 
     const fitter = new FitAddon();
     term.loadAddon(fitter);

@@ -1,42 +1,65 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, { useState } from "react";
 
+import Code from "./Code";
 import Command from "./Command";
 import Versions from "./Versions";
 
 export default function Config({ config }) {
-  const viewModel = [
-    ["Kernel Display Name", config.diplayName],
-    ["Kernel Internal Name", config.name],
-    ["Kernel Command", () => <Command command={config.kernelCommand} />],
-    [
-      "Jupyter Launch Command",
-      () => <Command command={config.jupyterCommand.concat("notebook")} />
-    ]
-  ];
+  const [{ showCommands, showVersions }, setState] = useState({
+    showCommands: false,
+    showVersions: false
+  });
+
+  function toggleCommands() {
+    setState({ showCommands: !showCommands, showVersions });
+  }
+
+  function toggleVersions() {
+    setState({ showCommands, showVersions: !showVersions });
+  }
 
   return (
-    <>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {viewModel.map(([k, v]) => {
-            return (
-              <tr key={k}>
-                <td>{k}</td>
-                <td>{typeof v === "function" ? v() : v}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <Versions versions={config.versions} />
-    </>
+    <dl>
+      <dt>Kernel Display Name</dt>
+      <dd>{config.displayName}</dd>
+      <dt>Kernel Install Folder Name</dt>
+      <dd>{config.name}</dd>
+      <dt onClick={toggleCommands}>{showCommands ? "v" : ">"} Commands</dt>
+      <dd>
+        {showCommands ? (
+          <dl>
+            <dt>Kernel Command</dt>
+            <dd>
+              <Command command={config.kernelCommand} />
+            </dd>
+            <dt>Jupyter Launch Command</dt>
+            <dd>
+              <Command command={config.jupyterCommand.concat("notebook")} />
+            </dd>
+          </dl>
+        ) : (
+          ""
+        )}
+      </dd>
+      <dt onClick={toggleVersions}>
+        {showVersions ? "v" : ">"} Library Versions
+      </dt>
+      <dd>
+        {showVersions
+          ? Object.entries(config.versions).map(([lib, v]) => (
+              <>
+                <dt>
+                  <Code>{lib}</Code>
+                </dt>
+                <dd>
+                  <Code>v{v}</Code>
+                </dd>
+              </>
+            ))
+          : ""}
+      </dd>
+    </dl>
   );
 }
 
