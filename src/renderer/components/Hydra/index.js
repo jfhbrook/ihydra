@@ -33,7 +33,7 @@ export default function Hydra({ config, onLoad }) {
     };
   });
 
-  return <canvas id="hydra-canvas" ref={canvasRef} />;
+  return <canvas className={css.hydra} ref={canvasRef} />;
 }
 
 Hydra.propTypes = {
