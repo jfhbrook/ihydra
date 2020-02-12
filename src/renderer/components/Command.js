@@ -2,6 +2,8 @@ import { inspect } from "util";
 
 import PropTypes from "prop-types";
 import React from "react";
+
+import Code from "./Code";
 import quote from "../../lib/quote";
 
 export default function Command({ command }) {
@@ -15,7 +17,7 @@ export default function Command({ command }) {
     stringified = inspect(command);
   }
 
-  return <code>{stringified}</code>;
+  return <Code>{stringified}</Code>;
 }
 
 Command.propTypes = {
