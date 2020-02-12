@@ -3,7 +3,6 @@ import React, { useState } from "react";
 
 import Code from "./Code";
 import Command from "./Command";
-import Versions from "./Versions";
 
 export default function Config({ config }) {
   const [{ showCommands, showVersions }, setState] = useState({
