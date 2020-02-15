@@ -27,6 +27,9 @@
     },
     "main": "src/main/index.js",
     "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^1.2.27",
+        "@fortawesome/free-solid-svg-icons": "^5.12.1",
+        "@fortawesome/react-fontawesome": "^0.1.8",
         "app-root-path": "^3.0.0",
         "commander": "^4.1.0",
         "debounce": "^1.2.0",

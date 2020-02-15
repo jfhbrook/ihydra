@@ -162,7 +162,8 @@ export default function Launcher({ config }) {
         <Tab>About</Tab>
       </TabList>
       <TabPanel>
-        {route({
+        <LoadingScreen message="Loading..." />
+        {/*route({
           loading: () => <LoadingScreen message="Loading..." />,
           searching: () => <LoadingScreen message="Searching for Jupyter..." />,
           which: () => (
@@ -218,7 +219,7 @@ export default function Launcher({ config }) {
           confused: () => (
             <StackTrace error={state.error} retry={startOver} fail={exit} />
           )
-        })}
+        })*/}
       </TabPanel>
       <TabPanel>
         <About />
