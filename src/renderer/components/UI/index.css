@@ -1,0 +1,11 @@
+.outer {
+  width: 100%;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  margin: 0px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
