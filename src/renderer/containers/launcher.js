@@ -184,6 +184,7 @@ export default function Launcher({ config }) {
           ),
           registration_failed: () => (
             <Alert
+              icon={faExclamationTriangle}
               hed="Having Trouble Registering Jupyter"
               buttons={{
                 "Search Automatically": {
@@ -214,6 +215,7 @@ export default function Launcher({ config }) {
           ),
           install_failed: () => (
             <Alert
+              icon={faExclamationTriangle}
               hed="Install Failed"
               buttons={{
                 "Back to Main Menu": {
@@ -225,7 +227,8 @@ export default function Launcher({ config }) {
           ),
           install_succeeded: () => (
             <Alert
-              hed="Install Succeeded"
+              icon={faCheckCircle}
+              message="Install Succeeded"
               buttons={{
                 "Cool Beans!": { icon: faCheckCircle, onClick: goBackToMain }
               }}

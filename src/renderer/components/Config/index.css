@@ -1,1 +1,26 @@
-.config {};
+.container {
+  max-width: 500px;
+  min-height: 150px;
+}
+.dict {
+  width: 100%;
+  max-width: 100%;
+  margin: 0px;
+}
+.pair {
+  margin: 5px 50px 5px 0px;
+  width: 100%;
+  display: flex;
+  border-style: dotted;
+  border-color: #fff;
+  padding: 3px 0px 3px 0px;
+  border-width: 0px 0px 1px 0px;
+}
+.key {
+  margin-right: 10px;
+  flex: 0.5;
+}
+.value {
+  margin: 0px;
+  flex: 0.5;
+}

@@ -1,0 +1,26 @@
+.outer {
+  width: 100%;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  margin: 0px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.stack {
+  font-family: Source Code Pro;
+  font-size: 10pt;
+  background-color: #00f;
+}
+
+.hed {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.line {
+  margin: 0px;
+}

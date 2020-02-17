@@ -1,4 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHourglassStart,
   faHourglassHalf,
@@ -8,6 +7,8 @@ import PropTypes from "prop-types";
 import React, { useState, useEffect } from "react";
 
 import UI from "../UI";
+import Panel from "../Panel";
+import PanelMessage from "../PanelMessage";
 
 import css from "./index.css";
 
@@ -47,15 +48,14 @@ export default function LoadingScreen({ message }) {
 
   return (
     <UI>
-      <div className={css.panel}>
-        <h1 className={css.message}>
-          <FontAwesomeIcon
-            style={{ transform: `rotate(${rotate}deg)` }}
-            icon={icon}
-          />{" "}
+      <Panel>
+        <PanelMessage
+          icon={icon}
+          iconStyle={{ transform: `rotate(${rotate}deg)` }}
+        >
           {message}
-        </h1>
-      </div>
+        </PanelMessage>
+      </Panel>
     </UI>
   );
 }

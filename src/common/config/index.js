@@ -5,6 +5,7 @@ import * as path from "path";
 import argsMixin, { hydrateArgs } from "./args";
 import jupyterMixin from "./jupyter";
 import kernelMixin from "./kernel";
+import uiMixin from "./ui";
 import versionsMixin from "./versions";
 import Logger, { consoleObserver } from "../logger";
 
@@ -30,9 +31,13 @@ export function hydrateConfig(old) {
     }
   };
 
-  [argsMixin, versionsMixin, jupyterMixin, kernelMixin].forEach(mixin =>
-    Object.assign(config, mixin)
-  );
+  [
+    argsMixin,
+    versionsMixin,
+    jupyterMixin,
+    kernelMixin,
+    uiMixin
+  ].forEach(mixin => Object.assign(config, mixin));
 
   if (old.logger.namespace) {
     config.logger = new Logger(old.logger.namespace);

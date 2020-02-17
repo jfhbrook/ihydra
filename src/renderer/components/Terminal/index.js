@@ -1,4 +1,3 @@
-import debounce from "debounce";
 import { FitAddon } from "xterm-addon-fit";
 import React, { useEffect, useRef } from "react";
 import { Terminal as XTerm } from "xterm";
@@ -22,8 +21,6 @@ export default function Terminal({ process }) {
 
     term.open(div);
 
-    const resizeTerminal = debounce(() => fitter.fit(), 100);
-
     function onData(buf) {
       term.write(buf.toString());
     }
@@ -33,14 +30,15 @@ export default function Terminal({ process }) {
     stdout.on("data", onData);
     stderr.on("data", onData);
 
-    resizeTerminal();
-
-    window.addEventListener("resize", resizeTerminal);
+    // This has strange behavior during early loading and
+    // I'm not sure what event to listen to in order to avoid
+    // these issues, so shrug
+    const iv = setInterval(() => fitter.fit(), 200);
 
     return () => {
       stdout.removeListener("data", onData);
       stderr.removeListener("data", onData);
-      window.removeEventListener("resize", resizeTerminal);
+      clearInterval(iv);
     };
   });
 

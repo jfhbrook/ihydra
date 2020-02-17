@@ -3,17 +3,21 @@ import React from "react";
 import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 import { prop as processProp } from "../../common/process";
 
+import UI from "./UI";
 import Terminal from "./Terminal";
 import Button from "./Button";
+import ButtonBar from "./ButtonBar";
 
 export default function JupyterRuntime({ process, stopJupyter }) {
   return (
-    <>
+    <UI>
       <Terminal process={process} />
-      <Button icon={faSignOutAlt} onClick={stopJupyter}>
-        Stop Jupyter
-      </Button>
-    </>
+      <ButtonBar>
+        <Button icon={faSignOutAlt} onClick={stopJupyter}>
+          Stop Jupyter
+        </Button>
+      </ButtonBar>
+    </UI>
   );
 }
 
