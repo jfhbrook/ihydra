@@ -48,12 +48,10 @@ function useHourglassState() {
 
 export default function LoadingScreen({ message }) {
   const { icon, rotate, start, stop, running } = useHourglassState();
-  useEffect(() => {
-    start();
-    return () => {
-      stop();
-    };
-  }, []);
+
+  // TODO: How do I start the animation when the component mounts
+  // and then stop it when it unmounts? useEffect breaks
+  // incredibly hard
 
   return (
     <UI>
