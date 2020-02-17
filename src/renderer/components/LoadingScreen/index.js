@@ -21,37 +21,29 @@ const HOURGLASS_STATES = [
 ];
 
 function useHourglassState() {
-  const [state, setState] = useState({ running: false, state: 0 });
-  if (state.running) {
-    setTimeout(() => {
-      if (state.running) {
-        let nextState = state.state + 1;
-        if (state.state >= HOURGLASS_STATES.length - 1) {
-          nextState = 0;
-        }
-        setState({ running: state.running, state: nextState });
-      }
-    }, 200);
-  }
+  const [state, setState] = useState(0);
 
   return {
-    ...HOURGLASS_STATES[state.state],
-    start() {
-      setState({ state: state.state, running: true });
-    },
-    stop() {
-      setState({ state: state.state, running: false });
-    },
-    running: state.running
+    ...HOURGLASS_STATES[state],
+    tick() {
+      let nextState = state + 1;
+      if (nextState >= HOURGLASS_STATES.length - 1) {
+        nextState = 0;
+      }
+      setState(nextState);
+    }
   };
 }
 
 export default function LoadingScreen({ message }) {
-  const { icon, rotate, start, stop, running } = useHourglassState();
+  const { icon, rotate, tick } = useHourglassState();
 
-  // TODO: How do I start the animation when the component mounts
-  // and then stop it when it unmounts? useEffect breaks
-  // incredibly hard
+  useEffect(() => {
+    const iv = setInterval(tick, 200);
+    return () => {
+      clearInterval(iv);
+    };
+  });
 
   return (
     <UI>

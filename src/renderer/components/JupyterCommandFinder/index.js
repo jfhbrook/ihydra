@@ -10,9 +10,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import quote from "../../common/quote";
+import quote from "../../../common/quote";
 
-import Button from "./Button";
+import Button from "../Button";
+import ButtonBar from "../ButtonBar";
+import Hed from "../Hed";
+import UI from "../UI";
+
+import css from "./index.css";
 
 const { dialog } = remote;
 
@@ -42,27 +47,32 @@ export default function JupyterCommandFinder({
   }
 
   return (
-    <>
-      <h1>Find Jupyter</h1>
-      <form>
-        <input
-          type="text"
-          value={state.command ? quote(state.command) : "???"}
-        />
-        <Button icon={faFolderOpen} onClick={selectFile}>
-          Browse...
+    <UI>
+      <Hed>Find Jupyter</Hed>
+      <div className={css.container}>
+        <form className={css.finder}>
+          <input
+            className={css.filename}
+            type="text"
+            value={state.command ? quote(state.command) : "???"}
+          />
+          <Button icon={faFolderOpen} onClick={selectFile}>
+            Browse...
+          </Button>
+        </form>
+      </div>
+      <ButtonBar>
+        <Button icon={faSearch} onClick={trySearching}>
+          Detect Jupyter Automatically
         </Button>
-      </form>
-      <Button icon={faSearch} onClick={trySearching}>
-        Detect Jupyter Automatically
-      </Button>
-      <Button icon={faCheckCircle} onClick={submit}>
-        Use This Command
-      </Button>
-      <Button icon={faSignOutAlt} onClick={exit}>
-        Exit
-      </Button>
-    </>
+        <Button icon={faCheckCircle} onClick={submit}>
+          Use This Command
+        </Button>
+        <Button icon={faSignOutAlt} onClick={exit}>
+          Exit
+        </Button>
+      </ButtonBar>
+    </UI>
   );
 }
 

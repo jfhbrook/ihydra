@@ -1,0 +1,19 @@
+.container {
+  display: flex;
+  height: 150px;
+}
+
+.finder {
+  display: flex;
+  width: 100%;
+  margin: auto;
+}
+
+.filename {
+  font-family: Source Code Pro;
+  color: #fff;
+  border: 0px;
+  margin-right: 5px;
+  background-color: #484848;
+  flex: 1;
+}
