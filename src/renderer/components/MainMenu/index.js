@@ -1,5 +1,11 @@
 import PropTypes from "prop-types";
 import React from "react";
+import {
+  faHdd,
+  faRocket,
+  faSearch,
+  faSignOutAlt
+} from "@fortawesome/free-solid-svg-icons";
 
 import Config from "../Config";
 import Button from "../Button";
@@ -21,10 +27,18 @@ export default function MainMenu({
       <Hed>IHydra Launcher</Hed>
       <Config config={config} />
       <ButtonBar>
-        <Button onClick={tryInstall}>Install IHydra</Button>
-        <Button onClick={goBackToWhich}>Find Jupyter</Button>
-        <Button onClick={launchJupyter}>Launch Jupyter</Button>
-        <Button onClick={exit}>Exit</Button>
+        <Button icon={faHdd} onClick={tryInstall}>
+          Install IHydra
+        </Button>
+        <Button icon={faSearch} onClick={goBackToWhich}>
+          Find Jupyter
+        </Button>
+        <Button icon={faRocket} onClick={launchJupyter}>
+          Launch Jupyter
+        </Button>
+        <Button icon={faSignOutAlt} onClick={exit}>
+          Exit
+        </Button>
       </ButtonBar>
     </UI>
   );

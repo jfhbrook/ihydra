@@ -4,8 +4,6 @@ import React, { useState } from "react";
 import {
   faCheckCircle,
   faExclamationTriangle,
-  faExternalLinkAlt,
-  faHdd,
   faSearch,
   faSignOutAlt
 } from "@fortawesome/free-solid-svg-icons";

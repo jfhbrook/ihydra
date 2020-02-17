@@ -2,9 +2,15 @@ import * as path from "path";
 import { homedir } from "os";
 
 import { remote } from "electron";
+import {
+  faCheckCircle,
+  faFolderOpen,
+  faSearch,
+  faSignOutAlt
+} from "@fortawesome/free-solid-svg-icons";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { quote } from "shell-quote";
+import quote from "../../common/quote";
 
 import Button from "./Button";
 
@@ -37,13 +43,25 @@ export default function JupyterCommandFinder({
 
   return (
     <>
-      <h1>wo ist die jupyter??</h1>
-      <Button onClick={selectFile}>
-        {state.command ? quote(state.command) : "???"}
+      <h1>Find Jupyter</h1>
+      <form>
+        <input
+          type="text"
+          value={state.command ? quote(state.command) : "???"}
+        />
+        <Button icon={faFolderOpen} onClick={selectFile}>
+          Browse...
+        </Button>
+      </form>
+      <Button icon={faSearch} onClick={trySearching}>
+        Detect Jupyter Automatically
       </Button>
-      <Button onClick={trySearching}>detect jupyter automatically</Button>
-      <Button onClick={submit}>use this command</Button>
-      <Button onClick={exit}>exit</Button>
+      <Button icon={faCheckCircle} onClick={submit}>
+        Use This Command
+      </Button>
+      <Button icon={faSignOutAlt} onClick={exit}>
+        Exit
+      </Button>
     </>
   );
 }
