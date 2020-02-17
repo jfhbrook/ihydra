@@ -1,7 +1,7 @@
 /*
  * BSD 3-Clause License
  *
- * Copyright (c) 2015, Nicolas Riesco and others as credited in the AUTHORS file
+ * Copyright (c) 2017, Nicolas Riesco and others as credited in the AUTHORS file
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,79 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-import kernel from "./apps/kernel";
-import launcher from "./apps/launcher";
 
-import { AppLoader } from "../common/loader";
-import { createConfig } from "../common/config";
+// eslint-disable-next-line camelcase
+export default function createDisplay(ipc, context_id, display_id) {
+  // eslint-disable-line no-unused-vars
+  let send;
 
-const loader = new AppLoader();
+  if (arguments.length < 3) {
+    // case: without a display_id
+    send = mime => {
+      ipc.send({
+        id: context_id,
+        display: {
+          mime
+        }
+      });
+    };
+  } else {
+    // case: with a display_id
+    send = mime => {
+      ipc.send({
+        id: context_id,
+        display: {
+          display_id,
+          mime
+        }
+      });
+    };
 
-loader.register("kernel", kernel);
-loader.register("launcher", launcher);
+    // open the display_id
+    ipc.send({
+      id: context_id,
+      display: {
+        open: display_id
+      }
+    });
+  }
 
-loader.run(createConfig());
+  return {
+    mime(mimeBundle) {
+      send(mimeBundle);
+    },
+
+    text(text) {
+      send({ "text/plain": text });
+    },
+
+    html(html) {
+      send({ "text/html": html });
+    },
+
+    svg(svg) {
+      send({ "image/svg+xml": svg });
+    },
+
+    png(png) {
+      send({ "image/png": png });
+    },
+
+    jpeg(jpeg) {
+      send({ "image/jpeg": jpeg });
+    },
+
+    json(json) {
+      send({ "application/json": json });
+    },
+
+    close() {
+      process.send({
+        id: context_id,
+        display: {
+          close: display_id
+        }
+      });
+    }
+  };
+}

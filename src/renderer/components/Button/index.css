@@ -1,0 +1,10 @@
+.button {
+  font-family: Chivo;
+  background-color: #000;
+  color: #fff;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #fff;
+  border-radius: 4px;
+  padding: 4px 8px;
+}

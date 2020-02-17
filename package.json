@@ -27,32 +27,66 @@
     },
     "main": "src/main/index.js",
     "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^1.2.27",
+        "@fortawesome/free-solid-svg-icons": "^5.12.1",
+        "@fortawesome/react-fontawesome": "^0.1.8",
         "app-root-path": "^3.0.0",
         "commander": "^4.1.0",
+        "debounce": "^1.2.0",
         "electron-is-dev": "^1.1.0",
+        "electron-window": "^0.8.1",
+        "hydra-synth": "^1.0.27",
         "jp-kernel": "git+https://github.com/jfhbrook/jp-kernel.git#develop",
-        "nel": "git+https://github.com/jfhbrook/nel.git#develop"
+        "nel": "git+https://github.com/jfhbrook/nel.git#develop",
+        "prop-types": "^15.7.2",
+        "react": "^16.12.0",
+        "react-dom": "^16.12.0",
+        "react-tabs": "^3.1.0",
+        "rimraf": "^3.0.0",
+        "shell-quote": "^1.7.2",
+        "split2": "^3.1.1",
+        "styled-components": "^5.0.1",
+        "which": "^2.0.2",
+        "xterm": "^4.4.0",
+        "xterm-addon-fit": "^0.3.0"
     },
     "devDependencies": {
+        "@babel/preset-react": "^7.8.3",
+        "babel-eslint": "^10.0.3",
         "debug": "2",
         "electron": "^7.1.10",
+        "electron-builder": "^22.3.2",
         "electron-mocha": "^8.2.0",
         "electron-rebuild": "^1.9.0",
         "electron-webpack": "^2.7.4",
-        "eslint": "2",
+        "eslint": "^6.8.0",
+        "eslint-config-airbnb": "^18.0.1",
+        "eslint-config-babel": "^9.0.0",
+        "eslint-config-prettier": "^6.9.0",
+        "eslint-plugin-babel": "^5.3.0",
+        "eslint-plugin-flowtype": "^4.6.0",
+        "eslint-plugin-import": "^2.20.0",
+        "eslint-plugin-jsx-a11y": "^6.2.3",
+        "eslint-plugin-prettier": "^3.1.2",
+        "eslint-plugin-react": "^7.18.0",
+        "eslint-plugin-react-hooks": "^1.7.0",
         "jmp": "1 || 2",
         "jsdoc": "3",
         "mocha": "3",
+        "prettier": "^1.19.1",
         "uuid": "3",
         "webpack": "^4.41.5"
     },
     "engineStrict": true,
     "scripts": {
         "dev": "electron-webpack dev",
-        "lint": "eslint bin lib test",
+        "kernel": "jupyter lab --debug",
+        "format": "eslint ./src/**/*.js --fix",
+        "lint": "eslint ./src/**/*.js",
         "test:ihydrakernel": "electron-mocha test/ihydrakernel.js",
         "test": "npm run lint && npm run test:ihydrakernel",
-        "compile": "electron-rebuild && electron-webpack",
+        "rebuild": "electron-rebuild",
+        "compile": "npm run rebuild && electron-webpack",
         "dist": "npm run compile && electron-builder"
     },
     "build": {
@@ -60,6 +94,11 @@
         "productName": "IHydra",
         "mac": {
             "category": "public.app-category.graphics-design"
+        }
+    },
+    "electronWebpack": {
+        "renderer": {
+            "webpackConfig": "webpack.renderer.js"
         }
     }
 }

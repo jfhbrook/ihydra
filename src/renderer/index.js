@@ -1,5 +1,13 @@
-console.log('loading index.js');
+import { ComponentLoader } from "../common/loader";
 
-var body = document.getElementById('app');
+import "./index.css";
 
-body.innerHTML = '<h1>brohonestly</h1>';
+import Launcher from "./containers/launcher";
+import Kernel from "./containers/kernel";
+
+const loader = new ComponentLoader();
+
+loader.register("launcher", Launcher);
+loader.register("kernel", Kernel);
+
+loader.run(__args__);

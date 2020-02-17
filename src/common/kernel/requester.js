@@ -1,7 +1,7 @@
 /*
  * BSD 3-Clause License
  *
- * Copyright (c) 2015, Nicolas Riesco and others as credited in the AUTHORS file
+ * Copyright (c) 2017, Nicolas Riesco and others as credited in the AUTHORS file
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,69 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-import kernel from "./apps/kernel";
-import launcher from "./apps/launcher";
 
-import { AppLoader } from "../common/loader";
-import { createConfig } from "../common/config";
+export default class Requester {
+  constructor() {
+    // id for next request
+    this.id = 0;
 
-const loader = new AppLoader();
+    // callback associated with a request (indexed by id)
+    this.callbacks = {};
 
-loader.register("kernel", kernel);
-loader.register("launcher", launcher);
+    // the Promise resolve callback associated with a request (indexed by id)
+    this.resolves = {};
 
-loader.run(createConfig());
+    // the Promise reject callback associated with a request (indexed by id)
+    this.rejects = {};
+
+    // the string to be returned to a request (indexed by id)
+    this.responses = {};
+  }
+
+  // send a request
+  send(context, request, callback) {
+    const { id } = this;
+    this.id += 1;
+
+    if (callback) {
+      this.callbacks[id] = callback;
+    }
+
+    const promise = new Promise((resolve, reject) => {
+      // eslint-disable-next-line no-prototype-builtins
+      if (!this.responses.hasOwnProperty(id)) {
+        this.resolves[id] = resolve;
+        this.rejects[id] = reject;
+        return;
+      }
+
+      const response = this.responses[id];
+      delete this.responses[id];
+      resolve(response);
+    });
+
+    request.id = id;
+
+    context.send({
+      request
+    });
+
+    return promise;
+  }
+
+  // pass reply to the callbacks associated with a request
+  receive(id, reply) {
+    const callback = this.callbacks[id];
+    if (callback) {
+      delete this.callbacks[id];
+      callback(null, reply);
+    }
+
+    const resolve = this.resolves[id];
+    if (resolve) {
+      delete this.resolves[id];
+      delete this.rejects[id];
+      resolve(reply);
+    }
+  }
+}
