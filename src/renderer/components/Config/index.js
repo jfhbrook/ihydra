@@ -62,18 +62,18 @@ export default function Config({ config }) {
         </dt>
         <dd>
           {showVersions ? (
-            <div>
+            <dl>
               {Object.entries(config.versions).map(([lib, v]) => (
-                <>
+                <React.Fragment key={lib}>
                   <dt>
                     <Code>{lib}</Code>
                   </dt>
                   <dd>
                     <Code>v{v}</Code>
                   </dd>
-                </>
+                </React.Fragment>
               ))}
-            </div>
+            </dl>
           ) : (
             ""
           )}
