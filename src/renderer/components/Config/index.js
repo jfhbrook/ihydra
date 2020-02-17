@@ -1,5 +1,10 @@
+import {
+  faChevronRight,
+  faChevronDown
+} from "@fortawesome/free-solid-svg-icons";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import Code from "../Code";
 import Command from "../Command";
@@ -27,7 +32,12 @@ export default function Config({ config }) {
         <dd>{config.displayName}</dd>
         <dt>Kernel Install Folder Name</dt>
         <dd>{config.name}</dd>
-        <dt onClick={toggleCommands}>{showCommands ? "v" : ">"} Commands</dt>
+        <dt onClick={toggleCommands}>
+          <FontAwesomeIcon
+            icon={showCommands ? faChevronDown : faChevronRight}
+          />{" "}
+          Commands
+        </dt>
         <dd>
           {showCommands ? (
             <dl>
@@ -45,11 +55,15 @@ export default function Config({ config }) {
           )}
         </dd>
         <dt onClick={toggleVersions}>
-          {showVersions ? "v" : ">"} Library Versions
+          <FontAwesomeIcon
+            icon={showCommands ? faChevronDown : faChevronRight}
+          />{" "}
+          Library Versions
         </dt>
         <dd>
-          {showVersions
-            ? Object.entries(config.versions).map(([lib, v]) => (
+          {showVersions ? (
+            <div>
+              {Object.entries(config.versions).map(([lib, v]) => (
                 <>
                   <dt>
                     <Code>{lib}</Code>
@@ -58,8 +72,11 @@ export default function Config({ config }) {
                     <Code>v{v}</Code>
                   </dd>
                 </>
-              ))
-            : ""}
+              ))}
+            </div>
+          ) : (
+            ""
+          )}
         </dd>
       </dl>
     </div>
