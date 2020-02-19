@@ -55,14 +55,14 @@ function useLauncherState(config) {
 
   const searchForJupyter = confusedIfError(async () => {
     const newConfig = await cfg.setJupyterCommand(null).searchForJupyter();
-    setState({ ...state, status: "registering", config: newConfig });
+    setState({ status: "registering", config: newConfig });
   });
 
   const registrationFailedIfError = setStatusOnError("registration_failed");
   const loadJupyterInfo = registrationFailedIfError(async () => {
     const newConfig = await (await cfg.loadJupyterInfo()).getKernelCommand();
     newConfig.ensureSupportedJupyterVersion();
-    setState({ ...state, status: "ready", config: newConfig });
+    setState({ status: "ready", config: newConfig });
   });
 
   function useJupyterCommand(command) {
