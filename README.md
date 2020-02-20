@@ -19,11 +19,11 @@ IHydra was hacked together by [Josh Holbrook](https://twitter.com/jfhbrook). Hyd
 
 Like IJavascript, this project uses a BSD 3-Clause license.
 
-## bugs
+## Bugs
 
 There are many. Working with the Electron and Webpack stack is basically Hell on Earth and I threw in the towel with a number of major issues:
 
-* If you click "Launch Jupyter" and then "Exit" in dev mode, Jupyter will get orphaned.
+* If you click "Launch Jupyter" and then "Exit" in dev mode on Windows, Jupyter will get orphaned.
 * If you click "Launch Jupyter" a second time, the app will crash.
 * This project has no tests, because it's not obvious how to add tests to an electron-webpack app.
 * As mentioned, this project won't actually build a prod release.
