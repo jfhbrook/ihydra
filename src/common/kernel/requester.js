@@ -1,7 +1,9 @@
 /*
  * BSD 3-Clause License
  *
- * Copyright (c) 2017, Nicolas Riesco and others as credited in the AUTHORS file
+ * Copyright (c) 2020, Josh Holbrook
+ * Based on IJavascript, Copyright (c) 2015, Nicolas Riesco and others as
+ * credited in the AUTHORS file
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
