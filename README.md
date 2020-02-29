@@ -5,7 +5,7 @@ IHydra is a [Jupyter](https://jupyter.org/) kernel for [hydra](https://hydra-edi
 Jupyter is a [notebook](https://en.wikipedia.org/wiki/Notebook_interface) application typically used for writing Python in an interactive manner. Jupyter is most popular in the realms of data science 
 and data visualization. However, Jupyter is written to allow for arbitrary backends, meaning that we can use Jupyter to drive hydra. This means that we can take advantage of all of the Jupyter notebook's features while live coding with hydra!
 
-# Setup
+## Setup
 
 Install Python 3.7 and Jupyter. If you don't already do development with Python, the easiest - and recommended - way to install both is to [install Anaconda](https://www.anaconda.com/distribution/#download-section), a distribution of Python intended for easy use by data scientists that includes Jupyter. Alternately, you may want to use [pyenv](https://github.com/pyenv/pyenv) and [virtualenvs](https://docs.python-guide.org/dev/virtualenvs/). It's up to you.
 
@@ -18,6 +18,10 @@ Once that's running, you should be able to install the kernel by running through
 IHydra was hacked together by [Josh Holbrook](https://twitter.com/jfhbrook). Hydra itself was written by [Olivia Jack](https://twitter.com/_ojack_). The IHydra codebase was forked from IJavascript, which was written by [Nicolas Riesco](https://github.com/n-riesco) and other contributors. Small pieces of this project came from other libraries. For more details check the headers of the individual files, as well as the `AUTHORS` file in this project.
 
 Like IJavascript, this project uses a BSD 3-Clause license.
+
+## Demo
+
+You can find a fully working demo in [./demo.ipynb](https://github.com/jfhbrook/ihydra/blob/develop/demo.ipynb).
 
 ## Bugs
 
