@@ -81,6 +81,8 @@ export class AppLoader extends BaseLoader {
 
     logger.info(`Loading ${config.action}...`);
 
+    config = config.getWindowDimensions();
+
     try {
       await super.run(config);
     } catch (err) {

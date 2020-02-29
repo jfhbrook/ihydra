@@ -36,6 +36,7 @@
  */
 
 .xterm {
+    height: 90%;
     font-family: Source Code Pro;
     font-feature-settings: "liga" 0;
     position: relative;

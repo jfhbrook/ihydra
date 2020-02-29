@@ -1,0 +1,7 @@
+.panel {
+  margin-top: 20px;
+  margin-left: 40px;
+  max-width: 300px;
+  min-height: 150px;
+  display: flex;
+}

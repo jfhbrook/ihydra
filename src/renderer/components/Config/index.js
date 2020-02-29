@@ -32,8 +32,13 @@
  *
  */
 
+import {
+  faChevronRight,
+  faChevronDown
+} from "@fortawesome/free-solid-svg-icons";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import Code from "../Code";
 import Command from "../Command";
@@ -55,46 +60,72 @@ export default function Config({ config }) {
   }
 
   return (
-    <div className={css.config}>
-      <dl>
-        <dt>Kernel Display Name</dt>
-        <dd>{config.displayName}</dd>
-        <dt>Kernel Install Folder Name</dt>
-        <dd>{config.name}</dd>
-        <dt onClick={toggleCommands}>{showCommands ? "v" : ">"} Commands</dt>
-        <dd>
-          {showCommands ? (
-            <dl>
-              <dt>Kernel Command</dt>
-              <dd>
-                <Command command={config.kernelCommand} />
-              </dd>
-              <dt>Jupyter Launch Command</dt>
-              <dd>
-                <Command command={config.jupyterCommand.concat("notebook")} />
-              </dd>
-            </dl>
-          ) : (
-            ""
-          )}
-        </dd>
-        <dt onClick={toggleVersions}>
-          {showVersions ? "v" : ">"} Library Versions
-        </dt>
-        <dd>
-          {showVersions
-            ? Object.entries(config.versions).map(([lib, v]) => (
-                <>
-                  <dt>
-                    <Code>{lib}</Code>
-                  </dt>
-                  <dd>
-                    <Code>v{v}</Code>
+    <div className={css.container}>
+      <dl className={css.dict}>
+        <div className={css.pair}>
+          <dt className={css.key}>Kernel Display Name</dt>
+          <dd className={css.value}>{config.displayName}</dd>
+        </div>
+        <div className={css.pair}>
+          <dt className={css.key}>Kernel Install Folder Name</dt>
+          <dd className={css.value}>{config.name}</dd>
+        </div>
+        <div className={css.pair}>
+          <dt className={css.key} onClick={toggleCommands}>
+            <FontAwesomeIcon
+              icon={showCommands ? faChevronDown : faChevronRight}
+            />{" "}
+            Commands
+          </dt>
+          <dd className={css.value}>
+            {showCommands ? (
+              <dl className={css.dict}>
+                <div className={css.pair}>
+                  <dt className={css.key}>Kernel Command</dt>
+                  <dd className={css.value}>
+                    <Command command={config.kernelCommand} />
                   </dd>
-                </>
-              ))
-            : ""}
-        </dd>
+                </div>
+                <div className={css.pair}>
+                  <dt className={css.key}>Jupyter Launch Command</dt>
+                  <dd className={css.value}>
+                    <Command
+                      command={config.jupyterCommand.concat("notebook")}
+                    />
+                  </dd>
+                </div>
+              </dl>
+            ) : (
+              ""
+            )}
+          </dd>
+        </div>
+        <div className={css.pair}>
+          <dt className={css.key} onClick={toggleVersions}>
+            <FontAwesomeIcon
+              icon={showCommands ? faChevronDown : faChevronRight}
+            />{" "}
+            Library Versions
+          </dt>
+          <dd className={css.value}>
+            {showVersions ? (
+              <dl className={css.dict}>
+                {Object.entries(config.versions).map(([lib, v]) => (
+                  <div className={css.pair} key={lib}>
+                    <dt className={css.key}>
+                      <Code>{lib}</Code>
+                    </dt>
+                    <dd className={css.value}>
+                      <Code>v{v}</Code>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              ""
+            )}
+          </dd>
+        </div>
       </dl>
     </div>
   );

@@ -35,6 +35,12 @@
 import { ipcRenderer } from "electron";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
+import {
+  faCheckCircle,
+  faExclamationTriangle,
+  faSearch,
+  faSignOutAlt
+} from "@fortawesome/free-solid-svg-icons";
 
 import About from "../components/About";
 import Alert from "../components/Alert";
@@ -212,11 +218,15 @@ export default function Launcher({ config }) {
           ),
           registration_failed: () => (
             <Alert
+              icon={faExclamationTriangle}
               hed="Having Trouble Registering Jupyter"
               buttons={{
-                "Search Automatically": trySearching,
-                "Find Manually": goBackToWhich,
-                Exit: exit
+                "Search Automatically": {
+                  icon: faSearch,
+                  onClick: trySearching
+                },
+                "Find Manually": { icon: faSearch, onClick: goBackToWhich },
+                Exit: { icon: faSignOutAlt, onClick: exit }
               }}
             />
           ),
@@ -239,14 +249,23 @@ export default function Launcher({ config }) {
           ),
           install_failed: () => (
             <Alert
+              icon={faExclamationTriangle}
               hed="Install Failed"
-              buttons={{ "Back to Main Menu": goBackToMain }}
+              buttons={{
+                "Back to Main Menu": {
+                  icon: faExclamationTriangle,
+                  onClick: goBackToMain
+                }
+              }}
             />
           ),
           install_succeeded: () => (
             <Alert
-              hed="Install Succeeded"
-              buttons={{ "Cool Beans!": goBackToMain }}
+              icon={faCheckCircle}
+              message="Install Succeeded"
+              buttons={{
+                "Cool Beans!": { icon: faCheckCircle, onClick: goBackToMain }
+              }}
             />
           ),
           confused: () => (

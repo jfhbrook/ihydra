@@ -41,7 +41,8 @@ import { dehydrateConfig } from "./config";
 export default function createWindow(config, callback) {
   const win = window.createWindow({
     title: "IHydra",
-    webPreferences: { nodeIntegration: true }
+    webPreferences: { nodeIntegration: true },
+    ...config.window
   });
 
   if (isDev) {
