@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * BSD 3-Clause License
  *

@@ -1,10 +1,6 @@
 import PropTypes from "prop-types";
 import React from "react";
 import { faRedo, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
-import {
-  faRedo,
-  faSignOutAlt
-} from "@fortawesome/free-solid-svg-icons";
 
 import Button from "../Button";
 import ButtonBar from "../ButtonBar";
