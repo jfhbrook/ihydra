@@ -25,7 +25,7 @@ You can find a fully working demo in [./demo.ipynb](https://github.com/jfhbrook/
 
 ## Bugs
 
-There are many. Working with the Electron and Webpack stack is basically Hell on Earth and I threw in the towel with a number of major issues:
+There are many. I found working with the Electron and Webpack stack very challenging and I got blocked on a number of major issues:
 
 * If you click "Launch Jupyter" and then "Exit" in dev mode on Windows, Jupyter will get orphaned.
 * If you click "Launch Jupyter" a second time, the app will crash.
