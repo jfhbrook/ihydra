@@ -2,6 +2,8 @@
 
 IHydra is a [Jupyter](https://jupyter.org/) kernel for [hydra](https://hydra-editor.glitch.me), a visual synthesizer written in JavaScript and WebGL. It's an Electron application written in React and with libraries and code from the [IJavascript](https://github.com/n-riesco/ijavascript) project.
 
+# [VIDEO I MADE AND UPLOADED TO YOUTUBE](https://www.youtube.com/watch?v=WXawzYZCgKc)
+
 Jupyter is a [notebook](https://en.wikipedia.org/wiki/Notebook_interface) application typically used for writing Python in an interactive manner. Jupyter is most popular in the realms of data science 
 and data visualization. However, Jupyter is written to allow for arbitrary backends, meaning that we can use Jupyter to drive hydra. This means that we can take advantage of all of the Jupyter notebook's features while live coding with hydra!
 
